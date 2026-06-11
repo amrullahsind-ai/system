@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#050912" />
+  <title>SYSTEM — Body Awakening Protocol</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="boot" class="boot">
+    <div class="scanline"></div>
+    <div class="boot-panel">
+      <p class="sys-tag">[SYSTEM ONLINE]</p>
+      <h1>BODY AWAKENING<br/>PROTOCOL</h1>
+      <p class="muted">Physical weakness detected. Player registration required.</p>
+      <button id="enterBtn" class="primary">ACCEPT THE SYSTEM</button>
+    </div>
+  </div>
+
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <div>
+        <p class="sys-tag">[SYSTEM]</p>
+        <h2 id="screenTitle">STATUS WINDOW</h2>
+      </div>
+      <button id="notifyBtn" class="ghost">Enable Notif</button>
+    </header>
+
+    <section id="systemAlert" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <p class="sys-tag" id="alertType">[SYSTEM MESSAGE]</p>
+        <h2 id="alertTitle">DAILY QUEST HAS ARRIVED</h2>
+        <p id="alertText" class="muted"></p>
+        <div id="alertActions" class="row"></div>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="System navigation">
+      <button data-screen="status" class="active">Status</button>
+      <button data-screen="quest">Quest</button>
+      <button data-screen="gate">Gate</button>
+      <button data-screen="trial">Trial</button>
+      <button data-screen="core">AI Core</button>
+    </nav>
+
+    <section id="status" class="screen active">
+      <div class="card player-card">
+        <div class="rank-orb"><span id="rank">E</span></div>
+        <div>
+          <p class="sys-tag">PLAYER REGISTERED</p>
+          <h1 id="playerName">Unnamed Player</h1>
+          <p><span id="title">Weak Hunter</span> · Level <span id="level">1</span> · XP <span id="xp">0</span>/<span id="xpNeed">100</span></p>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="card">
+          <p class="sys-tag">PHYSICAL STATS</p>
+          <div id="statsGrid" class="stats-grid"></div>
+        </div>
+        <div class="card">
+          <p class="sys-tag">SYSTEM VERDICT</p>
+          <h3 id="verdict">Awakening Test required.</h3>
+          <p id="pattern" class="muted">No execution data available.</p>
+          <button id="openAwakening" class="primary full">BEGIN AWAKENING TEST</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="sys-tag">FAILURE LOG</p>
+        <div id="failureLog" class="log"></div>
+      </div>
+    </section>
+
+    <section id="quest" class="screen">
+      <div class="card command-card">
+        <p class="sys-tag">[DAILY QUEST]</p>
+        <h1>TRAINING TO BECOME STRONGER</h1>
+        <p class="muted">Complete assigned training before 23:59. Failure will trigger Penalty Zone.</p>
+        <div id="questList" class="quest-list"></div>
+        <div class="row">
+          <button id="completeQuest" class="primary">CLEAR QUEST</button>
+          <button id="failQuest" class="danger">FAIL QUEST</button>
+        </div>
+      </div>
+
+      <div id="penaltyCard" class="card penalty hidden">
+        <p class="sys-tag">[PENALTY ZONE]</p>
+        <h1>ESCAPE IS NOT PERMITTED</h1>
+        <p id="penaltyText" class="muted"></p>
+        <div id="penaltyList" class="quest-list"></div>
+        <button id="clearPenalty" class="danger full">CLEAR PENALTY</button>
+      </div>
+    </section>
+
+    <section id="gate" class="screen">
+      <div class="card">
+        <p class="sys-tag">[GATE HAS OPENED]</p>
+        <h1 id="gateName">E-RANK STRENGTH GATE</h1>
+        <p id="gateDesc" class="muted">A gate has appeared. Clear all conditions to acquire reward.</p>
+        <div id="gateList" class="quest-list"></div>
+        <div class="row">
+          <button id="clearGate" class="primary">DUNGEON CLEARED</button>
+          <button id="rerollGate" class="ghost">OPEN ANOTHER GATE</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="trial" class="screen">
+      <div class="card">
+        <p class="sys-tag">[PROMOTION TRIAL]</p>
+        <h1 id="bossName">50 PUSH-UP TRIAL</h1>
+        <p class="muted">Boss fight determines promotion eligibility. Failure reduces rank progress.</p>
+        <div id="bossList" class="quest-list"></div>
+        <div class="row">
+          <button id="clearBoss" class="primary">BOSS DEFEATED</button>
+          <button id="failBoss" class="danger">BOSS SURVIVED</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="sys-tag">[MONARCH MODE]</p>
+        <h2>30-day severe protocol</h2>
+        <p class="muted">Daily Quest cannot be ignored. Failures are recorded. Emergency pause remains available.</p>
+        <button id="toggleIron" class="ghost full">ACTIVATE MONARCH MODE</button>
+      </div>
+    </section>
+
+    <section id="core" class="screen">
+      <div class="card">
+        <p class="sys-tag">[SYSTEM CORE AI]</p>
+        <h1>GEMINI SYSTEM BRAIN</h1>
+        <p class="muted">AI acts as command authority, not a friendly coach. Keep API key private.</p>
+        <label>Gemini API Key</label>
+        <input id="apiKey" type="password" placeholder="AIza..." autocomplete="off" />
+        <label>Model</label>
+        <input id="modelName" value="gemini-2.0-flash" />
+        <button id="saveKey" class="primary full">SAVE SYSTEM CORE</button>
+      </div>
+      <div class="grid two">
+        <button class="aiBtn card" data-kind="daily">Generate Daily Command</button>
+        <button class="aiBtn card" data-kind="weekly">Weekly Judgement</button>
+        <button class="aiBtn card" data-kind="hidden">Check Hidden Quest</button>
+        <button class="aiBtn card" data-kind="emergency">Emergency Quest</button>
+        <button class="aiBtn card" data-kind="penalty">Penalty Protocol</button>
+      </div>
+      <div class="card">
+        <p class="sys-tag">AI OUTPUT</p>
+        <pre id="aiOutput">No transmission received.</pre>
+      </div>
+    </section>
+  </main>
+
+  <template id="awakeningTemplate">
+    <div class="modal-card large">
+      <p class="sys-tag">[AWAKENING TEST]</p>
+      <h2>PLAYER MEASUREMENT REQUIRED</h2>
+      <div class="form-grid">
+        <label>Name<input id="awName" placeholder="Sevila" /></label>
+        <label>Weight kg<input id="awWeight" type="number" /></label>
+        <label>Height cm<input id="awHeight" type="number" /></label>
+        <label>Max push-up<input id="awPush" type="number" /></label>
+        <label>Max squat<input id="awSquat" type="number" /></label>
+        <label>Max plank seconds<input id="awPlank" type="number" /></label>
+        <label>1 km time minutes<input id="awKm" type="number" step="0.1" /></label>
+        <label>Target<select id="awTarget"><option>Build Muscle</option><option>Fat Loss</option><option>Athletic Body</option><option>Endurance</option></select></label>
+      </div>
+      <button id="saveAwakening" class="primary full">REGISTER PLAYER</button>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
