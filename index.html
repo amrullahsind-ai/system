@@ -24,7 +24,7 @@
       <div class="top-left">
         <div class="logo-mark"><span>S</span></div>
         <div>
-          <div class="tiny">SYSTEM v8 • AUTO AI</div>
+          <div class="tiny">SYSTEM v10 • FULL PROTOCOL</div>
           <h2 id="headerTitle">STATUS WINDOW</h2>
         </div>
       </div>
@@ -36,6 +36,7 @@
         <div class="panel-title">[CURRENT ORDER]</div>
         <h3 id="orderTitle">Physical Scan belum selesai.</h3>
         <p id="orderDesc">System tidak akan membuka protocol sebelum tubuh dievaluasi.</p>
+        <div id="cycleTimer" class="cycle-timer">Cycle belum aktif.</div>
         <button id="orderAction" class="btn primary">MULAI PHYSICAL SCAN</button>
       </div>
 
@@ -111,6 +112,7 @@
         <div class="panel-title">[DAILY QUEST]</div>
         <h3 id="questName">Belum ada quest aktif.</h3>
         <p id="questReason" class="sys-copy">System menunggu Physical Scan.</p>
+        <div class="deadline-box"><span>BATAS PENGERJAAN</span><b id="deadlineTimer">--:--:--</b></div>
         <div id="questObjectives" class="objectives"></div>
         <div class="quest-actions">
           <button id="acceptQuestBtn" class="btn primary">TERIMA DAILY QUEST</button>
@@ -131,6 +133,7 @@
           </div>
           <div class="proof-box">
             <h4>TIMER</h4>
+            <select id="timerType"><option value="plank">Plank</option><option value="stretching">Stretching</option></select>
             <input id="timerSeconds" type="number" placeholder="detik plank/stretch" value="60" inputmode="numeric" />
             <p id="timerDisplay">00:00</p>
             <button id="startTimerBtn" class="btn">START TIMER</button>
@@ -138,8 +141,9 @@
           <div class="proof-box">
             <h4>SET RECORDER</h4>
             <input id="repsInput" type="number" placeholder="jumlah reps" inputmode="numeric" />
-            <select id="repsType"><option value="pushup">Push-up</option><option value="squat">Squat</option></select>
+            <select id="repsType"><option value="pushup">Push-up</option><option value="squat">Squat</option><option value="situp">Sit-up / Crunch</option></select>
             <button id="recordSetBtn" class="btn">RECORD SET</button>
+            <p id="restTimerDisplay" class="hint">Rest timer belum aktif.</p>
           </div>
         </div>
         <p class="hint">Reward penuh hanya diberikan kalau Clear Condition terpenuhi. Bukti GPS/timer/set membuat reward lebih kuat.</p>
@@ -153,6 +157,71 @@
         <p id="penaltyDesc">Jika Daily Quest gagal, akses reward dan gate akan dibekukan sampai penalty selesai.</p>
         <div id="penaltyObjectives" class="objectives"></div>
         <button id="clearPenaltyBtn" class="btn success">CLEAR PENALTY</button>
+      </div>
+    </section>
+
+
+
+    <section id="screen-protocol" class="screen">
+      <div class="panel urgent">
+        <div class="panel-title">[FATIGUE CHECK]</div>
+        <p class="sys-copy">System tidak bertanya untuk berkompromi. System memeriksa apakah tubuh layak menerima beban hari ini.</p>
+        <div class="form-grid">
+          <input id="fatigueSleep" type="number" placeholder="Tidur semalam (jam)" value="7" inputmode="decimal" />
+          <input id="fatigueEnergy" type="number" placeholder="Energi 1-10" value="5" min="1" max="10" inputmode="numeric" />
+          <select id="fatigueSoreness"><option value="normal">Nyeri otot normal</option><option value="medium">Nyeri sedang</option><option value="high">Nyeri tinggi</option></select>
+          <input id="fatigueInjury" placeholder="Cedera/nyeri tajam? kosongkan jika tidak ada" />
+        </div>
+        <button id="saveFatigueBtn" class="btn primary">KIRIM FATIGUE CHECK</button>
+        <p id="fatigueStatus" class="hint"></p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">[NUTRITION ORDER]</div>
+        <p class="sys-copy">Badan tidak berubah dari latihan saja. Nutrition Quest ikut menentukan estimasi target.</p>
+        <div class="quest-actions">
+          <button id="addProteinBtn" class="btn">+1 PORSI PROTEIN</button>
+          <button id="addWaterBtn" class="btn">+0.5 L AIR</button>
+          <button id="markSugarBtn" class="btn danger">CATAT GULA CAIR</button>
+        </div>
+        <p id="nutritionStatus" class="hint"></p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">[WEEKLY BODY SCAN]</div>
+        <p class="sys-copy">Setiap 7 hari, System membutuhkan bukti perubahan. Foto opsional, data wajib jika ingin estimasi akurat.</p>
+        <div class="form-grid">
+          <input id="weeklyWeight" type="number" step="0.1" placeholder="Berat sekarang (kg)" inputmode="decimal" />
+          <input id="weeklyWaist" type="number" step="0.1" placeholder="Lingkar perut (cm)" inputmode="decimal" />
+          <input id="weeklyChest" type="number" step="0.1" placeholder="Lingkar dada (cm)" inputmode="decimal" />
+          <input id="weeklyArm" type="number" step="0.1" placeholder="Lingkar lengan (cm)" inputmode="decimal" />
+          <input id="weeklyPushup" type="number" placeholder="Push-up max terbaru" inputmode="numeric" />
+          <input id="weeklySquat" type="number" placeholder="Squat max terbaru" inputmode="numeric" />
+          <input id="weeklyPlank" type="number" placeholder="Plank max terbaru (detik)" inputmode="numeric" />
+          <input id="weeklyRun1k" type="number" step="0.1" placeholder="1 km terbaru (menit)" inputmode="decimal" />
+        </div>
+        <div class="visual-scan">
+          <label class="file-label">FOTO MINGGUAN — DEPAN<input id="weekPhotoFront" type="file" accept="image/*" /></label>
+          <label class="file-label">FOTO MINGGUAN — SAMPING<input id="weekPhotoSide" type="file" accept="image/*" /></label>
+        </div>
+        <button id="saveWeeklyScanBtn" class="btn primary">SIMPAN WEEKLY SCAN</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">[ADAPTATION REPORT]</div>
+        <div id="adaptationReport" class="report-box"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">[OPTIONAL GATE]</div>
+        <p id="optionalGateStatus" class="hint">Tidak ada Gate aktif.</p>
+        <button id="requestGateBtn" class="btn">REQUEST OPTIONAL GATE</button>
+        <button id="clearGateBtn" class="btn success">CLEAR OPTIONAL GATE</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">[TITLE / EFFECT]</div>
+        <div id="titleList" class="title-list"></div>
       </div>
     </section>
 
@@ -200,6 +269,7 @@
     <button data-screen="status" class="active">STATUS</button>
     <button data-screen="order">ORDER</button>
     <button data-screen="penalty">PENALTY</button>
+    <button data-screen="protocol">PROTOCOL</button>
     <button data-screen="core">CORE</button>
     <button data-screen="notif">NOTIF</button>
     <button data-screen="log">LOG</button>
@@ -213,6 +283,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

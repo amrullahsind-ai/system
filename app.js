@@ -1,326 +1,143 @@
 const $ = (id) => document.getElementById(id);
 const qsa = (s) => Array.from(document.querySelectorAll(s));
-const STORAGE = 'system_v8_state';
+const STORAGE = 'system_v10_living_protocol';
+const QUEST_IDS = ['pushup','squat','situp','plank','run','stretching','protein','water','sugar','sleep'];
 
 let state = safeLoad() || defaultState();
-let gpsWatch = null;
-let gpsStart = 0;
-let gpsDistance = 0;
-let gpsLast = null;
-let gpsTimer = null;
+let gpsWatch = null, gpsStart = 0, gpsDistance = 0, gpsLast = null, gpsTimer = null;
+let cycleBusy = false;
+let lastAutoSignal = '';
 
-function safeLoad() {
-  try { return JSON.parse(localStorage.getItem(STORAGE) || 'null'); } catch { return null; }
-}
-function defaultState() {
-  return {
-    apiKey: '',
-    model: 'gemini-2.5-flash',
-    player: null,
-    photos: {},
-    stats: { strength: 0, endurance: 0, core: 0, discipline: 0 },
-    rank: 'E', level: 1, xp: 0, etaWeeks: null, compliance: 0,
-    quest: null, penalty: null, logs: [], lastNotice: '', lastJudgement: '',
-    proof: { runKm: 0, timerSec: 0, pushup: 0, squat: 0, level: 'Unverified' },
-    createdAt: new Date().toISOString(), lastOpen: new Date().toISOString()
-  };
-}
-function save(noRender=false) {
-  localStorage.setItem(STORAGE, JSON.stringify(state));
-  if (!noRender) render();
-}
-function log(msg, type='SYSTEM') {
-  state.logs.unshift({ time: new Date().toLocaleString('id-ID'), type, msg });
-  state.logs = state.logs.slice(0, 80);
-}
-function esc(s='') { return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function renderTransmission(text='') {
-  let clean = String(text).trim();
-  clean = clean.replace(/```[a-z]*\n?/gi,'').replace(/```/g,'');
-  clean = esc(clean).replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');
-  return '<pre>' + clean + '</pre>';
-}
-function showModal(text) {
-  $('modalContent').innerHTML = renderTransmission(text);
-  $('modal').hidden = false;
-}
-function showNotice(text) {
-  state.lastNotice = text;
-  save();
-}
-function showScreen(name) {
-  qsa('.screen').forEach(s => s.classList.remove('active'));
-  const screen = $('screen-' + name);
-  if (screen) screen.classList.add('active');
-  qsa('.bottom-nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
-  $('headerTitle').textContent = ({ status:'STATUS WINDOW', scan:'PHYSICAL SCAN', order:'CURRENT ORDER', penalty:'PENALTY ZONE', core:'SYSTEM CORE', notif:'NOTIFICATION MODULE', log:'SYSTEM LOG' })[name] || 'SYSTEM';
-  window.scrollTo({top: 0, behavior: 'smooth'});
-}
-function currentOrder() {
-  if (!state.player) return { title:'Physical Scan belum selesai.', desc:'System tidak akan membuka protocol sebelum tubuh dievaluasi.', action:'MULAI PHYSICAL SCAN', screen:'scan' };
-  if (state.penalty?.active) return { title:'Penalty Zone aktif.', desc:'Reward, Gate, Trial, dan route dibekukan sampai penalty selesai.', action:'MASUK PENALTY ZONE', screen:'penalty' };
-  if (!state.quest) return { title:'Daily Quest belum dibuat.', desc:'System Core harus mengeluarkan perintah harian berdasarkan scan dan target badan.', action:'BUAT DAILY QUEST', screen:'order' };
-  if (state.quest.status === 'draft') return { title:'Daily Quest menunggu penerimaan.', desc:'Menolak bukan opsi. Terima perintah untuk memulai protocol.', action:'TERIMA DAILY QUEST', screen:'order' };
-  if (state.quest.status === 'active') return { title:'Daily Quest aktif.', desc:'Clear Condition belum terpenuhi. Gunakan Proof of Quest.', action:'LANJUTKAN QUEST', screen:'order' };
-  if (state.quest.status === 'cleared') return { title:'Clear Condition terpenuhi.', desc:'Reward tersedia. Ambil reward untuk mengunci progress.', action:'AMBIL REWARD', screen:'order' };
-  return { title:'System menunggu perintah berikutnya.', desc:'Request Daily Command atau tunggu evaluasi.', action:'BUKA ORDER', screen:'order' };
-}
-function rankFromAvg(avg) { return avg >= 90 ? 'S' : avg >= 76 ? 'A' : avg >= 60 ? 'B' : avg >= 44 ? 'C' : avg >= 28 ? 'D' : 'E'; }
-function calcScan() {
-  const p = state.player;
-  let strength = Math.min(100, Math.round((+p.pushup || 0) * 1.7 + (+p.squat || 0) * 0.45));
-  let endurance = Math.max(1, Math.min(100, Math.round(110 - (+p.run1k || 15) * 5)));
-  let core = Math.min(100, Math.round((+p.plank || 0) / 1.8));
-  let discipline = p.sleep >= 8 ? 56 : p.sleep >= 7 ? 42 : 24;
-  if (p.activity === 'high') discipline += 16;
-  if (p.activity === 'medium') discipline += 8;
-  state.stats = { strength, endurance, core, discipline: Math.min(100, discipline) };
-  const avg = (strength + endurance + core + discipline) / 4;
-  state.rank = rankFromAvg(avg);
-  state.level = Math.max(1, Math.floor(avg / 10));
-  const base = { 'S-Rank Body Path': 52, 'Aesthetic Combat Build': 30, 'Lean Fighter Protocol': 26, 'Fat Loss Hunter Protocol': 32, 'Endurance Hunter Protocol': 24 }[p.goal] || 30;
-  state.etaWeeks = Math.max(8, Math.round(base + (100 - avg) / 7));
-}
-function rulesQuest() {
-  const p = state.player || {}, s = state.stats;
-  const factor = state.rank === 'E' ? 1.15 : state.rank === 'D' ? 1.25 : 1.35;
-  let push = Math.max(8, Math.round((+p.pushup || 8) * factor));
-  let squat = Math.max(20, Math.round((+p.squat || 20) * factor));
-  let plank = Math.max(45, Math.round((+p.plank || 30) * 1.45));
-  let run = p.goal?.includes('Endurance') ? 2.5 : p.goal?.includes('Fat Loss') ? 2.2 : 1.4;
-  if (s.endurance < 25) run = Math.min(run, 1.1);
-  if (s.discipline < 30) { push = Math.round(push * .85); squat = Math.round(squat * .85); }
-  return {
-    status:'draft', name:'Weakness Correction Protocol',
-    reason:`Protocol dibuat dari Physical Scan. Goal: ${p.goal || 'Unknown'}. Rule Engine aktif karena AI belum/ gagal digunakan.`,
-    objectives:[
-      {id:'pushup',label:'Push-up',target:push,unit:'reps',progress:0,proof:'set'},
-      {id:'squat',label:'Squat',target:squat,unit:'reps',progress:0,proof:'set'},
-      {id:'plank',label:'Plank',target:plank,unit:'detik',progress:0,proof:'timer'},
-      {id:'run',label:'Walk/Run',target:+run.toFixed(1),unit:'km',progress:0,proof:'gps'}
-    ],
-    deadline: new Date(new Date().setHours(23,59,0,0)).toISOString(), reward:{xp:120}, generatedBy:'rules'
-  };
-}
-function render() {
-  const o = currentOrder();
-  $('orderTitle').textContent = o.title; $('orderDesc').textContent = o.desc; $('orderAction').textContent = o.action;
-  $('rankLabel').textContent = state.rank; $('stName').textContent = state.player?.name || 'Unknown'; $('stLevel').textContent = state.level;
-  $('stRank').textContent = state.rank; $('stGoal').textContent = state.player?.goal || 'Belum ditentukan';
-  $('stETA').textContent = state.etaWeeks ? `${state.etaWeeks} minggu (dinamis)` : 'Belum dihitung';
-  $('stCompliance').textContent = `${state.compliance}%`;
-  ['Strength','Endurance','Core','Discipline'].forEach(k => { const v = state.stats[k.toLowerCase()] || 0; $('stat'+k).textContent = v; $('bar'+k).value = v; });
-  $('rankPath').innerHTML = ['E','D','C','B','A','S'].map(r => `<div class="${r===state.rank?'active-rank':''}">${r}<br><small>${r===state.rank?'ACTIVE':'LOCKED'}</small></div>`).join('');
-  const notice = $('systemNotice'); notice.textContent = state.lastNotice || ''; notice.classList.toggle('show', !!state.lastNotice);
-  renderQuest(); renderPenalty(); renderLog(); renderCore(); renderNotifStatus();
-}
-function renderQuest() {
-  const q = state.quest;
-  $('questName').textContent = q?.name || 'Belum ada quest aktif.';
-  $('questReason').textContent = q?.reason || 'System menunggu Physical Scan.';
-  $('acceptQuestBtn').style.display = q?.status === 'draft' ? 'inline-block' : 'none';
-  $('claimRewardBtn').style.display = q?.status === 'cleared' ? 'inline-block' : 'none';
-  $('failQuestBtn').style.display = q?.status === 'active' ? 'inline-block' : 'none';
-  $('questObjectives').innerHTML = q?.objectives?.map(obj => `
-    <div class="objective ${obj.progress>=obj.target?'done':''}">
-      <div><b>${esc(obj.label)}</b><br><small>${obj.progress}/${obj.target} ${esc(obj.unit)} • proof: ${esc(obj.proof)}</small></div>
-      <button class="btn" data-manual="${obj.id}">MANUAL +</button>
-    </div>`).join('') || '<p class="hint">Tidak ada quest. Gunakan Current Order.</p>';
-  qsa('[data-manual]').forEach(btn => btn.onclick = () => manualProgress(btn.dataset.manual));
-}
-function renderPenalty() {
-  const p = state.penalty;
-  $('penaltyTitle').textContent = p?.active ? 'Penalty aktif.' : 'Penalty belum aktif.';
-  $('penaltyDesc').textContent = p?.active ? p.reason : 'Jika Daily Quest gagal, akses reward dan gate dibekukan.';
-  $('penaltyObjectives').innerHTML = p?.objectives?.map(obj => `
-    <div class="objective ${obj.done?'done':''}">
-      <div><b>${esc(obj.label)}</b><br><small>${esc(obj.target)}</small></div>
-      <button class="btn" data-pen="${obj.id}">CLEAR</button>
-    </div>`).join('') || '';
-  qsa('[data-pen]').forEach(btn => btn.onclick = () => { const obj = state.penalty.objectives.find(x => x.id === btn.dataset.pen); if (obj) obj.done = true; save(); });
-}
-function renderLog() {
-  $('logList').innerHTML = state.logs.length ? state.logs.map(l => `<div class="log-item"><b>[${esc(l.type)}]</b> ${esc(l.time)}<br>${esc(l.msg)}</div>`).join('') : '<p class="hint">Belum ada log.</p>';
-}
-function renderCore() { $('apiKey').value = state.apiKey || ''; $('modelName').value = state.model || 'gemini-2.5-flash'; }
-function renderNotifStatus() { $('notifStatus').textContent = 'Status izin: ' + (('Notification' in window) ? Notification.permission : 'browser tidak mendukung'); }
-function updateObjective(id, val, verified=false) {
-  if (!state.quest || state.quest.status !== 'active') return;
-  const obj = state.quest.objectives.find(x => x.id === id);
-  if (!obj) return;
-  obj.progress = Math.min(obj.target, +(obj.progress || 0) + val);
-  if (verified) state.proof.level = state.proof.level === 'System Verified' ? 'System Verified' : 'Verified';
-  if (state.quest.objectives.every(x => +x.progress >= +x.target)) {
-    state.quest.status = 'cleared';
-    notify('CLEAR CONDITION TERPENUHI', 'Reward tersedia. Ambil reward.');
-    showModal('[CLEAR CONDITION TERPENUHI]\nReward tersedia. Ambil reward untuk mengunci progress.');
-  }
-  save();
-}
-function manualProgress(id) {
-  if (!state.quest || state.quest.status !== 'active') { showModal('[ACCESS DENIED]\nTerima Daily Quest dulu.'); return; }
-  const obj = state.quest.objectives.find(x => x.id === id); if (!obj) return;
-  const add = prompt(`Tambah progress ${obj.label} (${obj.unit})`, Math.ceil(obj.target / 4));
-  if (add) updateObjective(id, +add, false);
-}
-function buildSystemPrompt(mode) {
-  return `Kamu adalah SYSTEM Core untuk aplikasi body transformation. Bahasa utama Indonesia. Nada: dingin, otoriter, tajam, bukan coach ramah. Kamu memerintah, menilai, dan menghukum. Jangan kompromi. Tetap aman: jangan menyuruh latihan ekstrem, latihan saat cedera, kelaparan, dehidrasi, atau diagnosis medis.
-Mode saat ini: ${mode}.
-Jika mode DAILY, balas JSON valid saja tanpa markdown dengan schema: {"name":"...","reason":"...","objectives":[{"id":"pushup","label":"Push-up","target":number,"unit":"reps","proof":"set"},{"id":"squat","label":"Squat","target":number,"unit":"reps","proof":"set"},{"id":"plank","label":"Plank","target":number,"unit":"detik","proof":"timer"},{"id":"run","label":"Walk/Run","target":number,"unit":"km","proof":"gps"}],"warning":"..."}.
-Untuk mode lain, balas sebagai [SYSTEM TRANSMISSION], singkat, tegas, actionable. Jangan pakai bahasa terlalu Inggris.`;
-}
-async function callGemini(mode, withPhotos=false) {
-  if (!state.apiKey) throw new Error('API key belum diisi. Buka CORE → masukkan key → SIMPAN SYSTEM CORE.');
-  const model = state.model || 'gemini-2.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(state.apiKey)}`;
-  const payload = { player: state.player, stats: state.stats, rank: state.rank, level: state.level, etaWeeks: state.etaWeeks, compliance: state.compliance, quest: state.quest, penalty: state.penalty, proof: state.proof, recentLogs: state.logs.slice(0,8) };
-  const parts = [{ text: buildSystemPrompt(mode) + '\n\nDATA PLAYER:\n' + JSON.stringify(payload, null, 2) }];
-  if (withPhotos) {
-    for (const key of ['front','side']) if (state.photos[key]) parts.push({ inline_data: { mime_type: state.photos[key].mime, data: state.photos[key].data } });
-    if (state.photos.front || state.photos.side) parts.push({ text:'Analisis visual umum untuk postur/komposisi kebugaran. Tidak boleh diagnosis medis. Beri prioritas latihan dan target realistis.' });
-  }
-  const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contents:[{ role:'user', parts }] }) });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.message || 'Gemini error');
-  return data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n') || 'Tidak ada output.';
-}
-function extractJson(text) {
-  let raw = String(text).replace(/```json/gi,'').replace(/```/g,'').trim();
-  const a = raw.indexOf('{'), b = raw.lastIndexOf('}');
-  if (a >= 0 && b >= 0) raw = raw.slice(a, b + 1);
-  return JSON.parse(raw);
-}
-function normalizeQuest(q) {
-  const fallback = rulesQuest();
-  const ids = ['pushup','squat','plank','run'];
-  const objectives = ids.map(id => {
-    const found = (q.objectives || []).find(x => x.id === id) || fallback.objectives.find(x => x.id === id);
-    const base = fallback.objectives.find(x => x.id === id);
-    const target = Number(found.target);
-    return { ...base, ...found, target: Number.isFinite(target) && target > 0 ? target : base.target, progress: 0 };
-  });
-  return { status:'draft', name:q.name || 'Daily Quest', reason:q.reason || q.warning || 'System command generated.', objectives, deadline:new Date(new Date().setHours(23,59,0,0)).toISOString(), reward:{xp:145}, generatedBy:'ai' };
-}
-async function generateDaily() {
-  if (!state.player) { showScreen('scan'); return; }
-  showModal('[SYSTEM CORE]\nMenyusun Daily Quest sesuai data tubuh...');
-  try {
-    const out = await callGemini('DAILY', false);
-    state.quest = normalizeQuest(extractJson(out));
-    log('Daily Quest dibuat oleh AI System Core.', 'COMMAND');
-    showNotice('[SYSTEM NOTICE] Daily Quest dikeluarkan. Penolakan tidak dikenali.');
-    save();
-    showModal(`[DAILY QUEST HAS ARRIVED]\n${state.quest.name}\n\n${state.quest.reason}\n\nRefusal tidak dikenali. Terima perintah.`);
-    showScreen('order');
-  } catch (e) {
-    state.quest = rulesQuest();
-    log('AI gagal. Rule Engine mengambil alih: ' + e.message, 'FALLBACK');
-    save();
-    showModal('[SYSTEM CORE ERROR]\nAI tidak merespons. Rule Engine mengambil alih.\n\n' + e.message);
-    showScreen('order');
-  }
-}
-async function systemTransmission(mode, withPhotos=false) {
-  showModal('[SYSTEM CORE]\nMemproses transmission...');
-  try {
-    const out = await callGemini(mode, withPhotos);
-    if (mode === 'JUDGEMENT') state.lastJudgement = out;
-    if (mode === 'ROUTE') state.etaWeeks = Math.max(4, (state.etaWeeks || 20) + (state.compliance < 50 ? 2 : -1));
-    log(mode + ' transmission received.', 'CORE');
-    showModal(out);
-    notify('SYSTEM TRANSMISSION', out.replace(/\s+/g,' ').slice(0,115));
-    save();
-  } catch (e) { showModal('[SYSTEM CORE ERROR]\n' + e.message); }
-}
-async function scanPlayer() {
-  const required = ['name','age','height','weight','pushup','squat','plank','run1k'];
-  for (const id of required) if (!$(`${id}`).value) { showModal(`[SCAN DITOLAK]\nField ${id} belum diisi.`); return; }
-  state.player = { name:$('name').value || 'Player', age:+$('age').value, height:+$('height').value, weight:+$('weight').value, pushup:+$('pushup').value, squat:+$('squat').value, plank:+$('plank').value, run1k:+$('run1k').value, sleep:+$('sleep').value, activity:$('activity').value, equipment:$('equipment').value, goal:$('goal').value };
-  calcScan();
-  log('Physical Scan selesai. Protocol ditentukan.', 'SCAN');
-  save();
-  let msg = `[SYSTEM VERDICT]\nRank awal: ${state.rank}\nGoal: ${state.player.goal}\nEstimasi route: ${state.etaWeeks} minggu jika compliance stabil di atas 85%.\n\nSystem akan menyusun Daily Quest pertama.`;
-  showModal(msg);
-  showScreen('status');
-  if (state.apiKey && (state.photos.front || state.photos.side)) {
-    try { const visual = await callGemini('VISUAL SCAN', true); showModal(msg + '\n\n' + visual); } catch (e) { log('Visual Scan AI gagal: ' + e.message, 'ERROR'); }
-  }
-  setTimeout(() => generateDaily(), 700);
-}
-function claimReward() {
-  if (!state.quest || state.quest.status !== 'cleared') return;
-  const mult = state.proof.level === 'System Verified' ? 1.3 : state.proof.level === 'Verified' ? 1 : .55;
-  const xp = Math.round((state.quest.reward?.xp || 120) * mult);
-  state.xp += xp; state.level = Math.max(state.level, 1 + Math.floor(state.xp / 300));
-  state.stats.discipline = Math.min(100, state.stats.discipline + 5);
-  state.stats.strength = Math.min(100, state.stats.strength + 3);
-  state.stats.endurance = Math.min(100, state.stats.endurance + 2);
-  state.compliance = Math.min(100, state.compliance + 8);
-  if (mult >= 1) state.etaWeeks = Math.max(4, (state.etaWeeks || 20) - 1);
-  state.quest = null;
-  log(`Reward diambil. EXP +${xp}. Proof: ${state.proof.level}.`, 'REWARD');
-  showNotice('[SYSTEM NOTICE] Reward diambil. Current Order akan diperbarui.');
-  showModal(`[REWARD ACQUIRED]\nEXP +${xp}\nProof Level: ${state.proof.level}\nEstimasi target diperbarui.\n\nSystem Judgement otomatis akan diproses jika Core aktif.`);
-  notify('REWARD ACQUIRED', `EXP +${xp}. Quest cleared.`);
-  state.proof = { runKm:0, timerSec:0, pushup:0, squat:0, level:'Unverified' };
-  save();
-  if (state.apiKey) setTimeout(() => systemTransmission('JUDGEMENT'), 600);
-}
-function failQuest() {
-  state.penalty = { active:true, reason:'Daily Quest gagal. Kegagalan dicatat sebagai pelanggaran protocol.', objectives:[
-    {id:'walk', label:'Walk/Run Penalty', target:'1.5 km verified GPS', done:false},
-    {id:'plank', label:'Plank Penalty', target:'120 detik timer', done:false},
-    {id:'ack', label:'Failure acknowledgement', target:'Akui kegagalan. Tidak ada alasan.', done:false}
-  ]};
-  state.quest = null; state.compliance = Math.max(0, state.compliance - 12); state.etaWeeks = (state.etaWeeks || 20) + 1;
-  log('Daily Quest gagal. Penalty Zone aktif.', 'FAILURE');
-  showNotice('[SYSTEM WARNING] Penalty Zone aktif. Akses internal dibekukan.');
-  notify('PENALTY ZONE ACTIVATED', 'Kegagalan telah dicatat.');
-  save(); showModal('[PENALTY ZONE ACTIVATED]\nReward dibekukan. Gate ditolak. Clear penalty untuk memulihkan akses System.'); showScreen('penalty');
-  if (state.apiKey) setTimeout(() => systemTransmission('PENALTY'), 600);
-}
-function clearPenalty() {
-  if (!state.penalty?.active) return;
-  if (!state.penalty.objectives.every(x => x.done)) { showModal('[ACCESS DENIED]\nSemua penalty objective belum selesai.'); return; }
-  state.penalty.active = false; log('Penalty cleared. System access restored.', 'PENALTY'); showNotice('[SYSTEM NOTICE] Penalty cleared. Kegagalan tetap tercatat.'); save(); showModal('[PENALTY CLEARED]\nAkses System dipulihkan. Kegagalan tetap tercatat.');
-}
-function notify(title, body) {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    navigator.serviceWorker?.ready.then(reg => reg.showNotification(title, { body, icon:'icons/icon-192.png', badge:'icons/icon-192.png' })).catch(() => new Notification(title, { body }));
-  }
-}
-function haversine(a,b) { const R=6371; const dLat=(b.lat-a.lat)*Math.PI/180, dLon=(b.lon-a.lon)*Math.PI/180; const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(x)); }
-async function handlePhoto(inputId, previewId, key) {
-  const f = $(inputId).files?.[0]; if (!f) return;
-  $(previewId).hidden = false; $(previewId).src = URL.createObjectURL(f);
-  const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result.split(',')[1]); fr.readAsDataURL(f); });
-  state.photos[key] = { mime: f.type, data }; save();
-}
-function bind() {
-  $('enterBtn').onclick = () => { $('boot').style.display = 'none'; state.lastOpen = new Date().toISOString(); save(); };
-  $('closeModal').onclick = () => { $('modal').hidden = true; };
-  $('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('modal').hidden = true; });
-  qsa('.bottom-nav button').forEach(b => b.onclick = () => showScreen(b.dataset.screen));
-  $('orderAction').onclick = () => { const o = currentOrder(); if (o.action === 'BUAT DAILY QUEST') generateDaily(); else if (o.action === 'AMBIL REWARD') claimReward(); else showScreen(o.screen); };
-  $('bodyPhotoFront').onchange = () => handlePhoto('bodyPhotoFront','photoFrontPreview','front');
-  $('bodyPhotoSide').onchange = () => handlePhoto('bodyPhotoSide','photoSidePreview','side');
-  $('scanBtn').onclick = scanPlayer;
-  $('saveCoreBtn').onclick = () => { state.apiKey = $('apiKey').value.trim(); state.model = $('modelName').value.trim() || 'gemini-2.5-flash'; save(); showModal('[SYSTEM CORE SAVED]\nAPI key disimpan lokal di browser/perangkat ini.'); };
-  $('testCoreBtn').onclick = () => systemTransmission('TEST');
-  qsa('[data-core]').forEach(btn => btn.onclick = () => { const m = btn.dataset.core; if (m === 'daily') return generateDaily(); if (m === 'visual') return systemTransmission('VISUAL SCAN', true); systemTransmission(m.toUpperCase(), m === 'route'); });
-  $('acceptQuestBtn').onclick = () => { if (!state.quest) return; state.quest.status = 'active'; log('Daily Quest accepted.', 'COMMAND'); showNotice('[CURRENT ORDER] Daily Quest aktif. Proof wajib dikumpulkan.'); save(); showModal('[COMMAND ACCEPTED]\nDaily Quest aktif. Clear Condition wajib dipenuhi sebelum reward tersedia.'); };
-  $('claimRewardBtn').onclick = claimReward; $('failQuestBtn').onclick = failQuest; $('clearPenaltyBtn').onclick = clearPenalty;
-  $('recordSetBtn').onclick = () => { const reps = +$('repsInput').value || 0, type = $('repsType').value; if (reps > 0) { state.proof[type] = (state.proof[type] || 0) + reps; state.proof.level = 'Verified'; updateObjective(type, reps, true); $('repsInput').value = ''; } };
-  $('startTimerBtn').onclick = () => { let sec = +$('timerSeconds').value || 60, left = sec; $('timerDisplay').textContent = new Date(left*1000).toISOString().slice(14,19); const int = setInterval(() => { left--; $('timerDisplay').textContent = new Date(Math.max(0,left)*1000).toISOString().slice(14,19); if (left <= 0) { clearInterval(int); state.proof.timerSec += sec; state.proof.level = 'Verified'; updateObjective('plank', sec, true); showModal('[TIMER VERIFIED]\nObjective timer selesai.'); } }, 1000); };
-  $('startGpsBtn').onclick = () => { if (!navigator.geolocation) { showModal('GPS tidak tersedia.'); return; } gpsStart = Date.now(); gpsDistance = 0; gpsLast = null; $('gpsDistance').textContent='0.00'; if (gpsWatch !== null) navigator.geolocation.clearWatch(gpsWatch); gpsWatch = navigator.geolocation.watchPosition(pos => { const cur = {lat:pos.coords.latitude, lon:pos.coords.longitude}; if (gpsLast) { const d = haversine(gpsLast, cur); if (d < .25) gpsDistance += d; } gpsLast = cur; const mins = (Date.now()-gpsStart)/60000; $('gpsDistance').textContent = gpsDistance.toFixed(2); $('gpsPace').textContent = gpsDistance > 0 ? (mins/gpsDistance).toFixed(1) + '/km' : '--'; }, err => showModal('[GPS ERROR]\n' + err.message), { enableHighAccuracy:true, maximumAge:1500, timeout:10000 }); clearInterval(gpsTimer); gpsTimer = setInterval(() => { $('gpsTime').textContent = new Date(Date.now()-gpsStart).toISOString().slice(14,19); }, 1000); };
-  $('stopGpsBtn').onclick = () => { if (gpsWatch !== null) navigator.geolocation.clearWatch(gpsWatch); gpsWatch = null; clearInterval(gpsTimer); state.proof.runKm = Math.max(state.proof.runKm, gpsDistance); if (gpsDistance > .05) { state.proof.level = gpsDistance >= 1 ? 'System Verified' : 'Verified'; updateObjective('run', +gpsDistance.toFixed(2), true); showModal(`[GPS VERIFICATION]\nDistance verified: ${gpsDistance.toFixed(2)} km\nProof Level: ${state.proof.level}`); } save(); };
-  $('enableNotifBtn').onclick = async () => { if (!('Notification' in window)) return showModal('Browser tidak mendukung notifikasi.'); const perm = await Notification.requestPermission(); renderNotifStatus(); if (perm === 'granted') notify('SYSTEM NOTIFICATION ACTIVE', 'System Warning siap dikirim.'); };
-  $('testNotifBtn').onclick = () => notify('SYSTEM WARNING','Daily Quest belum selesai. Sisa waktu terus berkurang.');
-  $('installHintBtn').onclick = () => showModal('[INSTALL PWA]\n1. Buka web dari Chrome.\n2. Pastikan link HTTPS/GitHub Pages.\n3. Tekan menu titik tiga.\n4. Pilih Add to Home Screen / Install app.\n5. Buka dari ikon SYSTEM.\n\nCatatan: notifikasi background penuh perlu push server.');
-  $('resetBtn').onclick = () => { if (confirm('Reset semua data SYSTEM di browser ini?')) { localStorage.removeItem(STORAGE); location.reload(); } };
+function safeLoad(){ try { return JSON.parse(localStorage.getItem(STORAGE)||'null'); } catch { return null; } }
+function defaultState(){ return {
+  apiKey:'', model:'gemini-2.5-flash', player:null, photos:{},
+  stats:{strength:0,endurance:0,core:0,discipline:0,recovery:0}, rank:'E', level:1, xp:0,
+  etaWeeks:null, compliance:0, quest:null, penalty:null, logs:[], titles:[], className:'NONE',
+  lastNotice:'', lastJudgement:'', createdAt:new Date().toISOString(), lastOpen:new Date().toISOString(),
+  lastCompletedDate:null, lastGeneratedDate:null, lastWeeklyScan:null, standbyMessage:'',
+  proof:{runKm:0,timerSec:0,pushup:0,squat:0,situp:0,level:'Unverified'},
+  fatigue:{sleep:7,energy:5,soreness:'normal',injury:'',status:'UNCHECKED'},
+  nutrition:{protein:0,water:0,sugar:false,lockedDate:null}, weeklyScans:[], optionalGate:null,
+  settings:{autoTransmissions:true, strictMode:true, restSeconds:60}
+};}
+function save(noRender=false){ localStorage.setItem(STORAGE,JSON.stringify(state)); if(!noRender) render(); }
+function log(msg,type='SYSTEM'){ state.logs.unshift({time:new Date().toLocaleString('id-ID'),type,msg}); state.logs=state.logs.slice(0,140); }
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function todayKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
+function endOfToday(){const d=new Date();d.setHours(23,59,59,999);return d;}
+function startOfToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function nextMidnight(){const d=new Date();d.setDate(d.getDate()+1);d.setHours(0,0,0,0);return d;}
+function fmtMs(ms){if(ms<=0)return'00:00:00';const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
+function renderTransmission(text=''){let clean=String(text).trim().replace(/```[a-z]*\n?/gi,'').replace(/```/g,'');clean=esc(clean).replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');return '<pre>'+clean+'</pre>';}
+function showModal(text){$('modalContent').innerHTML=renderTransmission(text);$('modal').hidden=false;}
+function setNotice(text){ state.lastNotice=text; save(); }
+function notify(title,body){ if('Notification'in window && Notification.permission==='granted'){ navigator.serviceWorker?.ready.then(reg=>reg.showNotification(title,{body,icon:'icons/icon-192.png',badge:'icons/icon-192.png'})).catch(()=>new Notification(title,{body})); } }
+function showScreen(name){ qsa('.screen').forEach(s=>s.classList.remove('active')); const screen=$('screen-'+name); if(screen)screen.classList.add('active'); qsa('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===name)); $('headerTitle').textContent=({status:'STATUS WINDOW',scan:'PHYSICAL SCAN',order:'CURRENT ORDER',penalty:'PENALTY ZONE',protocol:'PROTOCOL',core:'SYSTEM CORE',notif:'NOTIFICATION MODULE',log:'SYSTEM LOG'})[name]||'SYSTEM'; window.scrollTo({top:0,behavior:'smooth'}); }
+
+function rankFromAvg(avg){ return avg>=90?'S':avg>=76?'A':avg>=60?'B':avg>=44?'C':avg>=28?'D':'E'; }
+function calcScan(){ const p=state.player; let strength=Math.min(100,Math.round((+p.pushup||0)*1.7+(+p.squat||0)*.45)); let endurance=Math.max(1,Math.min(100,Math.round(110-(+p.run1k||15)*5))); let core=Math.min(100,Math.round((+p.plank||0)/1.8)); let discipline=p.sleep>=8?56:p.sleep>=7?42:24; if(p.activity==='high')discipline+=16; if(p.activity==='medium')discipline+=8; let recovery=p.sleep>=8?70:p.sleep>=7?55:32; state.stats={strength,endurance,core,discipline:Math.min(100,discipline),recovery}; const avg=(strength+endurance+core+discipline+recovery)/5; state.rank=rankFromAvg(avg); state.level=Math.max(1,Math.floor(avg/10)); const base={'S-Rank Body Path':52,'Aesthetic Combat Build':30,'Lean Fighter Protocol':26,'Fat Loss Hunter Protocol':32,'Endurance Hunter Protocol':24}[p.goal]||30; state.etaWeeks=Math.max(8,Math.round(base+(100-avg)/7)); state.compliance = Math.max(state.compliance, 10); }
+function assessFatigue(){ const f=state.fatigue; let score=0; if(+f.sleep<6)score+=2; if(+f.energy<=3)score+=2; if(f.soreness==='high')score+=2; if(f.injury?.trim())score+=4; if(score>=5) return 'HIGH'; if(score>=3) return 'MEDIUM'; return 'LOW'; }
+function updateDynamicEta(delta){ state.etaWeeks=Math.max(4,(state.etaWeeks||20)+delta); }
+
+function currentOrder(){
+  if(!state.player) return {title:'Physical Scan belum selesai.',desc:'System tidak akan membuka protocol sebelum tubuh dievaluasi.',action:'MULAI PHYSICAL SCAN',screen:'scan'};
+  if(state.fatigue.status==='UNCHECKED' && todayKey(new Date(state.lastOpen))!==todayKey()) return {title:'Fatigue Check wajib.',desc:'System membutuhkan kondisi tubuh hari ini sebelum memberi beban.',action:'ISI FATIGUE CHECK',screen:'protocol'};
+  if(state.penalty?.active) return {title:'Penalty Zone aktif.',desc:'Reward, Gate, Trial, dan route dibekukan sampai penalty selesai.',action:'MASUK PENALTY ZONE',screen:'penalty'};
+  if(state.quest?.status==='active') return {title:'Daily Quest aktif.',desc:'Batas pengerjaan berjalan sampai 23:59. Clear Condition wajib dipenuhi.',action:'LANJUTKAN QUEST',screen:'order'};
+  if(state.quest?.status==='cleared') return {title:'Clear Condition terpenuhi.',desc:'Reward tersedia. Ambil reward sebelum cycle ditutup.',action:'AMBIL REWARD',screen:'order'};
+  if(state.lastCompletedDate===todayKey()) return {title:'SYSTEM STANDBY.',desc:'Daily Quest selesai. Optional Gate/Recovery Order tersedia sampai cycle berikutnya.',action:'BUKA PROTOCOL',screen:'protocol'};
+  return {title:'Daily Quest sedang disusun otomatis.',desc:'System akan mengeluarkan perintah harian. Tidak perlu generate manual.',action:'BUKA ORDER',screen:'order'};
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=8').catch(()=>{});
-bind();
-render();
-setTimeout(() => { if (state.player && !state.quest && !state.penalty?.active) showNotice('[SYSTEM NOTICE] Tidak ada Daily Quest aktif. System menunggu command.'); }, 400);
+function baseTargets(){ const p=state.player||{},s=state.stats||{}; const fatigue=assessFatigue(); let factor=state.rank==='E'?1.12:state.rank==='D'?1.22:1.32; if(fatigue==='HIGH') factor*=0.65; if(fatigue==='MEDIUM') factor*=0.85; let push=Math.max(10,Math.round((+p.pushup||8)*factor)); let squat=Math.max(25,Math.round((+p.squat||25)*factor)); let situp=Math.max(20,Math.round(((+p.plank||30)/3)*factor)); let plank=Math.max(45,Math.round((+p.plank||30)*1.35*factor)); let run=p.goal?.includes('Endurance')?2.5:p.goal?.includes('Fat Loss')?2.2:1.5; let stretching=8, protein=2, water=2, sleep=7;
+  if(p.goal?.includes('Aesthetic')){ push=Math.max(push,24); squat=Math.max(squat,35); situp=Math.max(situp,28); plank=Math.max(plank,90); protein=2; }
+  if(p.goal?.includes('Lean')){ protein=3; push=Math.max(push,22); squat=Math.max(squat,35); }
+  if(p.goal?.includes('Fat Loss')){ water=2.5; run=Math.max(run,2.0); }
+  if(s.endurance<25)run=Math.min(run,1.2); if(s.discipline<30){ push=Math.round(push*.85); squat=Math.round(squat*.85); situp=Math.round(situp*.85); }
+  if(fatigue==='HIGH'){ run=Math.min(run,0.8); stretching=12; protein=Math.max(2,protein); }
+  return{pushup:push,squat,situp,plank,run:+run.toFixed(1),stretching,protein,water,sleep}; }
+function rulesQuest(){ const p=state.player||{},t=baseTargets(), fatigue=assessFatigue(); let name = fatigue==='HIGH'?'Daily Quest — Recovery Correction':'Daily Quest — Body Protocol'; let reason = fatigue==='HIGH' ? 'Fatigue tinggi terdeteksi. Beban diturunkan, tetapi perintah tetap wajib. Recovery bukan kompromi.' : `Protocol dibuat dari Physical Scan. Goal: ${p.goal||'Unknown'}. Komponen wajib: upper body, legs, core, conditioning, nutrition, recovery.`;
+  return{status:'active',date:todayKey(),startAt:startOfToday().toISOString(),deadline:endOfToday().toISOString(),name,reason,objectives:[
+    {id:'pushup',label:'Push-up',target:t.pushup,unit:'reps',progress:0,proof:'set'},
+    {id:'squat',label:'Squat',target:t.squat,unit:'reps',progress:0,proof:'set'},
+    {id:'situp',label:'Sit-up / Crunch',target:t.situp,unit:'reps',progress:0,proof:'set'},
+    {id:'plank',label:'Plank',target:t.plank,unit:'detik',progress:0,proof:'timer'},
+    {id:'run',label:'Walk/Run',target:t.run,unit:'km',progress:0,proof:'gps'},
+    {id:'stretching',label:'Stretching / Mobility',target:t.stretching*60,unit:'detik',progress:0,proof:'timer'},
+    {id:'protein',label:'Protein Quest',target:t.protein,unit:'porsi',progress:0,proof:'manual'},
+    {id:'water',label:'Water Quest',target:t.water,unit:'liter',progress:0,proof:'manual'},
+    {id:'sugar',label:'No Liquid Sugar',target:1,unit:'hari',progress:0,proof:'manual'},
+    {id:'sleep',label:'Sleep Quest',target:t.sleep,unit:'jam',progress:0,proof:'manual'}
+  ],reward:{xp:190},generatedBy:'rules'}; }
+function normalizeQuest(q){ const f=rulesQuest(); const byId=Object.fromEntries((q.objectives||[]).map(x=>[String(x.id||'').toLowerCase(),x])); const objectives=f.objectives.map(base=>{ const found=byId[base.id]||{}; const n=Number(found.target); return {...base,...found,id:base.id,label:found.label||base.label,target:Number.isFinite(n)&&n>0?n:base.target,unit:found.unit||base.unit,proof:found.proof||base.proof,progress:0}; }); return {status:'active',date:todayKey(),startAt:startOfToday().toISOString(),deadline:endOfToday().toISOString(),name:q.name||'Daily Quest — AI Protocol',reason:q.reason||q.warning||'System Core mengeluarkan Daily Quest otomatis.',objectives,reward:{xp:210},generatedBy:'ai'}; }
+
+function systemPayload(){return JSON.stringify({player:state.player,rank:state.rank,level:state.level,xp:state.xp,stats:state.stats,etaWeeks:state.etaWeeks,compliance:state.compliance,fatigue:state.fatigue,nutrition:state.nutrition,quest:state.quest,penalty:state.penalty,proof:state.proof,lastLogs:state.logs.slice(0,8),weeklyScans:state.weeklyScans.slice(0,3),titles:state.titles,className:state.className},null,2);}
+async function callGemini(mode='COMMAND', visual=false){
+  if(!state.apiKey) throw new Error('API key belum disimpan.');
+  const basePrompt = `Kamu adalah SYSTEM CORE untuk aplikasi body protocol yang terinspirasi rasa otoriter sistem leveling. Jangan ramah seperti coach. Jangan menyuruh hal berbahaya. Bahasa Indonesia tegas, dingin, jelas. Jangan diagnosis medis. Jika ada cedera/fatigue tinggi, ubah ke Recovery Order tetapi tetap perintah. Data player:\n${systemPayload()}`;
+  let instruction = '';
+  if(mode==='DAILY_JSON') instruction = `Buat Daily Quest personal untuk target badan user. WAJIB JSON VALID TANPA MARKDOWN dengan format: {"name":"...","reason":"...","objectives":[{"id":"pushup","label":"Push-up","target":30,"unit":"reps","proof":"set"}, ...]}. WAJIB ada id: pushup,squat,situp,plank,run,stretching,protein,water,sugar,sleep. Jangan hilangkan squat atau core. Target harus aman dan bertahap.`;
+  else if(mode==='VISUAL SCAN') instruction = `Analisis foto badan secara umum untuk kebugaran: postur, proporsi umum, area prioritas latihan, bukan diagnosis. Beri output: [VISUAL BODY SCAN], Verdict, Priority, Protocol Adjustment, Warning.`;
+  else if(mode==='JUDGEMENT') instruction = `Beri [SYSTEM JUDGEMENT] setelah aksi terakhir. Sebut compliance, adaptation, estimasi target apakah maju/mundur, dan perintah berikutnya. Tidak usah terlalu panjang.`;
+  else if(mode==='HIDDEN') instruction = `Scan apakah Hidden Quest layak muncul. Jika tidak layak, tolak dengan dingin. Jika layak, beri objective tambahan aman dan reward tersembunyi.`;
+  else if(mode==='EMERGENCY') instruction = `Buat Emergency Protocol singkat berdasarkan waktu/progress. Harus aman, tegas, dan bisa selesai 15-30 menit.`;
+  else if(mode==='ROUTE') instruction = `Hitung ulang rute menuju target: E-D-C-B-A-S, estimasi minggu, penyebab mundur/maju, dan perintah koreksi.`;
+  else if(mode==='PENALTY') instruction = `Buat Penalty Assignment yang keras tapi aman. Bedakan discipline failure vs fatigue/injury. Tetap otoriter.`;
+  else if(mode==='OPTIONAL_GATE') instruction = `Putuskan apakah Optional Gate dibuka atau ditolak. Jika fatigue tinggi, tolak dan berikan Recovery Order. Jika dibuka, beri Gate singkat.`;
+  else instruction = `Beri [SYSTEM TRANSMISSION] singkat yang menjelaskan keadaan player dan perintah berikutnya.`;
+  const parts=[{text:basePrompt+'\n\n'+instruction}];
+  if(visual){ for(const k of ['front','side','weekFront','weekSide']){ if(state.photos[k]?.data){ parts.push({inline_data:{mime_type:state.photos[k].mime,data:state.photos[k].data}}); } } }
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(state.model||'gemini-2.5-flash')}:generateContent?key=${encodeURIComponent(state.apiKey)}`;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{temperature:0.65}})});
+  if(!res.ok){ const txt=await res.text(); throw new Error(`Gemini error ${res.status}: ${txt.slice(0,240)}`); }
+  const data=await res.json(); return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n').trim() || '[SYSTEM CORE] Tidak ada output.';
+}
+async function generateDaily(auto=false){ if(cycleBusy) return; if(!state.player) return showScreen('scan'); if(state.penalty?.active) return; const tk=todayKey(); if(state.lastGeneratedDate===tk && state.quest) return; if(state.lastCompletedDate===tk) return; cycleBusy=true; try{ let quest=null; if(state.apiKey){ try{ const out=await callGemini('DAILY_JSON'); const jsonText=out.replace(/```json|```/g,'').trim(); quest=normalizeQuest(JSON.parse(jsonText)); log('Daily Quest dibuat AI System Core.','CORE'); }catch(e){ log('AI Daily Quest gagal, Rule Engine mengambil alih: '+e.message,'ERROR'); } } if(!quest) quest=rulesQuest(); state.quest=quest; state.lastGeneratedDate=tk; state.fatigue.status='CHECKED'; state.lastNotice='[DAILY QUEST HAS ARRIVED] Perintah harian telah dibuat otomatis. Batas pengerjaan: 23:59.'; log('Daily Quest aktif untuk cycle hari ini.','QUEST'); notify('DAILY QUEST HAS ARRIVED','Perintah harian aktif sampai 23:59.'); save(); if(auto) showModal(`[DAILY QUEST HAS ARRIVED]\n${quest.name}\n\n${quest.reason}\n\nBatas pengerjaan: 23:59.`); if(state.apiKey && state.settings.autoTransmissions) setTimeout(()=>systemTransmission('COMMAND'),900); } finally { cycleBusy=false; } }
+async function systemTransmission(mode='COMMAND', visual=false){ try{ const out=await callGemini(mode,visual); if(mode==='JUDGEMENT') state.lastJudgement=out; if(mode==='ROUTE') updateDynamicEta(state.compliance<50?2:-1); log(mode+' transmission received.','CORE'); showModal(out); notify('SYSTEM TRANSMISSION',out.replace(/\s+/g,' ').slice(0,115)); save(); } catch(e){ showModal('[SYSTEM CORE ERROR]\n'+e.message); } }
+
+function updateObjective(id,amount,verified=false){ const q=state.quest; if(!q?.objectives) return; const obj=q.objectives.find(o=>o.id===id); if(!obj) return; obj.progress=Math.min(+obj.target,+(obj.progress||0)+(+amount||0)); if(verified && ['run','plank','stretching','pushup','squat','situp'].includes(id)) state.proof.level=state.proof.level==='System Verified'||id==='run'?'System Verified':'Verified'; checkQuestClear(); save(); }
+function checkQuestClear(){ const q=state.quest; if(!q?.objectives) return; const done=q.objectives.every(o=>+o.progress>=+o.target); if(done){ q.status='cleared'; log('Clear Condition terpenuhi. Reward tersedia.','QUEST'); showModal('[CLEAR CONDITION TERPENUHI]\nSemua objective selesai. Reward tersedia.'); notify('CLEAR CONDITION MET','Reward tersedia.'); } }
+function claimReward(){ if(!state.quest||state.quest.status!=='cleared') return; const mult=state.proof.level==='System Verified'?1.3:state.proof.level==='Verified'?1:.55; const xp=Math.round((state.quest.reward?.xp||180)*mult); state.xp+=xp; state.level=Math.max(state.level,1+Math.floor(state.xp/300)); state.stats.discipline=Math.min(100,state.stats.discipline+5); state.stats.strength=Math.min(100,state.stats.strength+4); state.stats.endurance=Math.min(100,state.stats.endurance+3); state.stats.core=Math.min(100,state.stats.core+4); state.stats.recovery=Math.min(100,state.stats.recovery+2); state.compliance=Math.min(100,state.compliance+8); if(mult>=1)updateDynamicEta(-1); if(!state.titles.includes('Quest Clearer')) state.titles.push('Quest Clearer'); if(state.compliance>=80&&!state.titles.includes('Consistent Hunter'))state.titles.push('Consistent Hunter'); state.quest=null; state.lastCompletedDate=todayKey(); state.standbyMessage='Daily Quest selesai. Optional Gate/Recovery Order tersedia. Next Quest otomatis pada 00:00.'; log(`Reward diambil. EXP +${xp}. Proof: ${state.proof.level}.`,'REWARD'); setNotice('[SYSTEM STANDBY] Daily Quest selesai. Optional Gate tersedia. Next Quest otomatis jam 00:00.'); showModal(`[REWARD ACQUIRED]\nEXP +${xp}\nProof Level: ${state.proof.level}\nEstimasi target diperbarui.\n\nSystem Standby. Optional Gate dapat diminta, tetapi System bisa menolak.`); notify('REWARD ACQUIRED',`EXP +${xp}. Optional Gate tersedia.`); state.proof={runKm:0,timerSec:0,pushup:0,squat:0,situp:0,level:'Unverified'}; save(); if(state.apiKey && state.settings.autoTransmissions) setTimeout(()=>systemTransmission('JUDGEMENT'),600); }
+function failQuest(reason='Daily Quest gagal. Kegagalan dicatat sebagai pelanggaran protocol.'){ state.penalty={active:true,reason,objectives:[{id:'walk',label:'Walk/Run Penalty',target:'1.5 km verified GPS',done:false},{id:'squat',label:'Squat Penalty',target:'50 reps',done:false},{id:'plank',label:'Plank Penalty',target:'120 detik timer',done:false},{id:'ack',label:'Failure acknowledgement',target:'Akui kegagalan. Tidak ada alasan.',done:false}]}; state.quest=null; state.compliance=Math.max(0,state.compliance-12); updateDynamicEta(1); log('Daily Quest gagal. Penalty Zone aktif.','FAILURE'); setNotice('[SYSTEM WARNING] Penalty Zone aktif. Akses internal dibekukan.'); notify('PENALTY ZONE ACTIVATED','Kegagalan telah dicatat.'); save(); showModal('[PENALTY ZONE ACTIVATED]\nReward dibekukan. Gate ditolak. Clear penalty untuk memulihkan akses System.'); showScreen('penalty'); if(state.apiKey && state.settings.autoTransmissions) setTimeout(()=>systemTransmission('PENALTY'),600); }
+function clearPenalty(){ if(!state.penalty?.active)return; if(!state.penalty.objectives.every(x=>x.done)){ showModal('[ACCESS DENIED]\nSemua penalty objective belum selesai.'); return; } state.penalty.active=false; state.lastCompletedDate=null; log('Penalty cleared. System access restored.','PENALTY'); setNotice('[SYSTEM NOTICE] Penalty cleared. System akan membuat Daily Quest baru jika cycle hari ini belum selesai.'); save(); showModal('[PENALTY CLEARED]\nAkses System dipulihkan. Kegagalan tetap tercatat.'); setTimeout(()=>checkCycle(true),500); }
+
+function render(){ const o=currentOrder(); $('orderTitle').textContent=o.title; $('orderDesc').textContent=o.desc; $('orderAction').textContent=o.action; $('rankLabel').textContent=state.rank; $('stName').textContent=state.player?.name||'Unknown'; $('stLevel').textContent=state.level; $('stRank').textContent=state.rank; $('stGoal').textContent=state.player?.goal||'Belum ditentukan'; $('stETA').textContent=state.etaWeeks?`${state.etaWeeks} minggu (dinamis)`:'Belum dihitung'; $('stCompliance').textContent=`${state.compliance}%`; ['Strength','Endurance','Core','Discipline'].forEach(k=>{const v=state.stats[k.toLowerCase()]||0; $('stat'+k).textContent=v; $('bar'+k).value=v;}); $('rankPath').innerHTML=['E','D','C','B','A','S'].map(r=>`<div class="${r===state.rank?'active-rank':''}">${r}<br><small>${r===state.rank?'ACTIVE':'LOCKED'}</small></div>`).join(''); const notice=$('systemNotice'); notice.textContent=state.lastNotice||''; notice.classList.toggle('show',!!state.lastNotice); renderQuest(); renderPenalty(); renderProtocol(); renderLog(); renderCore(); renderNotifStatus(); updateCountdowns(); }
+function renderQuest(){ const q=state.quest; $('questName').textContent=q?.name||(state.lastCompletedDate===todayKey()?'Daily Quest selesai.':'Menunggu Daily Quest otomatis.'); $('questReason').textContent=q?.reason||(state.lastCompletedDate===todayKey()?'System Standby. Next Quest muncul otomatis jam 00:00.':'System akan membuat quest tanpa tombol generate manual.'); $('acceptQuestBtn').style.display='none'; $('claimRewardBtn').style.display=q?.status==='cleared'?'inline-block':'none'; $('failQuestBtn').style.display=q?.status==='active'?'inline-block':'none'; $('questObjectives').innerHTML=q?.objectives?.map(obj=>`<div class="objective ${(+obj.progress>=+obj.target)?'done':''}"><div><b>${esc(obj.label)}</b><br><small>${obj.progress}/${obj.target} ${esc(obj.unit)}</small><br><span class="tag">proof: ${esc(obj.proof)}</span></div><button class="btn" data-manual="${obj.id}">MANUAL +</button></div>`).join('')||(state.lastCompletedDate===todayKey()?'<div class="objective done standby-box"><div><b>[SYSTEM STANDBY]</b><br><small>Daily Quest selesai. Optional Gate/Recovery Order tersedia. Next task muncul otomatis pada 00:00.</small></div></div>':'<p class="hint">Jika Physical Scan sudah selesai, Daily Quest dibuat otomatis.</p>'); qsa('[data-manual]').forEach(b=>b.onclick=()=>{ const id=b.dataset.manual; const amt= id==='run'?0.25 : id==='plank'||id==='stretching'?30 : id==='water'?0.5 : id==='protein'||id==='sleep'||id==='sugar'?1 : 5; updateObjective(id,amt,false); }); }
+function renderPenalty(){ const p=state.penalty; $('penaltyTitle').textContent=p?.active?'Penalty aktif.':'Penalty belum aktif.'; $('penaltyDesc').textContent=p?.active?p.reason:'Jika Daily Quest gagal, akses reward dan gate dibekukan sampai penalty selesai.'; $('penaltyObjectives').innerHTML=p?.objectives?.map((x,i)=>`<div class="objective ${x.done?'done':''}"><div><b>${esc(x.label)}</b><br><small>${esc(x.target)}</small></div><button class="btn" data-penalty="${i}">${x.done?'DONE':'MARK DONE'}</button></div>`).join('')||''; qsa('[data-penalty]').forEach(b=>b.onclick=()=>{state.penalty.objectives[+b.dataset.penalty].done=true;save();}); }
+function renderProtocol(){ if(!$('fatigueStatus')) return; $('fatigueStatus').textContent = `Fatigue: ${assessFatigue()} | Status: ${state.fatigue.status}`; $('nutritionStatus').textContent = `Protein ${state.nutrition.protein||0} porsi • Air ${state.nutrition.water||0} L • Gula cair: ${state.nutrition.sugar?'tercatat':'bersih/belum dicatat'}`; $('adaptationReport').innerHTML = `<b>Adaptation Report</b><br>Strength: ${state.stats.strength} • Endurance: ${state.stats.endurance} • Core: ${state.stats.core} • Discipline: ${state.stats.discipline}<br>ETA: ${state.etaWeeks||'-'} minggu • Compliance: ${state.compliance}%<br>Verdict: ${state.compliance>=80?'Route stabil. Promotion chance meningkat.':state.compliance>=45?'Belum stabil. System tetap memantau.':'Tidak layak promotion. Koreksi wajib.'}`; $('titleList').innerHTML=(state.titles.length?state.titles:['Belum ada title']).map(t=>`<span class="tag title-tag">${esc(t)}</span>`).join(' '); $('optionalGateStatus').textContent=state.optionalGate?state.optionalGate:'Tidak ada Gate aktif.'; }
+function renderLog(){ $('logList').innerHTML=state.logs.map(l=>`<div class="log"><b>[${esc(l.type)}]</b> ${esc(l.time)}<br>${esc(l.msg)}</div>`).join('')||'<p class="hint">Belum ada log.</p>'; }
+function renderCore(){ $('apiKey').value=state.apiKey||''; $('modelName').value=state.model||'gemini-2.5-flash'; }
+function renderNotifStatus(){ if(!$('notifStatus')) return; $('notifStatus').textContent = ('Notification'in window) ? `Status izin: ${Notification.permission}` : 'Browser tidak mendukung Notification API.'; }
+function updateCountdowns(){ const now=new Date(); if(state.quest?.deadline){ $('deadlineTimer').textContent=fmtMs(new Date(state.quest.deadline)-now); } else if(state.lastCompletedDate===todayKey()){ $('deadlineTimer').textContent='Next: '+fmtMs(nextMidnight()-now); } else $('deadlineTimer').textContent='--:--:--'; const co=state.quest?.deadline?fmtMs(new Date(state.quest.deadline)-now):state.lastCompletedDate===todayKey()?`Next Quest: ${fmtMs(nextMidnight()-now)}`:'Cycle belum aktif.'; $('cycleTimer').textContent=co; autoSignals(now); }
+function autoSignals(now){ if(!state.player) return; let signal=''; const h=now.getHours(); const q=state.quest; if(q?.status==='active'){ const progress = q.objectives.reduce((a,o)=>a+(+o.progress>=+o.target?1:0),0)/q.objectives.length; if(h>=12 && progress===0) signal='MIDDAY_ZERO'; if(h>=18 && progress<.5) signal='EVENING_LOW'; if(h>=23 && progress<1) signal='LAST_HOUR'; if(signal && lastAutoSignal!==todayKey()+signal){ lastAutoSignal=todayKey()+signal; const msg= signal==='LAST_HOUR'?'[EMERGENCY QUEST] Sisa waktu kurang dari 1 jam. Clear Condition belum terpenuhi.':'[SYSTEM WARNING] Progress harian tidak memenuhi standar waktu.'; setNotice(msg); notify('SYSTEM WARNING', msg.replace(/[\[\]]/g,'')); if(state.apiKey && state.settings.autoTransmissions) systemTransmission(signal==='LAST_HOUR'?'EMERGENCY':'COMMAND'); } } }
+
+async function handlePhoto(inputId,previewId,key){ const f=$(inputId).files?.[0]; if(!f)return; if(previewId && $(previewId)){ $(previewId).hidden=false; $(previewId).src=URL.createObjectURL(f); } const data=await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(f);}); state.photos[key]={mime:f.type,data}; save(); }
+async function scanPlayer(){ const required=['name','age','height','weight','pushup','squat','plank','run1k']; for(const id of required) if(!$(id).value){ showModal(`[SCAN DITOLAK]\nField ${id} belum diisi.`); return; } state.player={name:$('name').value||'Player',age:+$('age').value,height:+$('height').value,weight:+$('weight').value,pushup:+$('pushup').value,squat:+$('squat').value,plank:+$('plank').value,run1k:+$('run1k').value,sleep:+$('sleep').value,activity:$('activity').value,equipment:$('equipment').value,goal:$('goal').value}; calcScan(); state.quest=null; state.penalty=null; state.lastCompletedDate=null; state.lastGeneratedDate=null; state.fatigue={...state.fatigue,status:'UNCHECKED'}; log('Physical Scan selesai. Protocol ditentukan.','SCAN'); save(); const msg=`[SYSTEM VERDICT]\nRank awal: ${state.rank}\nGoal: ${state.player.goal}\nEstimasi route: ${state.etaWeeks} minggu jika compliance stabil di atas 85%.\n\nFatigue Check wajib sebelum Daily Quest.`; showModal(msg); showScreen('protocol'); if(state.apiKey&&(state.photos.front||state.photos.side)){ try{ const visual=await callGemini('VISUAL SCAN',true); showModal(msg+'\n\n'+visual); }catch(e){ log('Visual Scan AI gagal: '+e.message,'ERROR'); } } }
+function saveFatigue(){ state.fatigue={sleep:+$('fatigueSleep').value||7,energy:+$('fatigueEnergy').value||5,soreness:$('fatigueSoreness').value,injury:$('fatigueInjury').value||'',status:'CHECKED',date:todayKey()}; log('Fatigue Check selesai: '+assessFatigue(),'SCAN'); save(); showModal(`[FATIGUE CHECK RECORDED]\nFatigue: ${assessFatigue()}\nSystem akan menyesuaikan beban tanpa membatalkan perintah.`); generateDaily(true); }
+function addNutrition(type){ const tk=todayKey(); if(state.nutrition.lockedDate!==tk){ state.nutrition={protein:0,water:0,sugar:false,lockedDate:tk}; } if(type==='protein') { state.nutrition.protein += 1; updateObjective('protein',1,false); } if(type==='water') { state.nutrition.water = +(state.nutrition.water + 0.5).toFixed(1); updateObjective('water',0.5,false); } if(type==='sugar') { state.nutrition.sugar = true; updateObjective('sugar',-999,false); log('Gula cair tercatat. Nutrition Quest terancam gagal.','WARNING'); } save(); }
+async function saveWeeklyScan(){ const scan={date:todayKey(),weight:+$('weeklyWeight').value||null,waist:+$('weeklyWaist').value||null,chest:+$('weeklyChest').value||null,arm:+$('weeklyArm').value||null,pushup:+$('weeklyPushup').value||null,plank:+$('weeklyPlank').value||null,squat:+$('weeklySquat').value||null,run1k:+$('weeklyRun1k').value||null}; state.weeklyScans.unshift(scan); state.weeklyScans=state.weeklyScans.slice(0,12); state.lastWeeklyScan=todayKey(); log('Weekly Body Scan tersimpan.','SCAN'); if(scan.pushup) state.stats.strength=Math.min(100,state.stats.strength+2); if(scan.plank) state.stats.core=Math.min(100,state.stats.core+2); if(scan.run1k) state.stats.endurance=Math.min(100,state.stats.endurance+2); save(); showModal('[WEEKLY BODY SCAN RECORDED]\nData mingguan disimpan. Adaptation Report diperbarui.'); if(state.apiKey && (state.photos.weekFront||state.photos.weekSide)) systemTransmission('VISUAL SCAN',true); }
+async function requestOptionalGate(){ if(state.penalty?.active) return showModal('[GATE REQUEST DENIED]\nPenalty Zone aktif. Clear penalty terlebih dahulu.'); if(state.lastCompletedDate!==todayKey()) return showModal('[GATE REQUEST DENIED]\nDaily Quest belum selesai. Optional Gate hanya terbuka setelah Current Order selesai.'); if(assessFatigue()==='HIGH'){ state.optionalGate='Gate ditolak. Recovery Order aktif: stretching 10 menit + tidur minimal 7 jam.'; save(); showModal('[GATE REQUEST DENIED]\nFatigue terlalu tinggi. Recovery Order diberikan.'); return; } state.optionalGate='Strength/Core Optional Gate tersedia: push-up 2 set, squat 2 set, plank 60 detik. Reward bonus kecil.'; log('Optional Gate opened.','GATE'); save(); showModal('[OPTIONAL GATE OPENED]\nStrength/Core Gate tersedia. Ini bukan kewajiban, tetapi System akan mencatat eksekusimu.'); if(state.apiKey) systemTransmission('OPTIONAL_GATE'); }
+function clearOptionalGate(){ if(!state.optionalGate) return; state.xp+=40; state.stats.discipline=Math.min(100,state.stats.discipline+2); state.optionalGate=null; log('Optional Gate cleared. EXP +40.','GATE'); save(); showModal('[OPTIONAL GATE CLEARED]\nEXP +40. Adaptation rate meningkat kecil.'); }
+
+function haversine(a,b){ const R=6371; const dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180; const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(x)); }
+function checkCycle(force=false){ if(!state.player||state.penalty?.active||cycleBusy)return; const now=new Date(),tk=todayKey(); if(state.quest&&state.quest.date&&state.quest.date!==tk&&state.quest.status!=='cleared'){ failQuest('Deadline cycle sebelumnya terlewati. Quest gagal otomatis.'); return; } if(state.quest?.status==='active'&&new Date(state.quest.deadline)<now){ failQuest('Batas pengerjaan 23:59 terlewati. Quest gagal otomatis.'); return; } if(state.fatigue.status==='UNCHECKED') return; if(!state.quest&&state.lastCompletedDate!==tk&&(force||state.lastGeneratedDate!==tk)){ generateDaily(true); } }
+
+function startRestTimer(){ const sec=+(state.settings.restSeconds||60); let left=sec; const el=$('restTimerDisplay'); if(!el) return; el.textContent=`Rest: ${left}s`; const int=setInterval(()=>{ left--; el.textContent=`Rest: ${Math.max(0,left)}s`; if(left<=0){ clearInterval(int); el.textContent='Rest selesai. Set berikutnya diizinkan.'; notify('REST COMPLETE','Set berikutnya diizinkan.'); } },1000); }
+function bind(){
+ $('enterBtn').onclick=()=>{ $('boot').style.display='none'; state.lastOpen=new Date().toISOString(); if(state.fatigue.date!==todayKey()) state.fatigue.status='UNCHECKED'; save(); checkCycle(true); };
+ $('closeModal').onclick=()=>{$('modal').hidden=true}; $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('modal').hidden=true}); qsa('.bottom-nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.screen)); $('orderAction').onclick=()=>{const o=currentOrder(); if(o.action==='AMBIL REWARD')claimReward(); else showScreen(o.screen);};
+ $('bodyPhotoFront').onchange=()=>handlePhoto('bodyPhotoFront','photoFrontPreview','front'); $('bodyPhotoSide').onchange=()=>handlePhoto('bodyPhotoSide','photoSidePreview','side'); $('scanBtn').onclick=scanPlayer;
+ $('saveCoreBtn').onclick=()=>{state.apiKey=$('apiKey').value.trim(); state.model=$('modelName').value.trim()||'gemini-2.5-flash'; save(); showModal('[SYSTEM CORE SAVED]\nAPI key disimpan lokal di browser/perangkat ini.');}; $('testCoreBtn').onclick=()=>systemTransmission('TEST'); qsa('[data-core]').forEach(btn=>btn.onclick=()=>{const m=btn.dataset.core; if(m==='daily')return generateDaily(false); if(m==='visual')return systemTransmission('VISUAL SCAN',true); systemTransmission(m.toUpperCase(),m==='route');});
+ $('claimRewardBtn').onclick=claimReward; $('failQuestBtn').onclick=()=>failQuest(); $('clearPenaltyBtn').onclick=clearPenalty;
+ $('saveFatigueBtn').onclick=saveFatigue; $('addProteinBtn').onclick=()=>addNutrition('protein'); $('addWaterBtn').onclick=()=>addNutrition('water'); $('markSugarBtn').onclick=()=>addNutrition('sugar'); $('requestGateBtn').onclick=requestOptionalGate; $('clearGateBtn').onclick=clearOptionalGate; $('saveWeeklyScanBtn').onclick=saveWeeklyScan; $('weekPhotoFront').onchange=()=>handlePhoto('weekPhotoFront',null,'weekFront'); $('weekPhotoSide').onchange=()=>handlePhoto('weekPhotoSide',null,'weekSide');
+ $('recordSetBtn').onclick=()=>{ const reps=+$('repsInput').value||0,type=$('repsType').value; if(reps>0){ state.proof[type]=(state.proof[type]||0)+reps; state.proof.level='Verified'; updateObjective(type,reps,true); $('repsInput').value=''; startRestTimer(); } };
+ $('startTimerBtn').onclick=()=>{ let sec=+$('timerSeconds').value||60,left=sec,type=$('timerType').value; $('timerDisplay').textContent=new Date(left*1000).toISOString().slice(14,19); const int=setInterval(()=>{left--; $('timerDisplay').textContent=new Date(Math.max(0,left)*1000).toISOString().slice(14,19); if(left<=0){clearInterval(int); state.proof.timerSec+=sec; state.proof.level='Verified'; updateObjective(type,sec,true); showModal(`[TIMER VERIFIED]\n${type} selesai. Objective timer tercatat.`);}},1000);};
+ $('startGpsBtn').onclick=()=>{ if(!navigator.geolocation){showModal('GPS tidak tersedia.');return;} gpsStart=Date.now(); gpsDistance=0; gpsLast=null; $('gpsDistance').textContent='0.00'; if(gpsWatch!==null)navigator.geolocation.clearWatch(gpsWatch); gpsWatch=navigator.geolocation.watchPosition(pos=>{const cur={lat:pos.coords.latitude,lon:pos.coords.longitude}; if(gpsLast){const d=haversine(gpsLast,cur); if(d<.25)gpsDistance+=d;} gpsLast=cur; const mins=(Date.now()-gpsStart)/60000; $('gpsDistance').textContent=gpsDistance.toFixed(2); $('gpsPace').textContent=gpsDistance>0?(mins/gpsDistance).toFixed(1)+'/km':'--';},err=>showModal('[GPS ERROR]\n'+err.message),{enableHighAccuracy:true,maximumAge:1500,timeout:10000}); clearInterval(gpsTimer); gpsTimer=setInterval(()=>{$('gpsTime').textContent=new Date(Date.now()-gpsStart).toISOString().slice(14,19)},1000);};
+ $('stopGpsBtn').onclick=()=>{ if(gpsWatch!==null)navigator.geolocation.clearWatch(gpsWatch); gpsWatch=null; clearInterval(gpsTimer); state.proof.runKm=Math.max(state.proof.runKm,gpsDistance); if(gpsDistance>.05){ state.proof.level=gpsDistance>=1?'System Verified':'Verified'; updateObjective('run',+gpsDistance.toFixed(2),true); showModal(`[GPS VERIFICATION]\nDistance verified: ${gpsDistance.toFixed(2)} km\nProof Level: ${state.proof.level}`);} save();};
+ $('enableNotifBtn').onclick=async()=>{ if(!('Notification'in window))return showModal('Browser tidak mendukung notifikasi.'); const perm=await Notification.requestPermission(); renderNotifStatus(); if(perm==='granted')notify('SYSTEM NOTIFICATION ACTIVE','System Warning siap dikirim.');}; $('testNotifBtn').onclick=()=>notify('SYSTEM WARNING','Daily Quest belum selesai. Sisa waktu terus berkurang.'); $('installHintBtn').onclick=()=>showModal('[INSTALL PWA]\n1. Buka web dari Chrome.\n2. Pastikan link HTTPS/GitHub Pages.\n3. Tekan menu titik tiga.\n4. Pilih Add to Home Screen / Install app.\n5. Buka dari ikon SYSTEM.\n\nCatatan: notifikasi background penuh perlu push server.');
+ $('resetBtn').onclick=()=>{if(confirm('Reset semua data SYSTEM di browser ini?')){localStorage.removeItem(STORAGE);location.reload();}};
+}
+
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=10').catch(()=>{});
+bind(); render(); checkCycle(false); setInterval(()=>{updateCountdowns();checkCycle(false);},1000);
+setTimeout(()=>{ if(state.player&&!state.quest&&!state.penalty?.active&&state.lastCompletedDate!==todayKey()) setNotice('[SYSTEM NOTICE] Cycle aktif. System sedang menyiapkan Daily Quest otomatis.'); },450);
