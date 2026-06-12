@@ -3,26 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#020815" />
+  <meta name="theme-color" content="#06101f" />
   <title>SYSTEM — Living Body Protocol</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="boot" class="boot">
+  <div id="boot" class="boot" aria-live="polite">
     <div class="boot-card">
+      <div class="logo-mark big"><span>S</span></div>
       <div class="sys-tag">[SYSTEM ONLINE]</div>
       <h1>Living Body Protocol</h1>
-      <p id="bootText">Player terdeteksi. Menunggu evaluasi tubuh.</p>
-      <button id="enterBtn" class="btn primary">BUKA STATUS WINDOW</button>
+      <p id="bootText">Player terdeteksi. Evaluasi tubuh wajib dilakukan.</p>
+      <button id="enterBtn" class="btn primary">MASUK SYSTEM</button>
     </div>
   </div>
 
   <main class="app">
     <header class="topbar">
-      <div>
-        <div class="tiny">SYSTEM v7</div>
-        <h2 id="headerTitle">STATUS WINDOW</h2>
+      <div class="top-left">
+        <div class="logo-mark"><span>S</span></div>
+        <div>
+          <div class="tiny">SYSTEM v8 • AUTO AI</div>
+          <h2 id="headerTitle">STATUS WINDOW</h2>
+        </div>
       </div>
       <div class="rank-pill"><span id="rankLabel">E</span>-RANK</div>
     </header>
@@ -35,6 +39,8 @@
         <button id="orderAction" class="btn primary">MULAI PHYSICAL SCAN</button>
       </div>
 
+      <div id="systemNotice" class="notice"></div>
+
       <div class="panel">
         <div class="panel-title">[STATUS WINDOW]</div>
         <div class="status-grid">
@@ -42,7 +48,7 @@
           <div><b>Level</b><span id="stLevel">1</span></div>
           <div><b>Rank</b><span id="stRank">E</span></div>
           <div><b>Goal</b><span id="stGoal">Belum ditentukan</span></div>
-          <div><b>Estimasi</b><span id="stETA">Belum dihitung</span></div>
+          <div><b>Estimasi Target</b><span id="stETA">Belum dihitung</span></div>
           <div><b>Compliance</b><span id="stCompliance">0%</span></div>
         </div>
         <div class="bars">
@@ -65,13 +71,13 @@
         <p class="sys-copy">Isi data dengan jujur. Data palsu menghasilkan protocol palsu.</p>
         <div class="form-grid">
           <input id="name" placeholder="Nama / ID Player" />
-          <input id="age" type="number" placeholder="Umur" />
-          <input id="height" type="number" placeholder="Tinggi badan (cm)" />
-          <input id="weight" type="number" placeholder="Berat badan (kg)" />
-          <input id="pushup" type="number" placeholder="Push-up max bersih" />
-          <input id="squat" type="number" placeholder="Squat max bersih" />
-          <input id="plank" type="number" placeholder="Plank max (detik)" />
-          <input id="run1k" type="number" step="0.1" placeholder="Jalan/Lari 1 km (menit)" />
+          <input id="age" type="number" placeholder="Umur" inputmode="numeric" />
+          <input id="height" type="number" placeholder="Tinggi badan (cm)" inputmode="decimal" />
+          <input id="weight" type="number" placeholder="Berat badan (kg)" inputmode="decimal" />
+          <input id="pushup" type="number" placeholder="Push-up max bersih" inputmode="numeric" />
+          <input id="squat" type="number" placeholder="Squat max bersih" inputmode="numeric" />
+          <input id="plank" type="number" placeholder="Plank max (detik)" inputmode="numeric" />
+          <input id="run1k" type="number" step="0.1" placeholder="Jalan/Lari 1 km (menit)" inputmode="decimal" />
           <select id="sleep"><option value="6">Tidur 6 jam / kurang</option><option value="7">Tidur 7 jam</option><option value="8">Tidur 8 jam+</option></select>
           <select id="activity"><option value="low">Aktivitas rendah</option><option value="medium">Aktivitas sedang</option><option value="high">Aktivitas tinggi</option></select>
           <select id="equipment"><option value="none">Tanpa alat</option><option value="dumbbell">Dumbbell</option><option value="gym">Gym</option></select>
@@ -84,11 +90,17 @@
           </select>
         </div>
         <div class="visual-scan">
-          <label class="file-label">VISUAL BODY SCAN OPSIONAL
-            <input id="bodyPhoto" type="file" accept="image/*" />
+          <label class="file-label">VISUAL BODY SCAN — DEPAN
+            <input id="bodyPhotoFront" type="file" accept="image/*" />
           </label>
-          <img id="photoPreview" alt="preview" hidden />
-          <p class="hint">Gemini 2.5 Flash/Flash-Lite dapat menerima input multimodal pada API tertentu. Di sini foto dikirim sebagai analisis kebugaran umum, bukan diagnosis medis.</p>
+          <label class="file-label">VISUAL BODY SCAN — SAMPING
+            <input id="bodyPhotoSide" type="file" accept="image/*" />
+          </label>
+          <div class="photo-row">
+            <img id="photoFrontPreview" alt="preview depan" hidden />
+            <img id="photoSidePreview" alt="preview samping" hidden />
+          </div>
+          <p class="hint">Foto dikirim ke Gemini hanya saat kamu menjalankan Visual Scan. Analisisnya untuk kebugaran umum, bukan diagnosis medis.</p>
         </div>
         <button id="scanBtn" class="btn primary">JALANKAN SCAN & BUAT PROTOCOL</button>
       </div>
@@ -119,18 +131,18 @@
           </div>
           <div class="proof-box">
             <h4>TIMER</h4>
-            <input id="timerSeconds" type="number" placeholder="detik plank/stretch" value="60" />
+            <input id="timerSeconds" type="number" placeholder="detik plank/stretch" value="60" inputmode="numeric" />
             <p id="timerDisplay">00:00</p>
             <button id="startTimerBtn" class="btn">START TIMER</button>
           </div>
           <div class="proof-box">
             <h4>SET RECORDER</h4>
-            <input id="repsInput" type="number" placeholder="jumlah reps" />
+            <input id="repsInput" type="number" placeholder="jumlah reps" inputmode="numeric" />
             <select id="repsType"><option value="pushup">Push-up</option><option value="squat">Squat</option></select>
             <button id="recordSetBtn" class="btn">RECORD SET</button>
           </div>
         </div>
-        <p class="hint">Reward penuh hanya diberikan kalau Clear Condition terpenuhi. Manual claim akan dipotong.</p>
+        <p class="hint">Reward penuh hanya diberikan kalau Clear Condition terpenuhi. Bukti GPS/timer/set membuat reward lebih kuat.</p>
       </div>
     </section>
 
@@ -147,25 +159,27 @@
     <section id="screen-core" class="screen">
       <div class="panel">
         <div class="panel-title">[SYSTEM CORE]</div>
-        <p class="sys-copy">AI bukan coach. AI adalah kesadaran System: menilai data, mengeluarkan command, membuka hidden quest, dan menghitung ulang route.</p>
-        <input id="apiKey" type="password" placeholder="Gemini API Key" />
-        <input id="modelName" placeholder="Model" value="gemini-2.5-flash-lite" />
+        <p class="sys-copy">System Core mengeluarkan command otomatis. API key disimpan lokal di browser ini, bukan di server.</p>
+        <input id="apiKey" type="password" placeholder="Gemini API Key" autocomplete="off" />
+        <input id="modelName" placeholder="Model" value="gemini-2.5-flash" />
         <button id="saveCoreBtn" class="btn primary">SIMPAN SYSTEM CORE</button>
+        <button id="testCoreBtn" class="btn">TEST SYSTEM CORE</button>
         <div class="core-actions">
           <button data-core="daily" class="btn">MINTA DAILY COMMAND</button>
-          <button data-core="judgement" class="btn">WEEKLY JUDGEMENT</button>
+          <button data-core="judgement" class="btn">SYSTEM JUDGEMENT</button>
           <button data-core="hidden" class="btn">SCAN HIDDEN QUEST</button>
           <button data-core="emergency" class="btn">EMERGENCY PROTOCOL</button>
           <button data-core="route" class="btn">HITUNG ULANG ROUTE</button>
+          <button data-core="visual" class="btn">VISUAL SCAN AI</button>
         </div>
-        <p class="hint">Judgement otomatis muncul setelah reward/penalty tertentu, dan manual lewat tombol Weekly Judgement. Bisa juga dikirim sebagai notifikasi kalau izin aktif.</p>
+        <p class="hint">Judgement otomatis muncul setelah reward/penalty. Daily Quest dibuat AI kalau API aktif; kalau AI error, Rule Engine mengambil alih.</p>
       </div>
     </section>
 
     <section id="screen-notif" class="screen">
       <div class="panel">
         <div class="panel-title">[NOTIFICATION MODULE]</div>
-        <p>Untuk PWA, notifikasi butuh izin browser. Paling stabil kalau web sudah HTTPS dan ditambahkan ke Home Screen. Notifikasi background terjadwal penuh butuh push server seperti Firebase Cloud Messaging.</p>
+        <p>Untuk PWA, notifikasi butuh izin browser. Paling stabil kalau web sudah HTTPS dan ditambahkan ke Home Screen.</p>
         <button id="enableNotifBtn" class="btn primary">IZINKAN NOTIFIKASI</button>
         <button id="testNotifBtn" class="btn">TEST SYSTEM WARNING</button>
         <button id="installHintBtn" class="btn">PANDUAN INSTALL PWA</button>
@@ -176,6 +190,7 @@
     <section id="screen-log" class="screen">
       <div class="panel">
         <div class="panel-title">[FAILURE / SYSTEM LOG]</div>
+        <button id="resetBtn" class="btn danger small">RESET SYSTEM DATA</button>
         <div id="logList" class="log-list"></div>
       </div>
     </section>
@@ -198,6 +213,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
