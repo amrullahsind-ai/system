@@ -3,51 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>SYSTEM — Body Protocol</title>
-  <meta name="theme-color" content="#05070c" />
+  <meta name="theme-color" content="#020b18" />
+  <title>SYSTEM — Living Body Protocol</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="boot" class="boot">
-    <div class="boot-card">
-      <div class="sigil">◇</div>
-      <h1>SYSTEM ONLINE</h1>
-      <p>Player terdeteksi. Evaluasi tubuh diperlukan.</p>
-      <button id="bootBtn" class="primary">BUKA STATUS WINDOW</button>
-    </div>
-  </div>
-
-  <main class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">SYSTEM / BODY PROTOCOL</p>
-        <h2 id="topTitle">STATUS WINDOW</h2>
-      </div>
-      <button id="resetBtn" class="ghost small">RESET</button>
-    </header>
-
-    <section id="view" class="view"></section>
-  </main>
-
-  <nav class="bottom-nav">
-    <button data-tab="status" class="nav-btn active">STATUS</button>
-    <button data-tab="order" class="nav-btn">ORDER</button>
-    <button data-tab="proof" class="nav-btn">PROOF</button>
-    <button data-tab="core" class="nav-btn">CORE</button>
-    <button data-tab="report" class="nav-btn">REPORT</button>
-  </nav>
-
-  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <p class="eyebrow">SYSTEM TRANSMISSION</p>
-        <button id="modalClose" class="ghost small">TUTUP</button>
-      </div>
-      <div id="modalBody" class="modal-body"></div>
-    </div>
-  </div>
-
+  <div id="app"></div>
+  <div id="modalRoot"></div>
   <script src="app.js"></script>
 </body>
 </html>

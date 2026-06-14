@@ -1,1 +1,14 @@
-{"name":"SYSTEM Body Protocol","short_name":"SYSTEM","start_url":"./index.html","display":"standalone","background_color":"#05070c","theme_color":"#05070c","icons":[{"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml"}]}
+{
+  "name": "SYSTEM — Living Body Protocol",
+  "short_name": "SYSTEM",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020b18",
+  "theme_color": "#020b18",
+  "description": "A personal body protocol system with quest, proof, penalty, and AI core.",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
