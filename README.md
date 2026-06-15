@@ -160,3 +160,11 @@ Perbaikan:
 - Input progress muncul di hologram SYSTEM.
 - Ada mode `Tambah` dan `Set Total`.
 - Quest baru clear kalau progress mencapai target.
+
+## v25 Rebuilt UI Progress Fixed
+- ORDER benar-benar diganti: tombol `Input Progress`, bukan `Mark Clear`.
+- Progress parsial tampil langsung di card.
+- Input progress lewat hologram SYSTEM.
+- UI order card lebih rapi di mobile.
+- Loading awal dibuat lebih elegan dan tidak fokus ke siluet orang.
+- AI auto-call diberi cooldown 3 menit agar tidak terlalu sering kena 429.

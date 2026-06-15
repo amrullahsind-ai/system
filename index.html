@@ -358,6 +358,36 @@
     .progress-mode button.active{background:rgba(117,251,255,.15);border-color:rgba(117,251,255,.34);color:#eaffff}
     .holo-warning{margin-top:10px;font-size:12px;color:#9fb9d0;line-height:1.45}
 
+
+    /* v25 Rebuilt UI / boot / progress */
+    .boot-core{width:148px;height:148px;border-radius:38px;display:grid;place-items:center;margin:22px auto;background:linear-gradient(145deg,rgba(7,24,43,.94),rgba(5,14,27,.98));border:1px solid rgba(117,251,255,.28);box-shadow:0 0 70px rgba(82,187,255,.22), inset 0 0 36px rgba(117,251,255,.08);position:relative;overflow:hidden}
+    .boot-core::before{content:"";position:absolute;inset:12px;border-radius:32px;border:1px solid rgba(117,251,255,.18);animation:bootPulse 2s ease-in-out infinite}
+    .boot-core::after{content:"";position:absolute;width:180%;height:2px;background:linear-gradient(90deg,transparent,#88f7ff,transparent);top:28%;animation:bootScan 2.2s linear infinite;box-shadow:0 0 20px #88f7ff}
+    .boot-core svg{width:82px;height:82px;filter:drop-shadow(0 0 18px rgba(117,251,255,.8));z-index:2}
+    @keyframes bootPulse{50%{transform:scale(.92);opacity:.55}}
+    @keyframes bootScan{0%{transform:translateY(-45px)}100%{transform:translateY(95px)}}
+    .boot-title{font-family:Orbitron,Inter,sans-serif;letter-spacing:.16em;text-align:center;color:#eaffff;font-weight:900;margin-top:12px}
+    .boot-sub{text-align:center;color:#9fb9d0;font-size:13px;line-height:1.5;margin-top:8px}
+    .screen,.question-card,.hero-card,.panel,.quest-card{max-width:100%;box-sizing:border-box}
+    .quest-title{align-items:flex-start}
+    .quest-title h4{line-height:1.18;word-break:break-word}
+    .quest-pill{flex:0 0 auto;max-width:92px;justify-content:center;text-align:center}
+    .quest-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important}
+    .quest-actions .btn{width:100%;min-width:0;white-space:normal}
+    .quest-progress-wrap{margin-top:12px}
+    .quest-progress-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;color:#9fb9d0;font-size:12px;font-weight:800}
+    .quest-progress-bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);overflow:hidden}
+    .quest-progress-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#62b8ff,#a7efff);box-shadow:0 0 16px rgba(117,251,255,.55);transition:width .25s ease}
+    .progress-input-panel{position:relative;z-index:3;padding:18px;border-radius:24px;background:rgba(1,10,23,.62);border:1px solid rgba(255,255,255,.07)}
+    .progress-target{font-family:Orbitron,Inter,sans-serif;font-size:13px;color:#94dfff;letter-spacing:.08em;margin-bottom:12px;text-transform:uppercase;line-height:1.35}
+    .progress-input-main{width:100%;border:none;outline:none;border-radius:22px;background:rgba(0,0,0,.28);border:1px solid rgba(117,251,255,.22);color:#f3fbff;font-size:42px;font-weight:900;text-align:center;padding:18px 12px;caret-color:#8dfbff;box-shadow:inset 0 0 24px rgba(0,0,0,.22);box-sizing:border-box}
+    .progress-chip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .progress-chip{border:none;border-radius:16px;padding:12px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(117,251,255,.14);color:#e9fbff;font-weight:900;font-size:14px}
+    .progress-mode{display:flex;gap:8px;margin:12px 0}
+    .progress-mode button{flex:1;border:none;border-radius:14px;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9fb9d0;font-weight:900}
+    .progress-mode button.active{background:rgba(117,251,255,.15);border-color:rgba(117,251,255,.34);color:#eaffff}
+    .ai-state-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;border:1px solid rgba(117,251,255,.18);background:rgba(255,255,255,.04);font-size:11px;color:#a9d6ee;font-weight:900;letter-spacing:.06em}
+
     @media (max-width:390px){
       .brand-title{font-size:48px}
       .hero-card h1,.question-title{font-size:30px}
@@ -441,7 +471,8 @@
     quests: [],
     logs: [],
     systemEvents: { lastAuto: '', count: 0, bootTransmissionShown: false, lastPulseAt: 0 },
-    push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' }
+    push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' },
+    aiLimiter: { lastCallAt: 0, cooldownMs: 180000, status: 'READY' }
   };
 
   const steps = [
@@ -556,7 +587,7 @@
           <div class="ring three"></div>
           <div class="silhouette"></div>
         </div>
-        <div class="tag">SYSTEM CORE · INITIALIZING</div>
+        <div class="tag">SYSTEM CORE · SYSTEM CORE</div>
         <div class="splash-progress"><span></span></div>
         <div class="small-note">Memuat antarmuka, analisis tubuh, modul quest, dan protokol player...</div>
       </section>`;
@@ -1125,45 +1156,53 @@
   }
 
   function renderOrdersTab(){
-    const s = state.system;
+    ensureQuestProgress();
+    const done = state.quests.filter(q=>q.done).length;
     return `
-      <div class="dashboard">
-        <div class="hero-card">
-          <div class="tag">DAILY ORDER</div>
-          <h1>Quest hari ini telah ditetapkan.</h1>
-          <p>SYSTEM membangun order harian dari data tubuhmu: level aktivitas, tujuan, alat yang tersedia, fokus area, dan recovery saat ini.</p>
-          <div class="inline-kpi">
-            <div class="mini-card"><div class="tiny">Workout</div><div class="kpi-num">${s.workoutMinutes}m</div></div>
-            <div class="mini-card"><div class="tiny">Rest</div><div class="kpi-num">${s.restMinutes}m</div></div>
-            <div class="mini-card"><div class="tiny">Calories</div><div class="kpi-num">${s.calorieGoal}</div></div>
-          </div>
+      <div class="topbar">
+        <div>
+          <div class="brand-small">${tigerLogo('small')}<span>Daily Order</span></div>
+          <p>Progress parsial diterima. Quest clear hanya jika target penuh.</p>
         </div>
-        <div class="section-head"><h3>Current orders</h3><span>${state.quests.filter(q=>q.done).length} / ${state.quests.length} clear</span></div>
-        <div class="quest-list">
-          ${state.quests.map(q => `
+        <div class="ai-state-pill">${state.aiLimiter?.status || 'READY'}</div>
+      </div>
+
+      <div class="section-head"><h3>Current orders</h3><span>${done} / ${state.quests.length} clear</span></div>
+      <div class="quest-list">
+        ${state.quests.map((q, idx) => {
+          const qp = questProgress(q);
+          return `
             <div class="quest-card ${q.done?'done':'danger-order'}">
               <div class="quest-title">
                 <div>
-                  <h4>${q.title}</h4>
-                  <p>${q.desc}</p>
+                  <h4>${escapeHtml(q.title)}</h4>
+                  <p>${escapeHtml(q.desc || '')}</p>
                 </div>
-                <div class="quest-pill">${q.type}</div>
+                <div class="quest-pill">${escapeHtml(q.type || 'ORDER')}</div>
               </div>
-              <div class="tag">Target · ${q.value}</div>
+
+              <div class="tag">Target · ${escapeHtml(q.value || qp.target)}</div>
+              <div class="quest-progress-wrap">
+                <div class="quest-progress-top">
+                  <span>Progress</span>
+                  <span>${qp.progress}/${qp.target}</span>
+                </div>
+                <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${qp.pct}%"></div></div>
+              </div>
+
               <div class="quest-actions">
-                <button class="btn ${q.done?'secondary':'mark-done-btn'}" data-id="${q.id}">${q.done?'Cleared':'Mark Clear'}</button>
+                <button class="btn ${q.done?'secondary':'mark-done-btn'}" data-progress-index="${idx}">${q.done?'Cleared':'Input Progress'}</button>
                 <button class="btn secondary log-proof-btn" data-id="${q.id}">Log Proof</button>
               </div>
-              <div class="tiny" style="margin-top:12px">Proof mode: ${q.proof}</div>
-            </div>`).join('')}
-        </div>
-        <div class="section-head"><h3>Nutrition order</h3><span>Target harian</span></div>
-        <div class="stats-grid">
-          ${macroCard('Protein', state.system.macros.protein, 'g')}
-          ${macroCard('Carbs', state.system.macros.carbs, 'g')}
-          ${macroCard('Fat', state.system.macros.fat, 'g')}
-          ${macroCard('Water', state.system.waterGoal, 'L')}
-        </div>
+              <div class="tiny" style="margin-top:12px">Proof mode: ${escapeHtml(q.proof || 'Manual')}</div>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <div class="section-head"><h3>Nutrition order</h3><span>Target harian</span></div>
+      <div class="comparison">
+        <div class="mini-card"><div class="tiny">Protein</div><div class="kpi-num">${state.system.macros?.protein || '-'}g</div></div>
+        <div class="mini-card"><div class="tiny">Water</div><div class="kpi-num">${state.system.waterGoal || '-'} cups</div></div>
       </div>`;
   }
 
@@ -1312,6 +1351,18 @@
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem(); save(); showToast('Protocol dikalibrasi ulang.'); renderDashboard(); };
     const reminderBtn = document.getElementById('reminderBtn');
     if(reminderBtn) reminderBtn.onclick = () => { state.system.reminders = !state.system.reminders; save(); showToast(`Reminder ${state.system.reminders ? 'diaktifkan' : 'dimatikan'}.`); renderDashboard(); };
+    document.querySelectorAll('[data-progress-index]').forEach(btn => {
+      btn.onclick = () => {
+        const idx = Number(btn.dataset.progressIndex);
+        const q = state.quests[idx];
+        if(q && q.done){
+          showHologramTransmission('QUEST ALREADY CLEARED', `PLAYER: ${state.profile.name || 'Unknown'}\nJUDGEMENT: Quest ini sudah clear.\nORDER: Pilih quest berikutnya.`, {primary:'ACCEPT'});
+          return;
+        }
+        showProgressInput(idx);
+      };
+    });
+
     const enablePushBtn = document.getElementById('enablePushBtn');
     if(enablePushBtn) enablePushBtn.onclick = enablePushNotifications;
     const testPushBtn = document.getElementById('testPushBtn');
@@ -1597,6 +1648,22 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     return `PLAYER ${name.toUpperCase()}, PROGRES TERDETEKSI.\n\n${percent}% order selesai. Jangan berhenti sebelum clear condition terpenuhi sepenuhnya.`;
   }
 
+
+  function canCallAI(reason='auto'){
+    state.aiLimiter = state.aiLimiter || {lastCallAt:0,cooldownMs:180000,status:'READY'};
+    const now = Date.now();
+    const remain = (state.aiLimiter.lastCallAt + state.aiLimiter.cooldownMs) - now;
+    if(remain > 0){
+      state.aiLimiter.status = `COOLDOWN ${Math.ceil(remain/1000)}s`;
+      save();
+      return false;
+    }
+    state.aiLimiter.lastCallAt = now;
+    state.aiLimiter.status = 'AI ONLINE';
+    save();
+    return true;
+  }
+
   async function autoSystemTransmission(reason='auto'){
     if(!state.onboardingComplete) return;
     const today = new Date().toISOString().slice(0,10);
@@ -1608,7 +1675,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     save();
     showSystemPing();
 
-    if(state.ai?.enabled){
+    if(state.ai?.enabled && canCallAI(reason)){
       try{
         const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek maksimal 5 baris. Jangan markdown. Jangan simbol **. Seperti notifikasi SYSTEM yang memerintah.`);
         const res = await fetch('/api/gemini', {
@@ -1621,7 +1688,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
           showHologramTransmission('SYSTEM TRANSMISSION', data.text, {primary:'UNDERSTOOD'});
           return;
         }
-      }catch(e){}
+      }catch(e){ state.aiLimiter.status = 'RULE ENGINE'; save(); }
     }
     showHologramTransmission('SYSTEM TRANSMISSION', localSystemMessage(reason), {primary:'ACCEPT ORDER'});
   }
