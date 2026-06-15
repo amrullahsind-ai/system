@@ -95,3 +95,27 @@ Kalau Supabase tidak dipasang, app tetap bisa minta token dan test push ke token
 - input nama stabil di Chrome Android.
 - tombol Lanjutkan avatar normal.
 - proses upload avatar dan analisis punya progress overlay.
+
+
+## v20 FULL COMPLETE STABLE
+
+Ini versi lengkap, bukan patch sebagian. Isi folder sudah termasuk:
+- `api/` lengkap untuk Gemini, Firebase config, register token, send push.
+- `db/schema.sql`
+- `index.html`
+- `firebase-messaging-sw.js` statis root.
+- `manifest.webmanifest`, `sw.js`, `icon.svg`, `vercel.json`, `package.json`.
+
+Perbaikan v20:
+- Input nama diganti ke textarea aman agar keyboard Android tidak langsung hilang.
+- Ditambah tombol `Mode input aman` memakai prompt native kalau keyboard tetap bermasalah.
+- AI Transmission dipaksa pendek dan dibersihkan dari markdown.
+- Hologram punya scroll internal.
+- Firebase push SW generic tanpa import Firebase CDN, supaya tidak error script evaluation failed.
+- Service worker lama akan dicoba unregister sebelum register v20.
+
+Setelah upload:
+1. Redeploy Vercel.
+2. Clear Site Data domain Vercel di Chrome.
+3. Buka ulang app.
+4. Cek `/firebase-messaging-sw.js` harus menampilkan kode JavaScript v20.

@@ -306,6 +306,36 @@
     .process-status{font-size:13px;color:#9fb9d0;margin-top:14px;min-height:36px}
     .photo-upload .btn{min-height:58px}
 
+
+    /* v20 full complete stable */
+    input, textarea, select, button { touch-action: manipulation; }
+    textarea.input.safe-name-input{
+      min-height:72px!important;
+      height:72px!important;
+      resize:none!important;
+      overflow:auto!important;
+      line-height:1.35!important;
+      font-size:22px!important;
+      padding-top:18px!important;
+      -webkit-user-select:text!important;
+      user-select:text!important;
+      caret-color:#8dfbff!important;
+    }
+    .safe-input-actions{display:flex;gap:10px;margin-top:12px}
+    .safe-input-actions .btn{font-size:13px;padding:12px 14px;border-radius:16px}
+    .holo-card{max-height:88dvh;display:flex;flex-direction:column}
+    .holo-body{max-height:44dvh;overflow:auto;font-size:15px!important;line-height:1.55!important;-webkit-overflow-scrolling:touch}
+    .holo-body::-webkit-scrollbar{width:4px}
+    .holo-body::-webkit-scrollbar-thumb{background:rgba(117,251,255,.35);border-radius:999px}
+    .holo-footer,.holo-mini{flex:0 0 auto}
+    .process-screen{position:absolute;inset:0;z-index:75;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at center,rgba(47,151,255,.18),rgba(0,4,12,.84) 58%,rgba(0,0,0,.92));backdrop-filter:blur(9px)}
+    .process-card{width:100%;max-width:390px;border-radius:32px;background:linear-gradient(180deg,rgba(8,28,52,.95),rgba(2,9,20,.98));border:1px solid rgba(117,251,255,.28);box-shadow:0 28px 90px rgba(0,0,0,.66),0 0 60px rgba(87,190,255,.18);padding:24px;text-align:center}
+    .process-title{font-family:Orbitron,Inter,sans-serif;font-weight:900;letter-spacing:.10em;color:#eaffff;margin-bottom:10px}
+    .process-num{font-size:54px;font-weight:900;color:#fff;text-shadow:0 0 28px rgba(117,251,255,.5);margin:12px 0}
+    .process-track{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+    .process-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#62b8ff,#a7efff);box-shadow:0 0 22px rgba(117,251,255,.7);transition:width .22s ease}
+    .process-status{font-size:13px;color:#9fb9d0;margin-top:14px;min-height:36px}
+
     @media (max-width:390px){
       .brand-title{font-size:48px}
       .hero-card h1,.question-title{font-size:30px}
@@ -625,19 +655,39 @@
       content.innerHTML = `
         <div class="field">
           <label>Nama player</label>
-          <input class="input" id="fieldInput" type="text" inputmode="text" autocomplete="name" autocapitalize="words" placeholder="contoh: Sevila" value="${escapeHtml(val || '')}">
+          <textarea class="input safe-name-input" id="fieldInput" inputmode="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="contoh: Sevila">${escapeHtml(val || '')}</textarea>
         </div>
-        <div class="small-note" style="text-align:left">Nama ini akan dipakai di dashboard, quest system, dan laporan perkembangan.</div>`;
+        <div class="safe-input-actions">
+          <button class="btn secondary" type="button" id="safeNameBtn">Mode input aman</button>
+          <button class="btn ghost" type="button" id="clearNameBtn">Hapus</button>
+        </div>
+        <div class="small-note" style="text-align:left">Kalau keyboard HP masih menutup, tekan Mode input aman. Nama ini dipakai di dashboard dan quest system.</div>`;
       const input = content.querySelector('#fieldInput');
+      const saveName = () => { profile[step.key] = (input.value || '').trim(); try{ save(); }catch{} };
       input.addEventListener('input', e => { profile[step.key] = e.target.value; });
-      input.addEventListener('blur', () => save());
+      input.addEventListener('change', saveName);
+      input.addEventListener('blur', saveName);
       input.addEventListener('keydown', e => {
         if(e.key === 'Enter'){
           e.preventDefault();
+          saveName();
           const btn = document.getElementById('nextBtn');
           if(btn) btn.click();
         }
       });
+      content.querySelector('#safeNameBtn').onclick = () => {
+        const result = window.prompt('Masukkan nama player:', profile[step.key] || input.value || '');
+        if(result !== null){
+          profile[step.key] = result.trim();
+          save();
+          renderQuestion();
+        }
+      };
+      content.querySelector('#clearNameBtn').onclick = () => {
+        profile[step.key] = '';
+        save();
+        renderQuestion();
+      };
       return;
     }
     if(step.type === 'number'){
@@ -773,6 +823,8 @@
   }
 
   function validateStep(step){
+    const activeInput = document.getElementById('fieldInput');
+    if(activeInput && step.type === 'text') state.profile[step.key] = activeInput.value.trim();
     const value = state.profile[step.key];
     if(step.type === 'avatar') return true;
     if(step.type === 'text' && !String(value || '').trim()){
@@ -1295,6 +1347,22 @@
   }
 
 
+
+  function cleanSystemMessage(raw){
+    let text = String(raw || '')
+      .replace(/```[a-zA-Z]*\n?/g, '')
+      .replace(/```/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/`/g, '')
+      .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
+      .replace(/SYSTEM TRANSMISSION/gi, '')
+      .trim();
+    const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
+    text = lines.slice(0, 7).join('\n');
+    if(text.length > 520) text = text.slice(0, 520).replace(/\s+\S*$/, '') + '...';
+    return text || 'Current Order menunggu. Bergerak sekarang.';
+  }
+
   function showHologramTransmission(title, message, options={}){
     const rank = state?.system?.rank || 'E';
     const closable = options.closable !== false;
@@ -1317,13 +1385,13 @@
         </div>
       </div>`;
     const target = document.getElementById('holoText');
-    const text = String(message || '');
+    const text = cleanSystemMessage(String(message || ''));
     let i = 0;
     clearInterval(showHologramTransmission.typer);
     showHologramTransmission.typer = setInterval(() => {
       target.textContent = text.slice(0, i++);
       if(i > text.length) clearInterval(showHologramTransmission.typer);
-    }, options.speed || 18);
+    }, options.speed || 9);
     const accept = document.getElementById('holoAccept');
     accept.onclick = () => {
       if(closable) modalRoot.innerHTML = '';
@@ -1379,7 +1447,7 @@
 
     if(state.ai?.enabled){
       try{
-        const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek, otoriter, 4-6 baris, seperti notifikasi SYSTEM yang memerintah.`);
+        const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek maksimal 5 baris. Jangan markdown. Jangan simbol **. Seperti notifikasi SYSTEM yang memerintah.`);
         const res = await fetch('/api/gemini', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
@@ -1438,7 +1506,13 @@ Focus: ${p.focus.join(', ')}
 Kemampuan awal: pushup ${p.ability.pushup}, squat ${p.ability.squat}, situp ${p.ability.situp}, plank ${p.ability.plank}s, 1km ${p.ability.runKmTime} menit
 Stats: ${JSON.stringify(s.currentStats)}
 Quest: ${state.quests.map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ')}
-Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
+Tulis MAKSIMAL 6 baris pendek. Jangan markdown. Jangan pakai **, backtick, atau heading. Format:
+PLAYER: nama
+JUDGEMENT: satu kalimat
+ORDER 1: ...
+ORDER 2: ...
+ORDER 3: ...
+Tegas, memerintah, tapi aman.`;
   }
 
   function triggerSystemModal(){
@@ -1534,7 +1608,14 @@ Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
       const msgMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js');
       const app = appMod.initializeApp(cfg.firebaseConfig);
       const messaging = msgMod.getMessaging(app);
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const existingRegs = await navigator.serviceWorker.getRegistrations();
+      for(const reg of existingRegs){
+        if(reg.active && reg.active.scriptURL && reg.active.scriptURL.includes('firebase-messaging-sw.js')){
+          await reg.unregister().catch(()=>{});
+        }
+      }
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=20', { scope: '/' });
+      await registration.update().catch(()=>{});
       const token = await msgMod.getToken(messaging, { vapidKey: cfg.vapidKey, serviceWorkerRegistration: registration });
 
       state.push.enabled = true;
@@ -1560,7 +1641,7 @@ Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
       showHologramTransmission('PUSH LINKED', 'Firebase Cloud Messaging aktif. SYSTEM sekarang dapat mengirim panggilan dari server ketika app mendukung background push.', {primary:'ACCEPT'});
       renderDashboard();
     }catch(err){
-      showHologramTransmission('PUSH ERROR', err.message + '\n\nCek env Firebase di Vercel dan pastikan deploy ulang sudah dilakukan.', {primary:'UNDERSTOOD'});
+      showHologramTransmission('PUSH ERROR', err.message + '\n\nJika masih error, hapus Site Data domain ini lalu buka ulang. Pastikan v20 sudah terdeploy dan /firebase-messaging-sw.js menampilkan kode JavaScript.', {primary:'UNDERSTOOD'});
     }
   }
 

@@ -15,14 +15,22 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.72, topP: 0.9, maxOutputTokens: 900 }
+        generationConfig: { temperature: 0.62, topP: 0.9, maxOutputTokens: 260 }
       })
     });
 
     const data = await upstream.json();
     if (!upstream.ok) return res.status(upstream.status).json({ error: data?.error?.message || 'Gemini request failed.' });
 
-    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('\\n') || '';
+    let text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('\\n') || '';
+    text = text
+      .replace(/```[a-zA-Z]*\\n?/g, '')
+      .replace(/```/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/`/g, '')
+      .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
+      .trim();
+    if (text.length > 650) text = text.slice(0, 650).replace(/\s+\S*$/, '') + '...';
     return res.status(200).json({ text });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Unexpected server error.' });
