@@ -181,18 +181,12 @@ Perbaikan:
 - Bottom navigation disesuaikan untuk menu Penalty.
 - Notifikasi Web Push tetap didukung melalui service worker. Di Android Chrome bisa masuk saat app/web ditutup setelah izin notifikasi aktif.
 
-## v28 Living Level Rank Quest System
 
-- AI frontend tidak dipotong; hologram bisa scroll panjang.
-- Gemini maxOutputTokens dinaikkan ke 4096.
-- Daily reset otomatis saat tanggal berganti.
-- Quest deadline menuju 00.00.
-- Jika reset harian dan progress < 60%, Penalty Zone aktif.
-- Quest clear memberikan EXP.
-- EXP memicu Level Up.
-- Level Up menaikkan stat.
-- Rank naik berdasarkan level threshold.
-- Task berubah mengikuti level karena target naik dengan levelBoost.
-- Hidden Quest muncul karena konsistensi.
-- Proof Module punya Tap Counter dan Timer Proof.
-- Profile/Status Window berisi level, rank, EXP, stat, body metrics, protocol detail.
+## v29 Analysis Stuck Fix
+
+Fix:
+- SYSTEM ANALYSIS tidak lagi memakai overlay progress tambahan yang bisa stuck di 96%.
+- Progress overlay punya failsafe auto-close.
+- Finalisasi analysis dibungkus try/catch.
+- Jika ada render delay, failsafe menyelesaikan onboarding dan masuk dashboard.
+- Level/EXP/Rank/Daily quest system dari v28 tetap dipertahankan di index.

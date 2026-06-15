@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .trim();
-    // v28 no API-side truncation; frontend scrolls.
+    // v29 no API-side truncation; frontend scrolls.
 
     const bad = !text || /^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(text) || text.split(/\s+/).length < 4;
     if (bad) {

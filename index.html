@@ -972,7 +972,7 @@
   }
 
   function runAnalysis(){
-    showProcess('SYSTEM ANALYSIS', ['Membaca identitas player...', 'Mengukur kemampuan awal...', 'Menentukan rank kandidat...', 'Membangun Daily Order...', 'Menghubungkan AI Core...'], 2600);
+    modalRoot.innerHTML = ''; // v29: no extra overlay, prevents stuck 96%
     state.analysisDone = false;
     save();
     bottomNav.className='bottom-nav'; fab.className='fab';
@@ -1004,6 +1004,7 @@
       list.appendChild(el);
     });
     let pct = 1;
+    const analysisRescueV29 = setTimeout(()=>{ if(!state.onboardingComplete){ try{ calculateProfileSystem(); if(typeof ensureProgressSystem==='function') ensureProgressSystem(); state.onboardingComplete=true; state.analysisDone=true; save(); hideProcess(); render(); showToast('Analysis completed by failsafe.'); }catch(e){ console.error(e); hideProcess(); showToast('Analysis gagal, coba ulang assessment.'); } } }, 8500);
     const int = setInterval(() => {
       pct += Math.ceil(Math.random()*7);
       if(pct > 100) pct = 100;
@@ -1018,11 +1019,23 @@
       });
       if(pct >= 100){
         clearInterval(int);
-        calculateProfileSystem();
-        state.onboardingComplete = true;
-        state.analysisDone = true;
-        save();
-        setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700); }, 600);
+        clearTimeout(analysisRescueV29);
+        try{
+          calculateProfileSystem();
+          if(typeof ensureProgressSystem === 'function') ensureProgressSystem();
+          if(typeof dailyResetIfNeeded === 'function') dailyResetIfNeeded();
+          state.onboardingComplete = true;
+          state.analysisDone = true;
+          save();
+          hideProcess();
+          setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700); }, 450);
+        }catch(err){
+          console.error('analysis-finalize-error', err);
+          hideProcess();
+          showHologramTransmission('ANALYSIS ERROR', `SYSTEM gagal menyelesaikan analisis karena error internal. Data player tetap disimpan.\n\n${err.message || err}`, {primary:'ACCEPT'});
+          state.onboardingComplete = false;
+          save();
+        }
       }
     }, 180);
   }
@@ -1774,19 +1787,28 @@
     const status = document.getElementById('processStatus');
     let start = performance.now();
     clearInterval(showProcess.timer);
+    clearTimeout(showProcess.failsafe);
     showProcess.timer = setInterval(() => {
       const elapsed = performance.now() - start;
-      const pct = Math.min(96, Math.round((elapsed / duration) * 100));
+      const pct = Math.min(99, Math.round((elapsed / duration) * 100));
       if(fill) fill.style.width = pct + '%';
       if(num) num.textContent = pct + '%';
       const idx = Math.min(steps.length - 1, Math.floor((pct / 100) * steps.length));
       if(status) status.textContent = steps[idx] || steps[0] || 'Processing...';
-      if(pct >= 96) clearInterval(showProcess.timer);
+      if(pct >= 99) clearInterval(showProcess.timer);
     }, 80);
+    showProcess.failsafe = setTimeout(() => {
+      if(document.getElementById('processScreen')){
+        if(fill) fill.style.width = '100%';
+        if(num) num.textContent = '100%';
+        modalRoot.innerHTML = '';
+      }
+    }, Math.max(duration + 2500, 5200));
   }
 
   function hideProcess(){
     clearInterval(showProcess.timer);
+    clearTimeout(showProcess.failsafe);
     const fill = document.getElementById('processFill');
     const num = document.getElementById('processNum');
     if(fill) fill.style.width = '100%';
