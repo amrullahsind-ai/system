@@ -1,15 +1,11 @@
-# ARISE SYSTEM v29 — STABILITY RESTORE
+# ARISE SYSTEM v30 — ASSESSMENT + SURVEILLANCE SYSTEM
 
-Perbaikan dari v28:
-- Profile form diberi label dan penjelasan seperti versi sebelumnya.
-- Penalty tidak aktif di hari yang sama hanya karena progress masih 0%.
-- Penalty aktif besok jika hari sebelumnya completion < 60%.
-- Countdown quest dihitung sampai 23:59:59 hari ini.
-- Countdown live dan tidak lagi NaN.
-- Menu bawah dibuat 2 baris/grid agar semua menu terlihat dan tidak kepotong.
-- CORE dikembalikan lebih lengkap.
-- Proof dan Order tetap dipisahkan.
-- Engine EXP, Level Up, stat naik, rank naik, hidden quest, dan daily reset tetap ada.
-
-Cara update:
-Upload semua isi folder ke GitHub/Vercel, redeploy, lalu clear site data.
+Perbaikan dari v29:
+- Form profile dikembalikan menjadi assessment satu-per-satu seperti versi awal.
+- Assessment berisi banyak tahap: identitas, tubuh, target, kondisi, aktivitas, frekuensi, recovery, hidrasi, dan ability test.
+- Setelah assessment selesai, SYSTEM menjalankan analysis transmission.
+- Typewriting dikembalikan, tapi dibuat aman: teks panjang tetap selesai dan bisa scroll.
+- Proof diubah menjadi SURVEILLANCE / WATCH MODULE.
+- Surveillance berisi daily audit, penalty risk, pending order, verified order, player level, serta akses counter/timer/proof note.
+- SYSTEM dibuat lebih terasa hidup dan mengawasi.
+- EXP, level, stat growth, rank, hidden quest, daily reset, countdown, penalty next-day tetap dipertahankan.
