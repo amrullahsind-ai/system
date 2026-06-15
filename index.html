@@ -85,6 +85,25 @@
     .hiddenQuest{border-color:rgba(255,210,107,.40);box-shadow:0 0 0 1px rgba(255,210,107,.12),0 18px 60px rgba(255,180,60,.10)}
     .toast{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);width:min(88%,360px);background:rgba(4,13,26,.96);border:1px solid rgba(125,247,255,.18);border-radius:18px;padding:13px 14px;color:#eafaff;opacity:0;pointer-events:none;transition:.25s;z-index:60}.toast.show{opacity:1}
     @media(max-width:390px){.grid2,.grid3{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.brand{font-size:38px}h1{font-size:30px}.screen{padding-inline:13px}.nav button{flex-basis:58px}.stat b{font-size:22px}}
+  
+    /* v29 stability restore */
+    .screen{padding-bottom:calc(168px + var(--safe))!important}
+    .nav{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;overflow:visible!important;left:10px;right:10px;bottom:calc(10px + var(--safe));padding:8px}
+    .nav button{flex:auto!important;width:auto!important;min-width:0!important;font-size:9px;line-height:1.1}
+    .fab{bottom:154px!important}
+    .holo{max-height:96dvh!important}
+    .holoBody{max-height:70dvh!important;overflow:auto!important}
+    .form-block{display:grid;gap:12px;text-align:left}
+    .field-card{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:18px;padding:12px}
+    .field-card label{display:block;font-size:12px;color:#9bfbff;font-weight:900;letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase}
+    .field-card small{display:block;color:var(--muted);font-size:11px;line-height:1.35;margin-top:6px}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .field-grid .field-card{min-width:0}
+    .countdown-live{font-weight:900;color:#9bfbff}
+    .countdown-live.danger-time{color:#ff8ca0}
+    .core-grid{display:grid;gap:12px}
+    @media(max-width:390px){.nav{grid-template-columns:repeat(4,minmax(0,1fr))}.field-grid{grid-template-columns:1fr}.screen{padding-bottom:calc(178px + var(--safe))!important}.fab{bottom:164px!important}}
+
   </style>
 </head>
 <body>
@@ -118,7 +137,7 @@ const defaultState={
  player:{level:1,exp:0,nextExp:300,rank:'E',statPoints:0,streak:0,totalClears:0},
  stats:{strength:12,vitality:13,agility:11,recovery:10,discipline:16},
  system:{protocolName:'Adaptive Hunter Protocol',calorieGoal:2450,waterGoal:3.0,macros:{protein:145,carbs:290,fat:67},bmi:20.4,bmiLabel:'Healthy',estimated90DayWeight:62},
- quests:[], hiddenQuests:[], logs:[], proofRecords:[], penalty:{active:false,severity:0,tasks:[]}, ai:{enabled:true,model:'gemini-2.5-flash'}, push:{enabled:false,token:'',lastPermission:'default'}
+ quests:[], hiddenQuests:[], logs:[], proofRecords:[], penalty:{active:false,severity:0,tasks:[],fromPreviousDay:false}, previousDay:{key:'',completion:null,failed:false}, ai:{enabled:true,model:'gemini-2.5-flash'}, push:{enabled:false,token:'',lastPermission:'default'}
 };
 let state=load();
 function load(){try{return merge(JSON.parse(JSON.stringify(defaultState)),JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'))}catch{return JSON.parse(JSON.stringify(defaultState))}}
@@ -127,6 +146,9 @@ function merge(a,b){for(const k in b){if(b[k]&&typeof b[k]=='object'&&!Array.isA
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function todayKey(){return new Date().toISOString().slice(0,10)}
+function nextMidnight(){
+ const d=new Date(); d.setHours(24,0,0,0); return d.getTime();
+}
 function toastMsg(m){toast.textContent=m;toast.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>toast.classList.remove('show'),2400)}
 function rankFromLevel(l){return l>=70?'S':l>=50?'A':l>=35?'B':l>=20?'C':l>=10?'D':'E'}
 function calcSystem(){
@@ -152,7 +174,7 @@ function generateDailyQuests(){
  const sit=clamp(questTarget(20,'strength',.55),15,180);
  const plank=clamp(questTarget(45,'recovery',2.2),40,520);
  const walk=clamp(3500+lvl*120+state.stats.agility*80,3000,16000);
- const deadline=Date.now()+DAY_MS-1;
+ const deadline=nextMidnight();
  const q=[
   {id:id(),title:'Current Order: Push Discipline',type:'STRENGTH',stat:'strength',kind:'counter',target:push,progress:0,unit:'reps',exp:120+lvl*8,deadline,proofNote:'',done:false,desc:`Selesaikan ${push} push-up total. Pecah beberapa set jika perlu, tapi jangan bersembunyi di balik alasan.`},
   {id:id(),title:'Current Order: Lower Body Rise',type:'VITALITY',stat:'vitality',kind:'counter',target:squat,progress:0,unit:'reps',exp:110+lvl*8,deadline,proofNote:'',done:false,desc:`Selesaikan ${squat} squat total dengan tempo bersih.`},
@@ -164,13 +186,24 @@ function generateDailyQuests(){
  state.quests=q; state.hiddenQuests=[]; state.dayKey=todayKey(); save();
 }
 function ensureDay(){
- if(!state.dayKey){state.dayKey=todayKey(); if(!state.quests.length)generateDailyQuests(); save(); return}
+ if(!state.dayKey){
+   state.dayKey=todayKey();
+   if(!state.quests.length)generateDailyQuests();
+   save();
+   return;
+ }
  if(state.dayKey!==todayKey()){
    const completion=completionPercent();
-   if(completion<60){activatePenalty(3,`Daily reset: kemarin hanya ${completion}% tervalidasi.`)}
-   else state.player.streak++;
-   state.logs.unshift({time:new Date().toLocaleString('id-ID'),type:'DAILY_RESET',text:`New daily order generated. Previous completion ${completion}%.`});
+   state.previousDay={key:state.dayKey,completion,failed:completion<60};
+   state.penalty={active:false,severity:0,tasks:[],fromPreviousDay:false};
    generateDailyQuests();
+   if(completion<60){
+     activatePenalty(completion<15?3:completion<35?2:1,`Kemarin hanya ${completion}% tervalidasi. Hukuman berlaku hari ini.`, true);
+   } else {
+     state.player.streak++;
+   }
+   state.logs.unshift({time:new Date().toLocaleString('id-ID'),type:'DAILY_RESET',text:`New daily order generated. Previous completion ${completion}%.`});
+   save();
  }
 }
 function id(){return Math.random().toString(36).slice(2,9)}
@@ -193,11 +226,12 @@ Kenaikan level bukan hadiah belas kasihan. Itu bukti bahwa tubuhmu dipaksa berge
 
 RANK UP DETECTED: ${oldRank} → ${state.player.rank}`:''}`);
 }
-function activatePenalty(sev=1,reason='Minimum protocol gagal dipenuhi.'){
- state.penalty={active:true,severity:sev,reason,tasks:[
-  {id:id(),title:'Penalty: Emergency Push-up',kind:'counter',target:sev*12,progress:0,unit:'reps',exp:40*sev,stat:'discipline'},
-  {id:id(),title:'Penalty: Plank Silence',kind:'timer',target:sev*30,progress:0,unit:'sec',exp:45*sev,stat:'recovery'},
-  {id:id(),title:'Penalty: Silent Walk',kind:'counter',target:sev*5,progress:0,unit:'min',exp:35*sev,stat:'agility'}
+function activatePenalty(sev=1,reason='Minimum protocol gagal dipenuhi.', fromPreviousDay=false){
+ const deadline=nextMidnight();
+ state.penalty={active:true,severity:sev,reason,fromPreviousDay,tasks:[
+  {id:id(),title:'Penalty: Emergency Push-up',kind:'counter',target:sev*12,progress:0,unit:'reps',exp:40*sev,stat:'discipline',deadline,desc:'Hukuman fisik karena order kemarin gagal tervalidasi.'},
+  {id:id(),title:'Penalty: Plank Silence',kind:'timer',target:sev*30,progress:0,unit:'sec',exp:45*sev,stat:'recovery',deadline,desc:'Tahan diam. Jangan bernegosiasi dengan SYSTEM.'},
+  {id:id(),title:'Penalty: Silent Walk',kind:'counter',target:sev*5,progress:0,unit:'min',exp:35*sev,stat:'agility',deadline,desc:'Jalan tanpa distraksi. Bayar hutang disiplin.'}
  ]}; save();
 }
 function maybeHiddenQuest(){
@@ -219,7 +253,7 @@ function render(){
  ensureDay();
  if(!state.booted)return splash();
  if(!state.accepted)return accept();
- nav.style.display='flex'; fab.style.display='block';
+ nav.style.display='grid'; fab.style.display='block';
  const tabs=['status','orders','proof','penalty','analysis','profile','core'];
  if(!tabs.includes(state.active))state.active='status';
  nav.innerHTML=tabs.map(t=>`<button class="${state.active===t?'active':''}" data-tab="${t}">${icon(t)}${t.toUpperCase()}</button>`).join('');
@@ -228,6 +262,7 @@ function render(){
  const page={status,orders,proof,penalty,analysis,profile,core}[state.active]();
  screen.innerHTML=page;
  bind();
+ startCountdowns();
 }
 function splash(){
  nav.style.display='none';fab.style.display='none';
@@ -253,17 +288,28 @@ function orders(){
  return `<div class="stack"><div class="card"><span class="tag">CURRENT ORDER</span><h1>Deadline aktif.</h1><p>Setiap quest punya countdown. Jika waktu habis dan completion rendah, Penalty Zone aktif. Task berubah setiap hari berdasarkan level, rank, dan stat.</p></div><div class="order">${q.map((x,i)=>questCard(x,i)).join('')}</div></div>`;
 }
 function questCard(q,i){
- const pct=Math.min(100,Math.round((q.progress||0)/q.target*100)),rem=Math.max(0,q.deadline-Date.now());
+ const pct=Math.min(100,Math.round((q.progress||0)/q.target*100));
+ if(!q.deadline || Number.isNaN(Number(q.deadline))) q.deadline=nextMidnight();
+ const rem=Math.max(0,Number(q.deadline)-Date.now());
  const time=fmt(rem);
- return `<div class="orderCard ${q.type==='HIDDEN'?'hiddenQuest':''} ${q.done?'':'danger'}"><div class="orderHead"><div><h4>${esc(q.title)}</h4><p>${esc(q.desc)}</p></div><span class="pill">${esc(q.type||q.stat)}</span></div><div class="bar"><span style="width:${pct}%"></span></div><div class="small" style="margin-top:8px">Progress: <b>${q.progress||0}/${q.target} ${q.unit}</b> · EXP ${q.exp} · <span class="${rem<3600000?'red':'cyan'}">${time} remaining</span></div><div class="actions"><button class="btn" data-input="${q.id}">Input Progress</button><button class="btn secondary" data-proof="${q.id}">Proof</button></div></div>`;
+ return `<div class="orderCard ${q.type==='HIDDEN'?'hiddenQuest':''} ${q.done?'':'danger'}"><div class="orderHead"><div><h4>${esc(q.title)}</h4><p>${esc(q.desc||'')}</p></div><span class="pill">${esc(q.type||q.stat||'ORDER')}</span></div><div class="bar"><span style="width:${pct}%"></span></div><div class="small" style="margin-top:8px">Progress: <b>${q.progress||0}/${q.target} ${q.unit}</b> · EXP ${q.exp||0} · <span class="countdown-live ${rem<3600000?'danger-time':''}" data-deadline="${q.deadline}">${time} remaining</span></div><div class="actions"><button class="btn" data-input="${q.id}">Input Progress</button><button class="btn secondary" data-proof="${q.id}">Proof</button></div></div>`;
 }
 function fmt(ms){let s=Math.floor(ms/1000),h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 function proof(){
  return `<div class="stack"><div class="card"><span class="tag">PROOF MODULE</span><h1>Bukti, bukan tombol kosong.</h1><p>Proof menyediakan tap counter, timer, dan catatan bukti. Save Proof menyimpan arsip, tapi quest baru clear saat target progress terpenuhi.</p></div>${allQuests().map(q=>`<div class="card"><h4>${esc(q.title)}</h4><p>${q.kind==='timer'?'Timer aktif untuk validasi durasi.':'Tap counter untuk menambah repetisi dengan cepat.'}</p><div class="actions"><button class="btn" data-tool="${q.id}">${q.kind==='timer'?'Open Timer':'Open Counter'}</button><button class="btn secondary" data-proof="${q.id}">Write Proof Note</button></div><div class="small" style="margin-top:10px">Saved note: ${esc(q.proofNote||'Belum ada catatan.')}</div></div>`).join('')}</div>`;
 }
 function penalty(){
- const cp=completionPercent(); if(cp<60&&!state.penalty.active)activatePenalty(cp<15?3:cp<35?2:1,`Completion ${cp}% di bawah minimum.`);
- return `<div class="stack"><div class="card penalty-card danger"><span class="tag">PENALTY ZONE</span><h1>${state.penalty.active?'Penalty active.':'Dormant.'}</h1><p>${state.penalty.active?`Completion <span class="red">${cp}%</span>. SYSTEM mengaktifkan hukuman disiplin.`:`Completion <span class="cyan">${cp}%</span>. Penalty belum aktif.`}</p></div><div class="order">${(state.penalty.tasks||[]).map(q=>questCard(q,0)).join('')||'<div class="card"><p>Tidak ada penalty. Jangan buat SYSTEM mengaktifkannya.</p></div>'}</div></div>`;
+ const cp=completionPercent();
+ const prev=state.previousDay || {};
+ return `<div class="stack">
+  <div class="card penalty-card danger"><span class="tag">PENALTY ZONE</span><h1>${state.penalty.active?'Penalty active.':'Dormant.'}</h1>
+   <p>${state.penalty.active
+    ? `Penalty ini aktif karena hari sebelumnya gagal. Previous completion: <span class="red">${prev.completion ?? 0}%</span>. Hari ini kamu harus membayar hutang disiplin.`
+    : `Penalty belum aktif. Completion hari ini <span class="cyan">${cp}%</span>. Jika hari ini berakhir di bawah <span class="red">60%</span>, hukuman akan muncul besok.`}</p>
+  </div>
+  <div class="card"><h4>Aturan Penalty</h4><p>Penalty tidak langsung aktif hanya karena pagi ini masih 0%. SYSTEM menunggu sampai hari selesai. Jika sampai ganti hari completion kemarin kurang dari 60%, Penalty Zone dibuka pada hari berikutnya.</p></div>
+  <div class="order">${(state.penalty.tasks||[]).map(q=>questCard(q,0)).join('')||'<div class="card"><p>Tidak ada penalty aktif sekarang. Jangan jadikan ini alasan untuk santai.</p></div>'}</div>
+ </div>`;
 }
 function analysis(){
  const p=state.profile,s=state.system,cp=completionPercent();
@@ -275,7 +321,15 @@ function profile(){
  return `<div class="stack"><div class="card danger"><div class="top"><div class="id"><div class="avatar" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':crest()}</div><div><h2>${esc(p.name||'Unknown')}</h2><p>Player dossier · ${s.protocolName}</p></div></div><div class="rank"><span>LEVEL</span><b>${pl.level}</b><span>RANK ${pl.rank}</span></div></div><p>Profil ini adalah status window. Semua angka harus naik melalui EXP, bukan survei awal.</p></div><div class="grid2"><div class="card"><h4>Identity</h4><p>Age: <b>${p.age}</b><br>Gender: <b>${p.gender}</b><br>Goal: <b>${p.goal}</b><br>Condition: <b>${p.condition}</b></p></div><div class="card"><h4>Body</h4><p>Height: <b>${p.height}cm</b><br>Weight: <b>${p.weight}kg</b><br>Target: <b>${p.targetWeight}kg</b><br>BMI: <b>${s.bmi} · ${s.bmiLabel}</b></p></div></div><div class="card"><span class="tag">STAT DETAIL</span><div class="grid2" style="margin-top:12px">${Object.entries(state.stats).map(([k,v])=>statCard(k[0].toUpperCase()+k.slice(1),v)).join('')}</div></div><div class="card"><h4>Ability baseline</h4><p>Push-up ${p.ability.pushup} · Squat ${p.ability.squat} · Sit-up ${p.ability.situp} · Plank ${p.ability.plank}s · 1km ${p.ability.runKmTime}m</p><button class="btn secondary" style="margin-top:12px" id="editProfile">Edit Profile</button></div></div>`;
 }
 function core(){
- return `<div class="stack"><div class="card"><span class="tag">SYSTEM CORE</span><h1>Control protocol.</h1><p>Daily reset, AI transmission, push notification, dan data lokal.</p></div><div class="card"><h4>AI Core</h4><p>Fallback tidak lagi menampilkan error teknis. Kalau Gemini rate limited, SYSTEM memakai transmission pool in-universe.</p><div class="actions"><button class="btn" id="aiTest">Test Transmission</button><button class="btn secondary" id="regen">Regenerate Today Task</button></div></div><div class="card"><h4>Push Notification</h4><p>Android Chrome bisa menerima notifikasi walau app ditutup setelah izin aktif. Battery saver/data saver/blocked notification bisa menghambat.</p><div class="actions"><button class="btn" id="pushOn">Enable Push</button><button class="btn secondary" id="pushTest">Test Push</button></div><div class="small">Permission: ${state.push.lastPermission}</div></div><div class="card danger"><h4>Danger Zone</h4><button class="btn dangerBtn" id="reset">Reset System</button></div></div>`;
+ return `<div class="stack">
+  <div class="card"><span class="tag">SYSTEM CORE</span><h1>Control protocol.</h1><p>Panel pusat untuk AI, push notification, daily reset, task generation, profile, dan data lokal.</p></div>
+  <div class="core-grid">
+    <div class="card"><h4>AI Core</h4><p>AI transmission tetap full. Jika Gemini rate limited, SYSTEM memakai transmission pool in-universe tanpa menampilkan error teknis.</p><div class="actions"><button class="btn" id="aiTest">Test Transmission</button><button class="btn secondary" id="systemMenu">System Message</button></div></div>
+    <div class="card"><h4>Task Engine</h4><p>Task harian berubah saat hari berganti. Target dihitung dari level, rank, dan stat. Level naik = task berikutnya lebih berat.</p><div class="actions"><button class="btn" id="regen">Regenerate Today Task</button><button class="btn secondary" id="forcePenalty">Force Penalty Test</button></div></div>
+    <div class="card"><h4>Push Notification</h4><p>Android Chrome bisa menerima notifikasi walau app/web ditutup setelah izin aktif dan service worker berhasil. Battery saver/data saver bisa menghambat.</p><div class="actions"><button class="btn" id="pushOn">Enable Push</button><button class="btn secondary" id="pushTest">Test Push</button></div><div class="small">Permission: ${state.push.lastPermission}</div></div>
+    <div class="card"><h4>Player Data</h4><p>Edit profil, kemampuan awal, dan target. Perubahan profil akan mengenerate ulang task hari ini.</p><div class="actions"><button class="btn secondary" id="editFromCore">Edit Profile</button><button class="btn dangerBtn" id="reset">Reset System</button></div></div>
+  </div>
+ </div>`;
 }
 function bind(){
  document.querySelectorAll('[data-input]').forEach(b=>b.onclick=()=>openProgress(b.dataset.input));
@@ -284,6 +338,9 @@ function bind(){
  if($('editProfile'))$('editProfile').onclick=()=>openProfileEdit(false);
  if($('aiTest'))$('aiTest').onclick=()=>runAI();
  if($('regen'))$('regen').onclick=()=>{generateDailyQuests();toastMsg('Daily order regenerated.');render()};
+ if($('systemMenu'))$('systemMenu').onclick=()=>systemMenu();
+ if($('forcePenalty'))$('forcePenalty').onclick=()=>{activatePenalty(2,'Manual penalty test dari CORE.',true);toastMsg('Penalty test activated.');render()};
+ if($('editFromCore'))$('editFromCore').onclick=()=>openProfileEdit(false);
  if($('reset'))$('reset').onclick=()=>{if(confirm('Reset semua data?')){localStorage.removeItem(STORAGE_KEY);location.reload()}};
  if($('pushOn'))$('pushOn').onclick=enablePush;
  if($('pushTest'))$('pushTest').onclick=testPush;
@@ -364,9 +421,31 @@ async function runAI(){
 function systemMenu(){showTransmission('SYSTEM MENU',fallbackMessage())}
 function openProfileEdit(first=false){
  modal.className='modal show'; const p=state.profile;
- modal.innerHTML=`<div class="holo"><div class="holoTitle">PLAYER PROFILE</div><div class="holoBody"><input id="name" placeholder="Nama player" value="${esc(p.name)}"><div class="grid2" style="margin-top:10px"><input id="age" type="number" value="${p.age}" placeholder="Umur"><input id="height" type="number" value="${p.height}" placeholder="Tinggi"><input id="weight" type="number" value="${p.weight}" placeholder="Berat"><input id="target" type="number" value="${p.targetWeight}" placeholder="Target berat"></div><div class="grid2" style="margin-top:10px"><input id="push" type="number" value="${p.ability.pushup}" placeholder="Push-up max"><input id="squat" type="number" value="${p.ability.squat}" placeholder="Squat max"><input id="situp" type="number" value="${p.ability.situp}" placeholder="Sit-up max"><input id="plank" type="number" value="${p.ability.plank}" placeholder="Plank sec"></div><div class="actions" style="margin-top:12px"><button class="btn" id="saveP">Save Profile</button><button class="btn secondary" id="close">Cancel</button></div></div></div>`;
+ modal.innerHTML=`<div class="holo"><div class="holoTitle">PLAYER PROFILE</div><div class="holoBody">
+  <p style="margin-bottom:12px">Isi data dasar player. Data ini menentukan BMI, kalori, target berat, daily order, dan baseline kemampuan. Angka boleh diubah lagi nanti dari menu PROFILE.</p>
+  <div class="form-block">
+    <div class="field-card"><label>Nama Player</label><input id="name" placeholder="Contoh: Amrullah Sind" value="${esc(p.name)}"><small>Nama yang akan dipakai di SYSTEM transmission.</small></div>
+    <div class="field-grid">
+      <div class="field-card"><label>Umur</label><input id="age" type="number" value="${p.age}"><small>Dipakai untuk estimasi metabolisme dan recovery.</small></div>
+      <div class="field-card"><label>Tinggi Badan</label><input id="height" type="number" value="${p.height}"><small>Dalam cm.</small></div>
+      <div class="field-card"><label>Berat Sekarang</label><input id="weight" type="number" value="${p.weight}"><small>Dalam kg.</small></div>
+      <div class="field-card"><label>Target Berat</label><input id="target" type="number" value="${p.targetWeight}"><small>Target 90 hari / target utama.</small></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-card"><label>Push-up Max</label><input id="push" type="number" value="${p.ability.pushup}"><small>Maksimal repetisi bersih saat ini.</small></div>
+      <div class="field-card"><label>Squat Max</label><input id="squat" type="number" value="${p.ability.squat}"><small>Maksimal repetisi bersih saat ini.</small></div>
+      <div class="field-card"><label>Sit-up Max</label><input id="situp" type="number" value="${p.ability.situp}"><small>Maksimal repetisi bersih saat ini.</small></div>
+      <div class="field-card"><label>Plank Max</label><input id="plank" type="number" value="${p.ability.plank}"><small>Dalam detik.</small></div>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:12px"><button class="btn" id="saveP">Save Profile</button><button class="btn secondary" id="close">Cancel</button></div>
+ </div></div>`;
  $('close').onclick=()=>{closeModal(); if(first)render()};
- $('saveP').onclick=()=>{p.name=$('name').value.trim()||'Unknown';p.age=+$('age').value||19;p.height=+$('height').value||167;p.weight=+$('weight').value||57;p.targetWeight=+$('target').value||63;p.ability.pushup=+$('push').value||0;p.ability.squat=+$('squat').value||0;p.ability.situp=+$('situp').value||0;p.ability.plank=+$('plank').value||0;state.accepted=true;calcSystem();generateDailyQuests();save();closeModal();showTransmission('SYSTEM ONLINE',fallbackMessage());render()};
+ $('saveP').onclick=()=>{
+  p.name=$('name').value.trim()||'Unknown';p.age=+$('age').value||19;p.height=+$('height').value||167;p.weight=+$('weight').value||57;p.targetWeight=+$('target').value||63;
+  p.ability.pushup=+$('push').value||0;p.ability.squat=+$('squat').value||0;p.ability.situp=+$('situp').value||0;p.ability.plank=+$('plank').value||0;
+  state.accepted=true;calcSystem();generateDailyQuests();save();closeModal();showTransmission('SYSTEM ONLINE',fallbackMessage());render()
+ };
 }
 async function enablePush(){
  try{

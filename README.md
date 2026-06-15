@@ -1,21 +1,15 @@
-# ARISE SYSTEM v28 — TRUE SYSTEM ENGINE
+# ARISE SYSTEM v29 — STABILITY RESTORE
 
-Perubahan besar:
-- Rebuild UI agar tidak tabrakan di mobile.
-- AI transmission tidak lagi typewriter, jadi tidak terlihat kepotong.
-- Gemini API maxOutputTokens 4096.
-- Fallback AI in-universe, tidak lagi menyebut AI error / quota / server.
-- Daily task auto-reset saat pindah hari.
-- Task berubah berdasarkan level, rank, dan stat.
-- EXP system ditambahkan.
-- Level up event dramatis.
-- Stat naik saat quest clear.
-- Rank naik berdasarkan level.
-- Countdown deadline per quest.
-- Penalty Zone aktif jika completion harian di bawah 60%.
-- Hidden Quest muncul setelah beberapa quest clear.
-- Proof Module punya tap counter, timer, proof note.
-- Profile detail seperti status window.
+Perbaikan dari v28:
+- Profile form diberi label dan penjelasan seperti versi sebelumnya.
+- Penalty tidak aktif di hari yang sama hanya karena progress masih 0%.
+- Penalty aktif besok jika hari sebelumnya completion < 60%.
+- Countdown quest dihitung sampai 23:59:59 hari ini.
+- Countdown live dan tidak lagi NaN.
+- Menu bawah dibuat 2 baris/grid agar semua menu terlihat dan tidak kepotong.
+- CORE dikembalikan lebih lengkap.
+- Proof dan Order tetap dipisahkan.
+- Engine EXP, Level Up, stat naik, rank naik, hidden quest, dan daily reset tetap ada.
 
-Catatan notifikasi:
-Android Chrome bisa menerima Web Push saat app/web ditutup jika izin notifikasi aktif, service worker aktif, dan browser tidak dibatasi battery saver/data saver.
+Cara update:
+Upload semua isi folder ke GitHub/Vercel, redeploy, lalu clear site data.
