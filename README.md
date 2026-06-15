@@ -119,3 +119,14 @@ Setelah upload:
 2. Clear Site Data domain Vercel di Chrome.
 3. Buka ulang app.
 4. Cek `/firebase-messaging-sw.js` harus menampilkan kode JavaScript v20.
+
+
+## v21 Push Admin Fix
+
+Perbaikan:
+- Error `Cannot read properties of undefined (reading 'length')` diperbaiki.
+- Penyebabnya import `firebase-admin` di Vercel ESM bisa masuk sebagai `default`, sehingga `admin.apps` undefined.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` sekarang lebih tahan error:
+  - Bisa JSON biasa.
+  - Bisa base64 JSON.
+  - Private key `\n` otomatis dinormalisasi.

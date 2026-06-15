@@ -1,13 +1,36 @@
 async function getAdmin() {
-  const admin = await import('firebase-admin');
-  if (!admin.apps.length) {
+  const adminModule = await import('firebase-admin');
+  const admin = adminModule.default || adminModule;
+
+  if (!admin.apps || !admin.apps.length) {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON belum dipasang di Vercel.');
-    const serviceAccount = JSON.parse(raw);
+    if (!raw) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON belum dipasang di Vercel.');
+    }
+
+    let serviceAccount;
+    try {
+      // Supports normal JSON pasted into Vercel env.
+      serviceAccount = JSON.parse(raw);
+    } catch (firstError) {
+      try {
+        // Optional fallback if user stores base64 JSON.
+        serviceAccount = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+      } catch (secondError) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON tidak valid. Copy seluruh isi file JSON dari { sampai }, atau pakai base64 JSON.');
+      }
+    }
+
+    // Vercel sometimes stores \n as literal escaped characters; normalize private key.
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
   }
+
   return admin;
 }
 
@@ -16,7 +39,7 @@ export default async function handler(req, res) {
 
   try {
     const { token, title = 'SYSTEM ORDER', body = 'Current Order menunggu.' } = req.body || {};
-    if (!token) return res.status(400).json({ error: 'Missing target token.' });
+    if (!token) return res.status(400).json({ error: 'Missing target token. Klik Enable Push dulu sampai token muncul.' });
 
     const admin = await getAdmin();
     const response = await admin.messaging().send({
@@ -24,6 +47,7 @@ export default async function handler(req, res) {
       notification: { title, body },
       data: {
         source: 'ARISE_SYSTEM',
+        title,
         body
       },
       webpush: {

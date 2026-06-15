@@ -1664,7 +1664,7 @@ Tegas, memerintah, tapi aman.`;
       if(!res.ok) throw new Error(data.error || 'Push test failed');
       showHologramTransmission('PUSH SENT', 'Perintah push dikirim. Kalau app sedang foreground, hologram akan tampil. Kalau background, sistem Android/browser akan menampilkan notifikasi.', {primary:'ACCEPT'});
     }catch(err){
-      showHologramTransmission('PUSH SEND ERROR', err.message + '\n\nUntuk mengirim push dari server, pasang FIREBASE_SERVICE_ACCOUNT_JSON di Vercel.', {primary:'UNDERSTOOD'});
+      showHologramTransmission('PUSH SEND ERROR', err.message + '\n\nUntuk Test Push server: pastikan FIREBASE_SERVICE_ACCOUNT_JSON valid, sudah redeploy, dan Enable Push sudah menghasilkan token.', {primary:'UNDERSTOOD'});
     }
   }
 
