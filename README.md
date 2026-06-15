@@ -130,3 +130,12 @@ Perbaikan:
   - Bisa JSON biasa.
   - Bisa base64 JSON.
   - Private key `\n` otomatis dinormalisasi.
+
+
+## v22 AI Message Complete Fix
+
+Perbaikan:
+- AI tidak boleh lagi berhenti hanya di `PLAYER:`.
+- Frontend mendeteksi jawaban AI yang terlalu pendek/kosong lalu memakai fallback SYSTEM rule-engine.
+- Prompt AI dibuat lebih ketat: setiap label wajib ada isinya.
+- API Gemini juga punya fallback server kalau output model tidak lengkap.

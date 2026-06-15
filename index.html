@@ -1356,11 +1356,29 @@
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .replace(/SYSTEM TRANSMISSION/gi, '')
+      .replace(/^\s*PLAYER\s*:\s*$/gim, '')
       .trim();
+
+    const bad =
+      !text ||
+      text.length < 24 ||
+      /^PLAYER\s*:?\s*$/i.test(text) ||
+      /^JUDGEMENT\s*:?\s*$/i.test(text) ||
+      /^ORDER\s*\d?\s*:?\s*$/i.test(text) ||
+      text.split(/\s+/).length < 5;
+
+    if(bad){
+      const p = state?.profile || {};
+      const done = (state?.quests || []).filter(q=>q.done).length;
+      const total = (state?.quests || []).length || 1;
+      const percent = Math.round(done / total * 100);
+      return `PLAYER: ${p.name || 'Unknown'}\nJUDGEMENT: Data AI tidak lengkap. SYSTEM memakai rule engine.\nORDER 1: Buka Current Order.\nORDER 2: Selesaikan minimal satu quest sekarang.\nORDER 3: Progress saat ini ${percent}%.`;
+    }
+
     const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
     text = lines.slice(0, 7).join('\n');
     if(text.length > 520) text = text.slice(0, 520).replace(/\s+\S*$/, '') + '...';
-    return text || 'Current Order menunggu. Bergerak sekarang.';
+    return text;
   }
 
   function showHologramTransmission(title, message, options={}){
@@ -1454,7 +1472,7 @@
           body: JSON.stringify({ prompt, mode:'auto', model: state.ai.model || 'gemini-2.5-flash' })
         });
         const data = await res.json();
-        if(res.ok && data.text){
+        if(res.ok && data.text && data.text.trim().length >= 24 && !/^\s*PLAYER\s*:?\s*$/i.test(data.text.trim())){
           showHologramTransmission('SYSTEM TRANSMISSION', data.text, {primary:'UNDERSTOOD'});
           return;
         }
@@ -1479,7 +1497,10 @@
       });
       const data = await res.json();
       if(!res.ok) throw new Error(data?.error || 'AI request failed');
-      const text = data.text || 'AI tidak mengembalikan pesan.';
+      let text = data.text || '';
+      if(!text || text.trim().length < 24 || /^\s*PLAYER\s*:?\s*$/i.test(text.trim())){
+        text = localSystemMessage(mode || 'AI fallback');
+      }
       state.ai.lastMessage = text;
       state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'AI', text: text.slice(0,120)});
       save();
@@ -1491,28 +1512,37 @@
 
   function buildAiPrompt(mode){
     const p = state.profile, s = state.system;
-    return `Kamu adalah SYSTEM fitness yang otoriter, dingin, dan ringkas. Jangan jadi coach ramah. Jangan memberi saran medis berlebihan. Jawab bahasa Indonesia dominan dengan gaya [SYSTEM TRANSMISSION].
-Mode: ${mode}
-Data Player:
-Nama: ${p.name}
-Umur: ${p.age}
-Tinggi/Berat: ${p.height}cm/${p.weight}kg
-Target: ${p.goal}, target weight ${p.targetWeight}kg
-Kondisi: ${p.condition}
-Activity: ${p.activity}, frequency ${p.frequency}x/minggu
-Health issues: ${p.health.join(', ')}
-Equipment: ${p.equipment.join(', ')}
-Focus: ${p.focus.join(', ')}
-Kemampuan awal: pushup ${p.ability.pushup}, squat ${p.ability.squat}, situp ${p.ability.situp}, plank ${p.ability.plank}s, 1km ${p.ability.runKmTime} menit
-Stats: ${JSON.stringify(s.currentStats)}
-Quest: ${state.quests.map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ')}
-Tulis MAKSIMAL 6 baris pendek. Jangan markdown. Jangan pakai **, backtick, atau heading. Format:
-PLAYER: nama
-JUDGEMENT: satu kalimat
-ORDER 1: ...
-ORDER 2: ...
-ORDER 3: ...
-Tegas, memerintah, tapi aman.`;
+    return `Kamu adalah SYSTEM fitness otoriter. Jawab harus SELESAI, pendek, dan tidak boleh berhenti di label kosong.
+
+ATURAN OUTPUT:
+- Bahasa Indonesia.
+- Maksimal 6 baris.
+- Jangan markdown, jangan **, jangan backtick.
+- Setiap label wajib ada isinya.
+- Jangan menulis hanya "PLAYER:".
+- Gunakan format persis:
+PLAYER: ${p.name || 'Unknown'}
+JUDGEMENT: satu kalimat tegas
+ORDER 1: perintah spesifik
+ORDER 2: perintah spesifik
+ORDER 3: perintah spesifik
+
+MODE: ${mode}
+DATA PLAYER:
+Nama: ${p.name || 'Unknown'}
+Umur: ${p.age || '-'}
+Tinggi/Berat: ${p.height || '-'}cm/${p.weight || '-'}kg
+Target: ${p.goal || '-'}, target weight ${p.targetWeight || '-'}kg
+Kondisi: ${p.condition || '-'}
+Activity: ${p.activity || '-'}, frequency ${p.frequency || '-'}x/minggu
+Health issues: ${(p.health || []).join(', ') || 'None'}
+Equipment: ${(p.equipment || []).join(', ') || 'None'}
+Focus: ${(p.focus || []).join(', ') || 'Full Body'}
+Kemampuan awal: pushup ${p.ability?.pushup || 0}, squat ${p.ability?.squat || 0}, situp ${p.ability?.situp || 0}, plank ${p.ability?.plank || 0}s, 1km ${p.ability?.runKmTime || 0} menit
+Stats: ${JSON.stringify(s.currentStats || {})}
+Quest: ${(state.quests || []).map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ') || 'Belum ada quest'}
+
+Tulis perintah final sekarang.`;
   }
 
   function triggerSystemModal(){
