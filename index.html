@@ -172,9 +172,9 @@
     .chart::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg, transparent 0 34px, rgba(255,255,255,.06) 34px 35px)}
     .chart svg{position:relative;z-index:2;width:100%;height:100%}
 
-    .bottom-nav{position:absolute;left:12px;right:12px;bottom:calc(14px + var(--safe-bottom));padding:8px;border-radius:28px;background:rgba(5,13,26,.92);border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 40px rgba(0,0,0,.35);display:none;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;backdrop-filter:blur(14px)}
+    .bottom-nav{position:absolute;left:16px;right:16px;bottom:calc(18px + var(--safe-bottom));padding:10px;border-radius:28px;background:rgba(5,13,26,.88);border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 40px rgba(0,0,0,.35);display:none;grid-template-columns:repeat(5,1fr);gap:6px;backdrop-filter:blur(14px)}
     .bottom-nav.show{display:grid}
-    .nav-btn{display:flex;flex-direction:column;align-items:center;gap:5px;border:none;background:transparent;color:#7f93aa;padding:9px 2px;border-radius:18px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.03em}
+    .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:transparent;color:#7f93aa;padding:10px 4px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer}
     .nav-btn.active{background:linear-gradient(180deg, rgba(89,178,255,.18), rgba(64,116,255,.08));color:white}
     .nav-btn svg{width:18px;height:18px}
 
@@ -286,40 +286,6 @@
     .push-card{border-color:rgba(117,251,255,.24)!important;box-shadow:0 0 0 1px rgba(117,251,255,.05),0 18px 48px rgba(71,161,255,.08)!important}
     .token-box{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#9fc7de;line-height:1.45;word-break:break-all;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px;margin-top:10px;max-height:120px;overflow:auto}
 
-    .em-red{color:#ff819c;font-weight:800}
-    .em-cyan{color:#9af7ff;font-weight:800}
-    .em-amber{color:#ffd17a;font-weight:800}
-    .init-core{position:relative;width:250px;height:250px;margin:14px auto 28px;display:grid;place-items:center}
-    .init-core::before,.init-core::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(117,251,255,.20)}
-    .init-core::before{inset:18px;box-shadow:0 0 40px rgba(99,195,255,.18), inset 0 0 40px rgba(99,195,255,.08);animation:spin 18s linear infinite}
-    .init-core::after{inset:44px;border-style:dashed;opacity:.8;animation:spin 12s linear infinite reverse}
-    .init-seal{width:120px;height:120px;display:grid;place-items:center;border-radius:28px;background:linear-gradient(180deg, rgba(92,184,255,.14), rgba(22,35,70,.82));border:1px solid rgba(140,224,255,.28);box-shadow:0 0 44px rgba(79,162,255,.22), inset 0 0 24px rgba(117,251,255,.08)}
-    .system-dossier{display:grid;gap:12px}
-    .dossier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .dossier-card{padding:18px;border-radius:22px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
-    .dossier-card h4{margin:0 0 8px;font-size:16px;color:#eef8ff}
-    .dossier-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-    .dossier-stat{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:10px 0 0}
-    .dossier-stat b{font-family:Orbitron,Inter,sans-serif;font-size:28px}
-    .dossier-stat span{font-size:12px;color:var(--muted)}
-    .list-rows{display:grid;gap:10px}
-    .row-line{display:flex;justify-content:space-between;gap:14px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
-    .row-line span{color:var(--muted);font-size:13px}
-    .row-line b{font-size:14px;color:#f1fbff;text-align:right}
-    .trajectory-note{padding:14px 16px;border-radius:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);color:#dfefff;font-size:13px;line-height:1.58}
-    .trajectory-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
-    .legend-chip{padding:12px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
-    .legend-chip b{display:block;font-size:14px;margin-bottom:4px}
-    .legend-chip span{font-size:12px;color:var(--muted);line-height:1.4}
-    .status-banner{padding:14px 16px;border-radius:20px;border:1px solid rgba(255,85,119,.18);background:linear-gradient(90deg, rgba(255,85,119,.11), rgba(255,172,94,.07));color:#ffeef2;font-size:13px;line-height:1.5}
-    .proof-console{display:grid;gap:12px}
-    .proof-order-card{padding:16px;border-radius:22px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
-    .proof-order-card h4{margin:0 0 8px;font-size:17px}
-    .proof-order-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-    .proof-order-card .quest-actions{margin-top:12px}
-    .alert-card{border-color:rgba(255,85,119,.24)!important;box-shadow:0 0 0 1px rgba(255,85,119,.08),0 18px 48px rgba(255,85,119,.06)!important}
-    @media (max-width:380px){ .dossier-grid,.comparison,.stats-grid,.trajectory-legend{grid-template-columns:1fr} }
-
 
     /* v19 stable full bugfix */
     input, textarea, select, button { touch-action: manipulation; }
@@ -422,6 +388,41 @@
     .progress-mode button.active{background:rgba(117,251,255,.15);border-color:rgba(117,251,255,.34);color:#eaffff}
     .ai-state-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;border:1px solid rgba(117,251,255,.18);background:rgba(255,255,255,.04);font-size:11px;color:#a9d6ee;font-weight:900;letter-spacing:.06em}
 
+
+    /* v27 AI no-cutoff, penalty zone, proof rework, profile overflow fix */
+    .holo-card{max-height:94dvh!important;overflow:hidden!important}
+    .holo-body{max-height:58dvh!important;overflow:auto!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.6!important}
+    .trans-card{max-height:94dvh!important;overflow:hidden!important}
+    .trans-body{max-height:58dvh!important;overflow:auto!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+    .dossier-card,.mini-card,.plan-card,.metric-card,.hero-card,.proof-order-card{min-width:0;overflow:hidden}
+    .dossier-grid,.stats-grid,.comparison,.profile-power,.inline-kpi{min-width:0}
+    .dossier-card h4,.mini-card h4,.plan-card h4,.proof-order-card h4{overflow-wrap:anywhere;word-break:break-word}
+    .row-line{align-items:flex-start;min-width:0}
+    .row-line span{flex:0 0 auto}
+    .row-line b{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+    .kpi-num,.dossier-stat b{font-size:clamp(20px,6vw,28px)!important;overflow-wrap:anywhere}
+    .profile-power{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .power-tile{overflow:hidden}
+    .power-tile b,.power-tile span{overflow-wrap:anywhere;word-break:break-word}
+    .penalty-card{border-color:rgba(255,61,96,.36)!important;background:linear-gradient(180deg,rgba(52,8,22,.82),rgba(8,12,26,.92))!important;box-shadow:0 0 0 1px rgba(255,61,96,.12),0 20px 60px rgba(255,0,64,.12)!important}
+    .penalty-title{font-family:Orbitron,Inter,sans-serif;letter-spacing:.12em;color:#ffdce5;text-shadow:0 0 18px rgba(255,75,113,.45);font-size:14px;margin-bottom:8px}
+    .penalty-meter{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.06);margin-top:12px}
+    .penalty-meter span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff335f,#ff8a48);box-shadow:0 0 18px rgba(255,75,113,.55)}
+    .penalty-list{display:grid;gap:10px;margin-top:12px}
+    .penalty-row{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,61,96,.08);border:1px solid rgba(255,61,96,.13)}
+    .penalty-row b{color:#fff}
+    .proof-vault{display:grid;gap:12px}
+    .proof-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .proof-note{font-size:12px;color:#9fb9d0;line-height:1.45;margin-top:10px}
+    .proof-status{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(117,251,255,.07);border:1px solid rgba(117,251,255,.15);font-size:11px;font-weight:900;color:#cdf8ff;letter-spacing:.06em}
+    .input.proof-textarea{min-height:94px!important;height:auto!important;resize:vertical!important;font-size:15px!important;line-height:1.5!important}
+    @media (max-width:390px){
+      .profile-power,.inline-kpi{grid-template-columns:1fr!important}
+      .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
+      .bottom-nav{left:8px!important;right:8px!important}
+      .nav-btn span{font-size:9px!important}
+    }
+
     @media (max-width:390px){
       .brand-title{font-size:48px}
       .hero-card h1,.question-title{font-size:30px}
@@ -506,7 +507,8 @@
     logs: [],
     systemEvents: { lastAuto: '', count: 0, bootTransmissionShown: false, lastPulseAt: 0 },
     push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' },
-    aiLimiter: { lastCallAt: 0, cooldownMs: 180000, status: 'READY' }
+    aiLimiter: { lastCallAt: 0, cooldownMs: 180000, status: 'READY' },
+    penalty: { active: false, severity: 0, reason: '', tasks: [] }
   };
 
   const steps = [
@@ -570,31 +572,27 @@
   }
 
   function tigerLogo(cls=''){
-    return `<svg class="tiger-logo ${cls}" viewBox="0 0 256 256" role="img" aria-label="ARISE crest">
+    return `<svg class="tiger-logo ${cls}" viewBox="0 0 256 256" role="img" aria-label="Tiger head logo">
       <defs>
         <linearGradient id="tigerGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f3fbff"/>
-          <stop offset="52%" stop-color="#9feaff"/>
-          <stop offset="100%" stop-color="#7ea9ff"/>
+          <stop stop-color="#f6fdff"/><stop offset="1" stop-color="#7fc8ff"/>
         </linearGradient>
         <filter id="tigerBlur"><feGaussianBlur stdDeviation="8"/></filter>
       </defs>
-      <path class="tiger-glow" d="M128 20 58 56v82l70 98 70-98V56z"/>
-      <path class="tiger-fill" d="M128 28 68 60v74l60 86 60-86V60z"/>
-      <path class="tiger-stroke" d="M128 45 88 67v53l40 58 40-58V67z"/>
-      <path class="tiger-stroke" d="M128 45v133M88 67l40 24 40-24M98 127l30-36 30 36M110 154h36"/>
-      <path class="tiger-stroke" d="M78 84h16M162 84h16M77 151h22M157 151h22" opacity=".72"/>
+      <path class="tiger-glow" d="M128 18 74 42 40 28 52 82 30 124l35 20 6 48 57 42 57-42 6-48 35-20-22-42 12-54-34 14-54-24Z"/>
+      <path class="tiger-fill" d="M128 24 82 46 50 36l10 46-22 40 34 18 6 44 50 38 50-38 6-44 34-18-22-40 10-46-32 10-46-22Z"/>
+      <path d="M83 70 59 56l13 42M173 70l24-14-13 42M96 90l-23-10 18 28M160 90l23-10-18 28M102 132c12-10 28-10 40 0M91 121l23 8M165 121l-23 8M113 154l15 13 15-13M128 167v25M100 183l28 16 28-16" class="tiger-stroke"/>
+      <path d="M78 154c17 8 33 8 50 0 17 8 33 8 50 0" class="tiger-stroke" opacity=".72"/>
     </svg>`;
   }
-
 
   function icon(name){
     const map = {
       status:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M7 16V8m5 8V5m5 11v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       orders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round"/></svg>',
       proof:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      penalty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M12 8v5" stroke-linecap="round"/><path d="M12 16h.01" stroke-linecap="round"/></svg>',
       analysis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19l4-6 3 3 6-10" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5h14v14" opacity=".3"/></svg>',
-      profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/><path d="M4.5 20a7.5 7.5 0 0115 0" stroke-linecap="round"/></svg>',
       core:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.2 4.5 4.8.7-3.5 3.4.8 4.9L12 13.3 7.7 15.5l.8-4.9L5 7.2l4.8-.7L12 2z" stroke-linejoin="round"/></svg>',
       check:'✓', back:'←', plus:'⚡'
     };
@@ -620,15 +618,15 @@
           <div class="brand-title">ARISE</div>
           <div class="brand-sub">Level up in real life. Sistem ini dirancang untuk membaca kondisi player, membentuk disiplin, dan menaikkan performa tubuh secara nyata.</div>
         </div>
-        <div class="init-core">
+        <div class="silhouette-wrap">
           <div class="ring one"></div>
           <div class="ring two"></div>
           <div class="ring three"></div>
-          <div class="init-seal">${tigerLogo()}</div>
+          <div class="silhouette"></div>
         </div>
-        <div class="tag">SYSTEM CORE · HUNTER INTERFACE</div>
+        <div class="tag">SYSTEM CORE · SYSTEM CORE</div>
         <div class="splash-progress"><span></span></div>
-        <div class="small-note">Menyinkronkan antarmuka hologram, membaca parameter player, dan menyiapkan protokol intimidasi...</div>
+        <div class="small-note">Memuat antarmuka, analisis tubuh, modul quest, dan protokol player...</div>
       </section>`;
     setTimeout(() => { state.booted = true; save(); render(); }, 2450);
   }
@@ -1100,17 +1098,15 @@
 
   function renderDashboard(){
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
-    const tabs = ['status','orders','proof','analysis','profile','core'];
+    if(typeof updatePenaltyState === 'function') updatePenaltyState();
+    const tabs = ['status','orders','proof','analysis','core'];
     if(!tabs.includes(state.activeTab)) state.activeTab = 'status';
     bottomNav.className='bottom-nav show';
-    bottomNav.innerHTML = tabs.map(tab => {
-      const labels = {status:'STATUS', orders:'ORDER', proof:'PROOF', analysis:'ANALYSIS', profile:'PROFILE', core:'CORE'};
-      return `
+    bottomNav.innerHTML = tabs.map(tab => `
       <button class="nav-btn ${state.activeTab===tab?'active':''}" data-tab="${tab}">
         ${icon(tab)}
-        <span>${labels[tab]}</span>
-      </button>`;
-    }).join('');
+        <span>${tab==='status'?'STATUS':tab==='orders'?'ORDER':tab==='proof'?'PROOF':tab==='analysis'?'ANALYSIS':'CORE'}</span>
+      </button>`).join('');
     bottomNav.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => { state.activeTab = btn.dataset.tab; save(); renderDashboard(); });
 
     fab.className='fab show';
@@ -1120,8 +1116,8 @@
     const content = state.activeTab === 'status' ? renderStatusTab() :
                     state.activeTab === 'orders' ? renderOrdersTab() :
                     state.activeTab === 'proof' ? renderProofTab() :
-                    state.activeTab === 'analysis' ? renderAnalysisTab() :
-                    state.activeTab === 'profile' ? renderProfileTab() : renderCoreTab();
+                    state.activeTab === 'penalty' ? renderPenaltyTab() :
+                    state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     animateBars();
@@ -1133,20 +1129,18 @@
     }
   }
 
-
   function renderStatusTab(){
     const p = state.profile, s = state.system;
     const nextWeight = s.estimated90DayWeight;
     const doneCount = state.quests.filter(q=>q.done).length;
     const todayProgress = Math.round((doneCount / state.quests.length) * 100) || 0;
-    const level = Math.max(1, Math.round((s.currentStats.strength + s.currentStats.vitality + s.currentStats.agility + s.currentStats.recovery + s.currentStats.discipline) / 11));
     return `
       <div class="dashboard">
         <div class="install-banner" id="installBanner" style="display:none">
           <div><b>Install SYSTEM</b><br><span>Pasang ke layar utama agar terasa seperti aplikasi.</span></div>
           <button class="btn" id="installBtn">Install</button>
         </div>
-        <div class="hero-card alert-card">
+        <div class="hero-card">
           <div class="identity">
             <div style="display:flex;align-items:center;gap:14px">
               <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
@@ -1158,10 +1152,10 @@
             <div class="rank-badge"><span>Rank</span><b>${s.rank}</b><span>${s.title}</span></div>
           </div>
           <div class="glow-line"></div>
-          <p>SYSTEM mendeteksi pemakaian kapasitas fisikmu baru <span class="em-cyan">${s.physiqueUse}%</span>. Itu berarti masih ada <span class="em-red">${s.wastedPotential}% potensi tidur</span> yang belum kamu bangunkan. Data ini bukan motivasi lembut. Ini <span class="em-red">peringatan</span>.</p>
+          <p>Kondisi tubuhmu telah dibaca. SYSTEM mendeteksi bahwa kamu baru memakai sekitar <b>${s.physiqueUse}%</b> dari kapasitas fisikmu. Potensi yang masih tertidur: <b>${s.wastedPotential}%</b>.</p>
           <div class="inline-kpi">
             <div class="mini-card"><div class="tiny">Quest selesai hari ini</div><div class="kpi-num">${doneCount}/${state.quests.length}</div></div>
-            <div class="mini-card"><div class="tiny">Player level</div><div class="kpi-num">Lv ${level}</div></div>
+            <div class="mini-card"><div class="tiny">Workout target</div><div class="kpi-num">${s.weeklyWorkouts}x</div></div>
             <div class="mini-card"><div class="tiny">Target 90 hari</div><div class="kpi-num">${nextWeight}kg</div></div>
           </div>
           <div class="profile-power">
@@ -1171,8 +1165,6 @@
           </div>
         </div>
 
-        <div class="status-banner"><b>System verdict:</b> Jika progress harianmu berada di bawah <span class="em-red">60%</span>, SYSTEM menganggap hari itu <span class="em-red">tidak valid</span>. Tidak ada rank-up tanpa bukti.</div>
-
         <div class="section-head"><h3>Current Stats</h3><span>Kalibrasi awal player</span></div>
         <div class="stats-grid">
           ${metric('Strength', s.currentStats.strength, 100)}
@@ -1181,27 +1173,26 @@
           ${metric('Recovery', s.currentStats.recovery, 100)}
         </div>
 
-        <div class="section-head"><h3>Today progress</h3><span>${todayProgress}% selesai</span></div>
-        <div class="metric-card"><div class="bar"><span data-width="${todayProgress}%"></span></div><p class="tiny" style="margin:14px 0 0">Target minimum validasi SYSTEM = <span class="em-red">60%</span> order harian. Di bawah itu, progresmu dianggap lemah.</p></div>
-
         <div class="section-head"><h3>System summary</h3><span>Ringkasan kondisi tubuh</span></div>
         <div class="plan-list">
           <div class="plan-card">
             <h4>Body condition</h4>
-            <p>Tujuan: <b>${p.goal}</b>. Kondisi awal: <b>${p.condition}</b>. Aktivitas: <b>${p.activity}</b>. Dengan ritme <b>${p.frequency}x latihan / minggu</b>, SYSTEM menetapkan jalur <span class="em-cyan">${s.protocolName}</span>.</p>
+            <p>Tujuan: <b>${p.goal}</b>. Kondisi awal: <b>${p.condition}</b>. Aktivitas: <b>${p.activity}</b>. Dengan ritme <b>${p.frequency}x latihan / minggu</b>, SYSTEM memilih jalur <b>${s.protocolName}</b>.</p>
           </div>
           <div class="plan-card">
             <h4>Progress indicator</h4>
-            <p>BMI saat ini <b>${s.bmi}</b> (<b>${s.bmiLabel}</b>). Jika patuh pada Current Order, estimasi bobot 90 hari bergerak ke <b>${s.estimated90DayWeight} kg</b>. Target final yang kamu minta adalah <b>${p.targetWeight} kg</b>.</p>
+            <p>BMI kamu saat ini <b>${s.bmi}</b> dan termasuk <b>${s.bmiLabel}</b>. Jika mengikuti order harian secara konsisten, estimasi beratmu dalam 90 hari dapat bergerak menuju <b>${s.estimated90DayWeight} kg</b>.</p>
           </div>
-          <div class="plan-card alert-card">
+          <div class="plan-card">
             <h4>Penalty rule</h4>
-            <p>Order yang diabaikan tidak hilang. Mereka menjadi bukti bahwa kamu memilih tetap lemah. SYSTEM akan terus menandai <span class="em-red">kedisiplinan rendah</span> sampai pola itu berubah.</p>
+            <p>Jika kamu mengabaikan terlalu banyak order, rank progression akan stagnan. SYSTEM tidak menghukummu dengan kata-kata, tapi dengan data yang menunjukkan kamu tidak berkembang.</p>
           </div>
         </div>
+
+        <div class="section-head"><h3>Today progress</h3><span>${todayProgress}% selesai</span></div>
+        <div class="metric-card"><div class="bar"><span data-width="${todayProgress}%"></span></div><p class="tiny" style="margin:14px 0 0">Selesaikan minimal 60% order harian agar hari ini tidak dianggap gagal oleh SYSTEM.</p></div>
       </div>`;
   }
-
 
   function renderOrdersTab(){
     ensureQuestProgress();
@@ -1254,68 +1245,121 @@
       </div>`;
   }
 
+
+  function todayCompletion(){
+    const total = (state.quests || []).length || 1;
+    const done = (state.quests || []).filter(q=>q.done).length;
+    const partial = (state.quests || []).reduce((sum,q)=>{
+      const qp = questProgress(q);
+      return sum + Math.min(1, qp.progress / qp.target);
+    }, 0);
+    return Math.round((partial / total) * 100);
+  }
+
+  function updatePenaltyState(){
+    const completion = todayCompletion();
+    const ignored = (state.quests || []).filter(q => !q.done).length;
+    const severity = completion >= 60 ? 0 : completion >= 35 ? 1 : completion >= 15 ? 2 : 3;
+    state.penalty = state.penalty || {};
+    state.penalty.severity = severity;
+    state.penalty.active = severity > 0;
+    state.penalty.reason = severity === 0 ? 'Minimum protocol tercapai.' :
+      severity === 1 ? 'Progress harian berada di bawah standar SYSTEM.' :
+      severity === 2 ? 'Banyak order belum tervalidasi. Kedisiplinan rendah terdeteksi.' :
+      'Player hampir tidak bergerak. Penalty Zone diaktifkan.';
+    state.penalty.tasks = severity === 0 ? [] : [
+      {title:'Emergency Push-up', value: severity * 10, unit:'reps'},
+      {title:'Plank Hold', value: severity * 30, unit:'seconds'},
+      {title:'Silent Walk', value: severity * 5, unit:'minutes'}
+    ];
+    return {completion, ignored, severity};
+  }
+
+
   function renderProofTab(){
     const done = state.quests.filter(q=>q.done);
     const pending = state.quests.filter(q=>!q.done);
     return `
       <div class="dashboard">
-        <div class="hero-card alert-card">
-          <div class="tag">PROOF MODULE</div>
-          <h1>Bukti, bukan alasan.</h1>
-          <p>Tab ini dipakai untuk <span class="em-cyan">mencatat bukti progres</span>. Fungsi proof adalah memastikan setiap order punya jejak: input progress, log proof, lalu status verified.</p>
+        <div class="hero-card">
+          <div class="tag">PROOF VAULT</div>
+          <h1>Validasi bukti latihan.</h1>
+          <p>Proof bukan daftar order. Proof adalah arsip bukti. Di sini kamu mencatat jenis bukti, catatan sesi, dan status verifikasi SYSTEM. Tanpa proof, progress masih dianggap lemah.</p>
         </div>
 
-        <div class="section-head"><h3>How proof works</h3><span>3 langkah validasi</span></div>
-        <div class="comparison">
-          <div class="plan-card"><h4>1. Input Progress</h4><p>Masukkan progress parsial per quest. Contoh: push-up target 40 reps, kamu bisa isi 10 dulu, nanti lanjutkan lagi.</p></div>
-          <div class="plan-card"><h4>2. Log Proof</h4><p>Setelah sesi dijalankan, tekan <b>Log Proof</b> untuk membuat catatan bukti di SYSTEM log.</p></div>
-          <div class="plan-card"><h4>3. Quest Clear</h4><p>Jika progress mencapai target penuh, quest berubah jadi <span class="em-cyan">Cleared</span> dan masuk arsip misi.</p></div>
-          <div class="plan-card alert-card"><h4>System warning</h4><p>Latihan tanpa pencatatan dianggap <span class="em-red">tidak terjadi</span>. SYSTEM hanya mengakui data.</p></div>
-        </div>
-
-        <div class="section-head"><h3>Active proof console</h3><span>Quest yang bisa divalidasi sekarang</span></div>
-        <div class="proof-console">
-          ${pending.length ? pending.map((q, idx)=>{
+        <div class="section-head"><h3>Proof input</h3><span>Validasi manual</span></div>
+        <div class="proof-vault">
+          ${state.quests.map((q, idx)=>{
             const qp = questProgress(q);
-            const realIdx = state.quests.findIndex(item=>item.id===q.id);
-            return `<div class="proof-order-card">
+            return `<div class="proof-order-card ${q.done?'':'alert-card'}">
+              <div class="proof-status">${q.done?'SYSTEM VERIFIED':'PENDING PROOF'}</div>
               <h4>${escapeHtml(q.title)}</h4>
               <p>${escapeHtml(q.desc || '')}</p>
-              <div class="tag">${qp.progress}/${qp.target} · ${escapeHtml(q.proof || 'Manual')}</div>
-              <div class="quest-actions">
-                <button class="btn" data-progress-index="${realIdx}">Input Progress</button>
-                <button class="btn secondary log-proof-btn" data-id="${q.id}">Log Proof</button>
+              <div class="quest-progress-wrap">
+                <div class="quest-progress-top"><span>Recorded progress</span><span>${qp.progress}/${qp.target}</span></div>
+                <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${qp.pct}%"></div></div>
               </div>
+              <textarea class="input proof-textarea" id="proofNote${idx}" placeholder="Catatan bukti: contoh 'push-up 15 reps, 3 set, teknik bersih'">${escapeHtml(q.proofNote || '')}</textarea>
+              <div class="proof-action-grid">
+                <button class="btn" data-progress-index="${idx}">Input Progress</button>
+                <button class="btn secondary proof-save-btn" data-proof-index="${idx}">Save Proof</button>
+              </div>
+              <div class="proof-note">Proof mode: ${escapeHtml(q.proof || 'Manual')} · Status: ${q.proofLogged ? 'Proof logged' : 'Belum ada bukti tersimpan'}</div>
             </div>`;
-          }).join('') : `<div class="empty-state">Semua order hari ini sudah clear. Tidak ada proof tertunda.</div>`}
+          }).join('')}
         </div>
 
         <div class="section-head"><h3>Mission records</h3><span>Order yang telah clear</span></div>
         <div class="mini-list">
-          ${done.length ? done.map(q=>`<div class="mini-card"><h4>${q.title}</h4><p>${q.value} · Bukti tercatat melalui ${q.proof}. Status: <b>System Verified</b>.</p></div>`).join('') : `<div class="empty-state">Belum ada quest yang selesai. Pergi ke tab ORDER atau gunakan Active Proof Console di atas untuk mulai mencatat progresmu.</div>`}
+          ${done.length ? done.map(q=>`<div class="mini-card"><h4>${escapeHtml(q.title)}</h4><p>${escapeHtml(q.value)} · ${q.proofLogged ? 'Proof saved' : 'Clear tanpa catatan proof tambahan'}. Status: <b>System Verified</b>.</p></div>`).join('') : `<div class="empty-state">Belum ada quest yang selesai. Input progress dulu, lalu simpan proof agar SYSTEM punya arsip bukti.</div>`}
         </div>
       </div>`;
   }
 
+  function renderPenaltyTab(){
+    const pz = updatePenaltyState();
+    const active = state.penalty?.active;
+    const sev = state.penalty?.severity || 0;
+    const width = Math.min(100, sev * 33.4);
+    return `
+      <div class="dashboard">
+        <div class="hero-card penalty-card">
+          <div class="tag">PENALTY ZONE</div>
+          <h1>${active ? 'Penalty protocol active.' : 'Penalty protocol dormant.'}</h1>
+          <p>${active ? `Completion hari ini hanya <span class="em-red">${pz.completion}%</span>. SYSTEM menilai performamu tidak memenuhi standar. Jalankan penalty order sebelum meminta pengakuan progres.` : `Completion hari ini <span class="em-cyan">${pz.completion}%</span>. Minimal protocol aman, tapi SYSTEM tetap memantau.`}</p>
+          <div class="penalty-meter"><span style="width:${width}%"></span></div>
+          <div class="proof-note">Severity: ${sev}/3 · Reason: ${escapeHtml(state.penalty?.reason || '')}</div>
+        </div>
+
+        <div class="section-head"><h3>Penalty orders</h3><span>Hukuman disiplin</span></div>
+        <div class="plan-list">
+          ${active ? state.penalty.tasks.map((t,i)=>`<div class="plan-card penalty-card">
+            <div class="penalty-title">PENALTY ${i+1}</div>
+            <h4>${escapeHtml(t.title)}</h4>
+            <p>Selesaikan <span class="em-red">${t.value} ${t.unit}</span>. Ini tidak mengganti Current Order. Ini kompensasi karena standar minimum gagal kamu penuhi.</p>
+            <button class="btn secondary penalty-clear-btn" data-penalty="${i}">Mark Penalty Done</button>
+          </div>`).join('') : `<div class="plan-card"><h4>No penalty active</h4><p>Jaga progress di atas 60%. Jika turun, Penalty Zone akan aktif otomatis.</p></div>`}
+        </div>
+
+        <div class="section-head"><h3>System law</h3><span>Aturan otoriter</span></div>
+        <div class="penalty-list">
+          <div class="penalty-row"><span>Minimum valid day</span><b>60%</b></div>
+          <div class="penalty-row"><span>Below 35%</span><b>Penalty severity 2</b></div>
+          <div class="penalty-row"><span>Below 15%</span><b>Penalty severity 3</b></div>
+        </div>
+      </div>`;
+  }
 
   function renderAnalysisTab(){
     const s = state.system;
-    const p = state.profile;
     const avgCurrent = Math.round((s.currentStats.strength+s.currentStats.vitality+s.currentStats.agility+s.currentStats.recovery+s.currentStats.discipline)/5);
     const avgPotential = Math.round((s.potentialStats.strength+s.potentialStats.vitality+s.potentialStats.agility+s.potentialStats.recovery+s.potentialStats.discipline)/5);
-    const doneCount = state.quests.filter(q=>q.done).length;
-    const protocolProgress = Math.round((doneCount / ((state.quests.length)||1)) * 100);
-    const totalChange = Math.abs((p.targetWeight || p.weight) - p.weight) || 1;
-    const projectedChange = Math.abs((s.estimated90DayWeight || p.weight) - p.weight);
-    const targetCapture = clamp(Math.round((projectedChange / totalChange) * 100), 0, 100);
-    const startWeight = p.weight;
-    const endWeight = s.estimated90DayWeight;
     return `
       <div class="dashboard">
-        <div class="hero-card alert-card">
+        <div class="hero-card">
           <div class="tag">ANALYSIS COMPLETE</div>
           <h1>Current state vs hidden potential.</h1>
-          <p>Bagian ini menjelaskan grafik, bukan sekadar menampilkan garis. SYSTEM memetakan <span class="em-cyan">kondisi sekarang</span>, <span class="em-amber">jalur 90 hari</span>, dan seberapa dekat kamu ke target.</p>
+          <p>Berdasarkan jawabanmu, SYSTEM memetakan kondisi awal dan bentuk potensimu jika program dijalankan disiplin selama 90 hari.</p>
         </div>
         <div class="comparison">
           <div class="compare-box"><h4>Current average</h4><p class="big">${avgCurrent}</p><span class="muted">Level baseline saat ini</span></div>
@@ -1330,102 +1374,21 @@
         <div class="chart">
           <svg viewBox="0 0 320 160" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="lineGrad" x1="0" x2="1"><stop offset="0%" stop-color="#ff6b7e"/><stop offset="50%" stop-color="#ffd95e"/><stop offset="100%" stop-color="#68ffae"/></linearGradient>
+              <linearGradient id="lineGrad" x1="0" x2="1"><stop offset="0%" stop-color="#ff8a48"/><stop offset="55%" stop-color="#ffd95e"/><stop offset="100%" stop-color="#68ffae"/></linearGradient>
             </defs>
             <path d="M10 130 C 70 135, 110 110, 150 84 S 240 16, 310 24" fill="none" stroke="url(#lineGrad)" stroke-width="6" stroke-linecap="round"/>
-            <circle cx="10" cy="130" r="6" fill="#ff6b7e"/>
-            <circle cx="160" cy="78" r="6" fill="#ffd95e"/>
+            <circle cx="10" cy="130" r="6" fill="#ff8a48"/>
             <circle cx="310" cy="24" r="6" fill="#68ffae"/>
             <text x="8" y="150" fill="#dcefff" font-size="12">Start</text>
-            <text x="143" y="72" fill="#dcefff" font-size="12">Now</text>
             <text x="250" y="16" fill="#dcefff" font-size="12">90 Days</text>
           </svg>
         </div>
-        <div class="trajectory-note">
-          <b>Arti grafik Start → 90 Days:</b><br>
-          <span class="em-red">Start</span> = kondisi awalmu sekarang, termasuk berat <b>${startWeight} kg</b> dan rata-rata atribut <b>${avgCurrent}</b>.<br>
-          <span class="em-amber">Now</span> = posisi kepatuhan protocol saat ini, dibaca dari order yang sudah clear. Saat ini protocol progress kamu ada di <b>${protocolProgress}%</b>.<br>
-          <span class="em-cyan">90 Days</span> = proyeksi realistis jika kamu konsisten, yaitu berat menuju <b>${endWeight} kg</b> dan rata-rata atribut bisa naik ke <b>${avgPotential}</b>.
-        </div>
-        <div class="trajectory-legend">
-          <div class="legend-chip"><b>Target weight path</b><span>${startWeight} kg → ${p.targetWeight} kg. Estimasi 90 hari saat ini menangkap sekitar <span class="em-cyan">${targetCapture}%</span> dari targetmu.</span></div>
-          <div class="legend-chip"><b>Protocol progress</b><span>${doneCount}/${state.quests.length} order clear. Ini indikator seberapa jauh kamu benar-benar bergerak, bukan sekadar berniat.</span></div>
-          <div class="legend-chip"><b>Time meaning</b><span>90 hari bukan jaminan. Itu jendela optimasi. Jika progres harian lemah, kurva ini akan tetap jadi grafik kosong.</span></div>
-        </div>
         <div class="plan-list">
-          <div class="plan-card alert-card"><h4>Wasted potential</h4><p>Kamu saat ini membiarkan sekitar <span class="em-red">${s.wastedPotential}%</span> potensimu tidak aktif. Angka ini menjelaskan mengapa tubuhmu belum berada pada bentuk yang kamu inginkan.</p></div>
-          <div class="plan-card"><h4>Current target position</h4><p>Bobot saat ini <b>${p.weight} kg</b>, targetmu <b>${p.targetWeight} kg</b>, estimasi 90 hari <b>${s.estimated90DayWeight} kg</b>. Artinya SYSTEM membaca bahwa jalur yang paling realistis saat ini belum menyentuh target penuh—masih perlu kepatuhan lebih keras.</p></div>
+          <div class="plan-card"><h4>Wasted potential</h4><p>Kamu saat ini membiarkan sekitar <b>${s.wastedPotential}%</b> potensimu tidak aktif. Ini bukan vonis, tapi alarm. Setiap order yang clear akan menaikkan angka penggunaan kapasitas tubuhmu.</p></div>
           <div class="plan-card"><h4>System recommendation</h4><p>Gabungkan latihan resistensi, progresif overload bertahap, tidur cukup, protein tinggi, dan hidrasi stabil. SYSTEM menilai jalur ini paling efisien untuk target <b>${state.profile.goal}</b>.</p></div>
         </div>
       </div>`;
   }
-
-
-  function renderProfileTab(){
-    const p = state.profile;
-    const s = state.system;
-    const level = Math.max(1, Math.round((s.currentStats.strength + s.currentStats.vitality + s.currentStats.agility + s.currentStats.recovery + s.currentStats.discipline) / 11));
-    const totalStat = s.currentStats.strength + s.currentStats.vitality + s.currentStats.agility + s.currentStats.recovery + s.currentStats.discipline;
-    return `
-      <div class="dashboard system-dossier">
-        <div class="hero-card alert-card">
-          <div class="identity">
-            <div style="display:flex;align-items:center;gap:14px">
-              <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
-              <div>
-                <h2>${escapeHtml(p.name || 'Unknown')}</h2>
-                <p>${s.protocolName} · ${p.goal}</p>
-              </div>
-            </div>
-            <div class="rank-badge"><span>Level</span><b>${level}</b><span>Rank ${s.rank}</span></div>
-          </div>
-          <div class="glow-line"></div>
-          <p><span class="em-red">Player dossier active.</span> Ini adalah profil tempurmu: data dasar, statistik inti, kekuatan awal, dan jalur upgrade.</p>
-        </div>
-
-        <div class="dossier-grid">
-          <div class="dossier-card"><h4>Identity</h4><div class="list-rows">
-            <div class="row-line"><span>Age</span><b>${p.age} tahun</b></div>
-            <div class="row-line"><span>Gender</span><b>${escapeHtml(p.gender)}</b></div>
-            <div class="row-line"><span>Condition</span><b>${escapeHtml(p.condition)}</b></div>
-            <div class="row-line"><span>Motivation</span><b>${escapeHtml(p.motivation)}</b></div>
-          </div></div>
-          <div class="dossier-card"><h4>Body metrics</h4><div class="list-rows">
-            <div class="row-line"><span>Height</span><b>${p.height} cm</b></div>
-            <div class="row-line"><span>Weight</span><b>${p.weight} kg</b></div>
-            <div class="row-line"><span>Target</span><b>${p.targetWeight} kg</b></div>
-            <div class="row-line"><span>BMI</span><b>${s.bmi} · ${s.bmiLabel}</b></div>
-          </div></div>
-          <div class="dossier-card"><h4>Combat parameters</h4><div class="dossier-stat"><b>${totalStat}</b><span>Total status points</span></div><p style="margin-top:8px">Strength ${s.currentStats.strength} · Vitality ${s.currentStats.vitality} · Agility ${s.currentStats.agility} · Recovery ${s.currentStats.recovery} · Discipline ${s.currentStats.discipline}</p></div>
-          <div class="dossier-card"><h4>Hunter capacity</h4><div class="dossier-stat"><b>${s.physiqueUse}%</b><span>Body usage</span></div><p style="margin-top:8px">Wasted potential: <span class="em-red">${s.wastedPotential}%</span>. Discipline frequency: <b>${p.frequency}x/minggu</b>.</p></div>
-        </div>
-
-        <div class="section-head"><h3>Physical ability</h3><span>Kapasitas awal yang kamu laporkan</span></div>
-        <div class="stats-grid">
-          ${metric('Push-up', p.ability?.pushup || 0, 100)}
-          ${metric('Squat', p.ability?.squat || 0, 150)}
-          ${metric('Sit-up', p.ability?.situp || 0, 120)}
-          ${metric('Plank', p.ability?.plank || 0, 180)}
-        </div>
-
-        <div class="section-head"><h3>Protocol details</h3><span>Kebutuhan sistem harian</span></div>
-        <div class="dossier-grid">
-          <div class="dossier-card"><h4>Nutrition</h4><div class="list-rows">
-            <div class="row-line"><span>Calories</span><b>${s.calorieGoal} kcal</b></div>
-            <div class="row-line"><span>Protein</span><b>${s.macros.protein} g</b></div>
-            <div class="row-line"><span>Carbs</span><b>${s.macros.carbs} g</b></div>
-            <div class="row-line"><span>Fat</span><b>${s.macros.fat} g</b></div>
-          </div></div>
-          <div class="dossier-card"><h4>Recovery & support</h4><div class="list-rows">
-            <div class="row-line"><span>Water target</span><b>${s.waterGoal} L</b></div>
-            <div class="row-line"><span>Sleep baseline</span><b>${p.sleep} jam</b></div>
-            <div class="row-line"><span>Workout minutes</span><b>${s.workoutMinutes} min</b></div>
-            <div class="row-line"><span>Rest interval</span><b>${s.restMinutes} min</b></div>
-          </div></div>
-        </div>
-      </div>`;
-  }
-
 
   function renderCoreTab(){
     const s = state.system;
@@ -1487,17 +1450,31 @@
 
   function attachDashboardEvents(){
     document.querySelectorAll('.mark-done-btn').forEach(btn => btn.onclick = () => {
-      const q = state.quests.find(x=>x.id===btn.dataset.id);
-      if(!q) return;
-      q.done = true;
-      state.logs.unshift({ time:new Date().toLocaleString('id-ID'), type:'QUEST', text:`Quest cleared: ${q.title}` });
-      save(); showToast('Quest cleared. Rank progression stabilized.'); renderDashboard();
+      const idx = state.quests.findIndex(x=>x.id===btn.dataset.id);
+      showProgressInput(idx);
     });
     document.querySelectorAll('.log-proof-btn').forEach(btn => btn.onclick = () => {
       const q = state.quests.find(x=>x.id===btn.dataset.id); if(!q) return;
       state.logs.unshift({ time:new Date().toLocaleString('id-ID'), type:'PROOF', text:`Proof logged for ${q.title}` });
       save(); showToast('Proof tercatat di System log.');
     });
+    document.querySelectorAll('.proof-save-btn').forEach(btn => btn.onclick = () => {
+      const idx = Number(btn.dataset.proofIndex);
+      const q = state.quests[idx]; if(!q) return;
+      const note = document.getElementById('proofNote'+idx)?.value || '';
+      q.proofNote = note.trim();
+      q.proofLogged = true;
+      state.logs.unshift({ time:new Date().toLocaleString('id-ID'), type:'PROOF', text:`Proof saved for ${q.title}: ${q.proofNote || 'manual proof'}` });
+      save(); showHologramTransmission('PROOF SAVED', `PLAYER: ${state.profile.name || 'Unknown'}\nSTATUS: Bukti tersimpan untuk ${q.title}.\nSYSTEM NOTE: Bukti tanpa progress penuh belum menghapus kewajiban order.`, {primary:'ACCEPT'});
+      renderDashboard();
+    }); // proofSavedV27
+    document.querySelectorAll('.penalty-clear-btn').forEach(btn => btn.onclick = () => {
+      const i = Number(btn.dataset.penalty);
+      const task = state.penalty?.tasks?.[i]; if(!task) return;
+      state.logs.unshift({ time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:`Penalty cleared: ${task.title} ${task.value} ${task.unit}` });
+      save(); showHologramTransmission('PENALTY RECORDED', `PENALTY ORDER RECORDED.\nSYSTEM NOTE: Hukuman dicatat, tapi Current Order tetap harus diselesaikan.`, {primary:'ACCEPT'});
+    });
+
     const recalcBtn = document.getElementById('recalcBtn');
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem(); save(); showToast('Protocol dikalibrasi ulang.'); renderDashboard(); };
     const reminderBtn = document.getElementById('reminderBtn');
@@ -1603,7 +1580,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     }
 
     // Jangan potong isi AI terlalu cepat. Biarkan user scroll di hologram.
-    if(text.length > 1800) text = text.slice(0, 1800).replace(/\s+\S*$/, '') + '...';
+    if(text.length > 5000) text = text.slice(0, 5000).replace(/\s+\S*$/, '') + '...';
     return text;
   }
 
@@ -1882,7 +1859,7 @@ ATURAN OUTPUT:
 - Jangan markdown, jangan **, jangan backtick.
 - Jangan berhenti di label kosong.
 - Jangan jawab hanya "PLAYER:".
-- Panjang ideal 80-160 kata. Boleh lebih kalau perlu, tapi harus selesai.
+- Jawaban boleh panjang dan lengkap. Ideal 180-350 kata jika diperlukan. Jangan memotong kalimat di tengah. Boleh lebih kalau perlu, tapi harus selesai.
 - Gunakan format ini dan isi semuanya:
 
 PLAYER: ${p.name || 'Unknown'}
