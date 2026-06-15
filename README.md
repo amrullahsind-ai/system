@@ -139,3 +139,13 @@ Perbaikan:
 - Frontend mendeteksi jawaban AI yang terlalu pendek/kosong lalu memakai fallback SYSTEM rule-engine.
 - Prompt AI dibuat lebih ketat: setiap label wajib ada isinya.
 - API Gemini juga punya fallback server kalau output model tidak lengkap.
+
+
+## v23 AI Full Message No Cutoff
+
+Perbaikan:
+- Batas 5-7 baris dihapus.
+- AI boleh menjawab lebih lengkap, ideal 80-160 kata.
+- Hologram body dibuat scroll lebih besar.
+- Token Gemini dinaikkan lagi agar jawaban tidak kepotong.
+- Fallback hanya aktif kalau AI benar-benar kosong atau cuma label seperti `PLAYER:`.

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'Missing prompt.' });
 
     const safeModel = String(model).replace(/[^a-zA-Z0-9._-]/g, '') || 'gemini-2.5-flash';
-    const finalPrompt = `Jawab harus selesai. Jangan markdown. Jangan berhenti di label kosong. Kalau memakai label PLAYER/JUDGEMENT/ORDER, setiap label wajib ada isinya.\n\n${prompt}`;
+    const finalPrompt = `Jawab harus lengkap dan selesai. Jangan markdown. Jangan berhenti di label kosong. Jangan jawab hanya PLAYER:. Berikan pesan SYSTEM yang utuh, 80-160 kata jika memungkinkan.\n\n${prompt}`;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${safeModel}:generateContent?key=${apiKey}`;
 
     const upstream = await fetch(endpoint, {
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
-        generationConfig: { temperature: 0.55, topP: 0.9, maxOutputTokens: 320 }
+        generationConfig: { temperature: 0.65, topP: 0.9, maxOutputTokens: 900 }
       })
     });
 
@@ -31,9 +31,9 @@ export default async function handler(req, res) {
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .trim();
-    if (text.length > 650) text = text.slice(0, 650).replace(/\s+\S*$/, '') + '...';
+    if (text.length > 1800) text = text.slice(0, 1800).replace(/\s+\S*$/, '') + '...';
 
-    const bad = !text || text.length < 24 || /^\s*PLAYER\s*:?\s*$/i.test(text) || text.split(/\s+/).length < 5;
+    const bad = !text || /^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(text) || text.split(/\s+/).length < 4;
     if (bad) {
       text = 'PLAYER: Unknown\nJUDGEMENT: AI Core mengembalikan data tidak lengkap. SYSTEM memakai fallback command.\nORDER 1: Buka Current Order.\nORDER 2: Selesaikan satu quest sekarang.\nORDER 3: Catat progress sebelum keluar.';
     }

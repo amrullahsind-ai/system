@@ -336,6 +336,11 @@
     .process-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#62b8ff,#a7efff);box-shadow:0 0 22px rgba(117,251,255,.7);transition:width .22s ease}
     .process-status{font-size:13px;color:#9fb9d0;margin-top:14px;min-height:36px}
 
+
+    /* v23 AI full message */
+    .holo-card{max-height:92dvh!important}
+    .holo-body{max-height:52dvh!important;overflow:auto!important;font-size:15px!important;line-height:1.55!important;white-space:pre-wrap!important}
+
     @media (max-width:390px){
       .brand-title{font-size:48px}
       .hero-card h1,.question-title{font-size:30px}
@@ -1356,28 +1361,29 @@
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .replace(/SYSTEM TRANSMISSION/gi, '')
-      .replace(/^\s*PLAYER\s*:\s*$/gim, '')
       .trim();
 
-    const bad =
-      !text ||
-      text.length < 24 ||
+    const onlyEmptyLabel =
       /^PLAYER\s*:?\s*$/i.test(text) ||
       /^JUDGEMENT\s*:?\s*$/i.test(text) ||
-      /^ORDER\s*\d?\s*:?\s*$/i.test(text) ||
-      text.split(/\s+/).length < 5;
+      /^ORDER\s*\d?\s*:?\s*$/i.test(text);
 
-    if(bad){
+    const tooShort = !text || text.trim().length < 18 || text.split(/\s+/).length < 4;
+
+    if(onlyEmptyLabel || tooShort){
       const p = state?.profile || {};
       const done = (state?.quests || []).filter(q=>q.done).length;
       const total = (state?.quests || []).length || 1;
       const percent = Math.round(done / total * 100);
-      return `PLAYER: ${p.name || 'Unknown'}\nJUDGEMENT: Data AI tidak lengkap. SYSTEM memakai rule engine.\nORDER 1: Buka Current Order.\nORDER 2: Selesaikan minimal satu quest sekarang.\nORDER 3: Progress saat ini ${percent}%.`;
+      return `PLAYER: ${p.name || 'Unknown'}
+JUDGEMENT: AI Core mengembalikan pesan tidak lengkap. SYSTEM memakai rule engine.
+ORDER 1: Buka Current Order.
+ORDER 2: Selesaikan minimal satu quest sekarang.
+ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     }
 
-    const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
-    text = lines.slice(0, 7).join('\n');
-    if(text.length > 520) text = text.slice(0, 520).replace(/\s+\S*$/, '') + '...';
+    // Jangan potong isi AI terlalu cepat. Biarkan user scroll di hologram.
+    if(text.length > 1800) text = text.slice(0, 1800).replace(/\s+\S*$/, '') + '...';
     return text;
   }
 
@@ -1409,7 +1415,7 @@
     showHologramTransmission.typer = setInterval(() => {
       target.textContent = text.slice(0, i++);
       if(i > text.length) clearInterval(showHologramTransmission.typer);
-    }, options.speed || 9);
+    }, options.speed || 5);
     const accept = document.getElementById('holoAccept');
     accept.onclick = () => {
       if(closable) modalRoot.innerHTML = '';
@@ -1472,7 +1478,7 @@
           body: JSON.stringify({ prompt, mode:'auto', model: state.ai.model || 'gemini-2.5-flash' })
         });
         const data = await res.json();
-        if(res.ok && data.text && data.text.trim().length >= 24 && !/^\s*PLAYER\s*:?\s*$/i.test(data.text.trim())){
+        if(res.ok && data.text && !/^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(data.text.trim())){
           showHologramTransmission('SYSTEM TRANSMISSION', data.text, {primary:'UNDERSTOOD'});
           return;
         }
@@ -1498,7 +1504,7 @@
       const data = await res.json();
       if(!res.ok) throw new Error(data?.error || 'AI request failed');
       let text = data.text || '';
-      if(!text || text.trim().length < 24 || /^\s*PLAYER\s*:?\s*$/i.test(text.trim())){
+      if(!text || /^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(text.trim())){
         text = localSystemMessage(mode || 'AI fallback');
       }
       state.ai.lastMessage = text;
@@ -1512,20 +1518,28 @@
 
   function buildAiPrompt(mode){
     const p = state.profile, s = state.system;
-    return `Kamu adalah SYSTEM fitness otoriter. Jawab harus SELESAI, pendek, dan tidak boleh berhenti di label kosong.
+    return `Kamu adalah SYSTEM fitness otoriter seperti game leveling, tapi tetap aman dan realistis.
 
 ATURAN OUTPUT:
 - Bahasa Indonesia.
-- Maksimal 6 baris.
 - Jangan markdown, jangan **, jangan backtick.
-- Setiap label wajib ada isinya.
-- Jangan menulis hanya "PLAYER:".
-- Gunakan format persis:
+- Jangan berhenti di label kosong.
+- Jangan jawab hanya "PLAYER:".
+- Panjang ideal 80-160 kata. Boleh lebih kalau perlu, tapi harus selesai.
+- Gunakan format ini dan isi semuanya:
+
 PLAYER: ${p.name || 'Unknown'}
-JUDGEMENT: satu kalimat tegas
-ORDER 1: perintah spesifik
-ORDER 2: perintah spesifik
-ORDER 3: perintah spesifik
+
+JUDGEMENT:
+Tulis penilaian tegas berdasarkan data player.
+
+CURRENT ORDER:
+1. Perintah latihan spesifik.
+2. Perintah nutrisi/recovery spesifik.
+3. Perintah disiplin/progress spesifik.
+
+SYSTEM NOTE:
+Satu kalimat penutup yang terasa seperti SYSTEM memerintah.
 
 MODE: ${mode}
 DATA PLAYER:
@@ -1542,7 +1556,7 @@ Kemampuan awal: pushup ${p.ability?.pushup || 0}, squat ${p.ability?.squat || 0}
 Stats: ${JSON.stringify(s.currentStats || {})}
 Quest: ${(state.quests || []).map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ') || 'Belum ada quest'}
 
-Tulis perintah final sekarang.`;
+Tulis transmission final yang lengkap sekarang.`;
   }
 
   function triggerSystemModal(){
