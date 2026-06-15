@@ -39,3 +39,17 @@ alter table public.players enable row level security;
 alter table public.quest_logs enable row level security;
 
 -- Kalau nanti pakai Supabase Auth, buat policies berdasarkan auth.uid() = user_id.
+
+
+-- Optional table for Firebase Cloud Messaging tokens.
+create table if not exists public.device_tokens (
+  token text primary key,
+  player_name text,
+  player_rank text,
+  player_goal text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.device_tokens enable row level security;
+-- This table should be written only from server using SUPABASE_SERVICE_ROLE_KEY.

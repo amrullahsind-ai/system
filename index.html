@@ -236,6 +236,56 @@
     .install-banner .btn{width:auto;padding:11px 14px;font-size:13px;border-radius:14px;white-space:nowrap}
     .ai-online{border-color:rgba(104,255,174,.26)!important;box-shadow:0 0 0 1px rgba(104,255,174,.08),0 18px 48px rgba(44,255,151,.08)!important}
 
+
+    .holo-system{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at center,rgba(16,93,159,.26),rgba(0,2,8,.74) 62%,rgba(0,0,0,.86));backdrop-filter:blur(11px);z-index:60;overflow:hidden}
+    .holo-system.show{display:flex;animation:holoFade .32s ease forwards}
+    @keyframes holoFade{from{opacity:0}to{opacity:1}}
+    .holo-system::before{content:"";position:absolute;inset:-20%;background:
+      linear-gradient(180deg,transparent 0 46%,rgba(121,240,255,.20) 48%,transparent 52%),
+      repeating-linear-gradient(180deg,rgba(255,255,255,.055) 0 1px,transparent 1px 7px);
+      transform:translateY(-40%);animation:holoScan 3.2s linear infinite;mix-blend-mode:screen}
+    .holo-system::after{content:"";position:absolute;left:50%;top:50%;width:360px;height:360px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(117,251,255,.22);box-shadow:0 0 50px rgba(76,169,255,.20),inset 0 0 50px rgba(117,251,255,.08);animation:holoRotate 18s linear infinite}
+    @keyframes holoScan{to{transform:translateY(40%)}}
+    @keyframes holoRotate{to{transform:translate(-50%,-50%) rotate(360deg)}}
+    .holo-card{position:relative;width:100%;max-width:404px;min-height:270px;border-radius:34px;padding:22px;background:linear-gradient(180deg,rgba(6,24,46,.88),rgba(2,8,19,.96));border:1px solid rgba(131,230,255,.38);box-shadow:0 0 0 1px rgba(124,225,255,.09),0 24px 100px rgba(0,0,0,.68),0 0 80px rgba(71,161,255,.22);overflow:hidden;z-index:4}
+    .holo-card::before{content:"";position:absolute;left:-30%;right:-30%;top:-4px;height:3px;background:linear-gradient(90deg,transparent,#85fbff,transparent);box-shadow:0 0 24px #85fbff;animation:holoBar 2.4s ease-in-out infinite}
+    @keyframes holoBar{0%{transform:translateX(-40%)}50%{transform:translateX(40%)}100%{transform:translateX(-40%)}}
+    .holo-header{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .holo-title{display:flex;align-items:center;gap:10px;font-family:Orbitron,Inter,sans-serif;font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:15px;color:#eaffff;text-shadow:0 0 18px rgba(135,245,255,.76)}
+    .holo-orb{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#e9ffff,#6cd7ff 38%,rgba(41,112,255,.15) 68%,transparent 70%);box-shadow:0 0 28px rgba(117,251,255,.85);animation:orbPulse 1.7s ease-in-out infinite}
+    @keyframes orbPulse{50%{transform:scale(1.09);filter:brightness(1.25)}}
+    .holo-rank{font-size:11px;color:#9edaff;border:1px solid rgba(120,220,255,.20);background:rgba(255,255,255,.04);padding:8px 10px;border-radius:999px}
+    .holo-body{position:relative;z-index:3;padding:18px;border-radius:24px;background:rgba(1,10,23,.62);border:1px solid rgba(255,255,255,.07);min-height:132px;color:#f1fbff;font-size:16px;line-height:1.62;white-space:pre-wrap;text-shadow:0 0 10px rgba(119,221,255,.22)}
+    .holo-cursor{display:inline-block;width:9px;height:18px;background:#8dfbff;margin-left:4px;vertical-align:-3px;box-shadow:0 0 14px #8dfbff;animation:blink .75s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+    .holo-footer{position:relative;z-index:3;margin-top:16px;display:flex;gap:10px;align-items:center}
+    .holo-footer .btn{font-size:14px;padding:13px 14px;border-radius:16px}
+    .holo-mini{font-size:11px;color:#8fb7cf;line-height:1.35}
+    .system-ping{position:absolute;right:18px;top:calc(20px + var(--safe-top));z-index:9;display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:999px;background:rgba(3,16,32,.78);border:1px solid rgba(117,251,255,.21);box-shadow:0 0 28px rgba(72,178,255,.18);color:#dffaff;font-weight:900;font-size:11px;letter-spacing:.08em}
+    .system-ping.show{display:flex;animation:pingIn .28s ease forwards}
+    @keyframes pingIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .ping-dot{width:9px;height:9px;border-radius:50%;background:#75fbff;box-shadow:0 0 18px #75fbff;animation:orbPulse 1.2s ease-in-out infinite}
+
+
+    /* v16 layout fix: player identity card */
+    .identity{align-items:flex-start!important}
+    .identity > div:first-child{min-width:0;flex:1}
+    .identity h2{font-size:clamp(21px,6vw,28px)!important;line-height:1.08!important;word-break:break-word;overflow-wrap:anywhere;max-width:100%;display:block}
+    .identity p{overflow-wrap:anywhere;word-break:break-word}
+    .rank-badge{flex:0 0 auto}
+    .avatar-core{flex:0 0 auto}
+    .avatar-core.has-photo{background-size:cover;background-position:center;border-color:rgba(117,251,255,.42)}
+    .avatar-core.has-photo::before{display:none}
+    .photo-upload{border:1px dashed rgba(117,251,255,.28);background:rgba(255,255,255,.035);border-radius:24px;padding:18px;text-align:center;display:grid;gap:12px;place-items:center}
+    .photo-preview{width:144px;height:144px;border-radius:32px;border:1px solid rgba(117,251,255,.25);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));object-fit:cover;box-shadow:0 18px 52px rgba(0,0,0,.26)}
+    .hidden-file{display:none}
+    .profile-power{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+    .power-tile{padding:12px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);min-width:0}
+    .power-tile b{display:block;font-family:Orbitron,Inter,sans-serif;font-size:18px}
+    .power-tile span{font-size:11px;color:var(--muted)}
+    .push-card{border-color:rgba(117,251,255,.24)!important;box-shadow:0 0 0 1px rgba(117,251,255,.05),0 18px 48px rgba(71,161,255,.08)!important}
+    .token-box{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#9fc7de;line-height:1.45;word-break:break-all;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px;margin-top:10px;max-height:120px;overflow:auto}
+
     @media (max-width:390px){
       .brand-title{font-size:48px}
       .hero-card h1,.question-title{font-size:30px}
@@ -250,6 +300,7 @@
   <div class="app">
     <div class="phone-shell">
       <div class="top-glow"></div>
+      <div id="systemPing" class="system-ping"><span class="ping-dot"></span><span>SYSTEM MESSAGE</span></div>
       <div id="screenRoot"></div>
       <div id="bottomNav" class="bottom-nav"></div>
       <button id="fab" class="fab" title="Trigger system">+</button>
@@ -292,7 +343,8 @@
       sleep: 6.5,
       water: 2.1,
       notes: '',
-      ability: { pushup: 10, squat: 20, situp: 15, plank: 30, runKmTime: 10 }
+      ability: { pushup: 10, squat: 20, situp: 15, plank: 30, runKmTime: 10 },
+      avatarData: ''
     },
     ai: { model: 'gemini-2.5-flash', enabled: true, mode: 'vercel-serverless', lastMessage: '' },
     system: {
@@ -315,11 +367,15 @@
       reminders: true
     },
     quests: [],
-    logs: []
+    logs: [],
+    systemEvents: { lastAuto: '', count: 0, bootTransmissionShown: false, lastPulseAt: 0 },
+    push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' }
   };
 
   const steps = [
     { key:'name', title:'Siapa nama player?', subtitle:'SYSTEM harus tahu identitasmu sebelum menetapkan protokol.', type:'text' },
+    { key:'avatarData', title:'Masukkan wajah player', subtitle:'Upload foto wajah/profil agar dashboard tidak memakai icon default. Foto disimpan lokal di device ini.', type:'avatar' },
+
     { key:'gender', title:'Pilih identitas dasar', subtitle:'Dipakai untuk personalisasi analisis, rekomendasi, dan kalkulasi awal.', type:'single', options:[
       {label:'Male', desc:'Fokus profil pria'}, {label:'Female', desc:'Fokus profil wanita'}, {label:'Other', desc:'Profil umum'}] },
     { key:'age', title:'Berapa umurmu?', subtitle:'Usia memengaruhi recovery, intensitas, dan estimasi progres.', type:'number', min:12, max:65 },
@@ -539,7 +595,7 @@
           <input class="input" id="fieldInput" placeholder="contoh: Sevila" value="${escapeHtml(val || '')}">
         </div>
         <div class="small-note" style="text-align:left">Nama ini akan dipakai di dashboard, quest system, dan laporan perkembangan.</div>`;
-      content.querySelector('#fieldInput').addEventListener('input', e => { profile[step.key] = e.target.value; save(); });
+      content.querySelector('#fieldInput').addEventListener('input', e => { profile[step.key] = e.target.value; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch{} });
       return;
     }
     if(step.type === 'number'){
@@ -571,6 +627,44 @@
       });
       return;
     }
+    if(step.type === 'avatar'){
+      const img = profile.avatarData || '';
+      content.innerHTML = `
+        <div class="photo-upload">
+          <img class="photo-preview" id="avatarPreview" src="${img || 'icon.svg'}" alt="Preview profile">
+          <input type="file" id="avatarInput" accept="image/*" class="hidden-file">
+          <button class="btn secondary" type="button" id="chooseAvatar">Pilih Foto Player</button>
+          <button class="btn ghost" type="button" id="clearAvatar">Pakai Logo Harimau</button>
+          <div class="small-note">Saran: pakai foto wajah yang jelas. Nanti avatar ini muncul di dashboard bersama rank dan kekuatan.</div>
+        </div>`;
+      const input = content.querySelector('#avatarInput');
+      content.querySelector('#chooseAvatar').onclick = () => input.click();
+      content.querySelector('#clearAvatar').onclick = () => { profile.avatarData=''; save(); renderQuestion(); };
+      input.onchange = () => {
+        const file = input.files && input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const imgEl = new Image();
+          imgEl.onload = () => {
+            const canvas = document.createElement('canvas');
+            const max = 360;
+            const scale = Math.min(max / imgEl.width, max / imgEl.height, 1);
+            canvas.width = Math.round(imgEl.width * scale);
+            canvas.height = Math.round(imgEl.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+            profile.avatarData = canvas.toDataURL('image/jpeg', 0.78);
+            save();
+            renderQuestion();
+          };
+          imgEl.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      };
+      return;
+    }
+
     if(step.type === 'ability'){
       const a = profile.ability || { pushup:10, squat:20, situp:15, plank:30, runKmTime:10 };
       profile.ability = a;
@@ -635,6 +729,44 @@
     const value = state.profile[step.key];
     if(step.type === 'text' && !String(value).trim()){ showToast('Masukkan nama player terlebih dahulu.'); return false; }
     if(step.type === 'multi' && (!Array.isArray(value) || value.length === 0)){ showToast('Pilih minimal satu opsi.'); return false; }
+    if(step.type === 'avatar'){
+      const img = profile.avatarData || '';
+      content.innerHTML = `
+        <div class="photo-upload">
+          <img class="photo-preview" id="avatarPreview" src="${img || 'icon.svg'}" alt="Preview profile">
+          <input type="file" id="avatarInput" accept="image/*" class="hidden-file">
+          <button class="btn secondary" type="button" id="chooseAvatar">Pilih Foto Player</button>
+          <button class="btn ghost" type="button" id="clearAvatar">Pakai Logo Harimau</button>
+          <div class="small-note">Saran: pakai foto wajah yang jelas. Nanti avatar ini muncul di dashboard bersama rank dan kekuatan.</div>
+        </div>`;
+      const input = content.querySelector('#avatarInput');
+      content.querySelector('#chooseAvatar').onclick = () => input.click();
+      content.querySelector('#clearAvatar').onclick = () => { profile.avatarData=''; save(); renderQuestion(); };
+      input.onchange = () => {
+        const file = input.files && input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const imgEl = new Image();
+          imgEl.onload = () => {
+            const canvas = document.createElement('canvas');
+            const max = 360;
+            const scale = Math.min(max / imgEl.width, max / imgEl.height, 1);
+            canvas.width = Math.round(imgEl.width * scale);
+            canvas.height = Math.round(imgEl.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+            profile.avatarData = canvas.toDataURL('image/jpeg', 0.78);
+            save();
+            renderQuestion();
+          };
+          imgEl.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      };
+      return;
+    }
+
     if(step.type === 'ability'){
       const a = state.profile.ability || {};
       if(!a.pushup && !a.squat && !a.plank){ showToast('Masukkan minimal push-up, squat, dan plank awal.'); return false; }
@@ -692,7 +824,7 @@
         state.onboardingComplete = true;
         state.analysisDone = true;
         save();
-        setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); }, 600);
+        setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700); }, 600);
       }
     }, 180);
   }
@@ -825,6 +957,11 @@
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     animateBars();
     attachDashboardEvents();
+    if(state.onboardingComplete){
+      clearTimeout(renderDashboard.autoTimer);
+      renderDashboard.autoTimer = setTimeout(() => autoSystemTransmission('return'), 1200);
+      startSystemPulse();
+    }
   }
 
   function renderStatusTab(){
@@ -841,7 +978,7 @@
         <div class="hero-card">
           <div class="identity">
             <div style="display:flex;align-items:center;gap:14px">
-              <div class="avatar-core">${tigerLogo("small")}</div>
+              <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
               <div>
                 <h2>Player ${escapeHtml(p.name || 'Unknown')}</h2>
                 <p>${p.goal} · ${s.protocolName}</p>
@@ -855,6 +992,11 @@
             <div class="mini-card"><div class="tiny">Quest selesai hari ini</div><div class="kpi-num">${doneCount}/${state.quests.length}</div></div>
             <div class="mini-card"><div class="tiny">Workout target</div><div class="kpi-num">${s.weeklyWorkouts}x</div></div>
             <div class="mini-card"><div class="tiny">Target 90 hari</div><div class="kpi-num">${nextWeight}kg</div></div>
+          </div>
+          <div class="profile-power">
+            <div class="power-tile"><b>${p.ability?.pushup || 0}</b><span>Push-up Max</span></div>
+            <div class="power-tile"><b>${p.ability?.squat || 0}</b><span>Squat Max</span></div>
+            <div class="power-tile"><b>${p.ability?.plank || 0}s</b><span>Plank Max</span></div>
           </div>
         </div>
 
@@ -1018,6 +1160,16 @@
               <button class="btn secondary" id="reminderBtn">${s.reminders ? 'Reminder: ON' : 'Reminder: OFF'}</button>
             </div>
           </div>
+          <div class="plan-card push-card">
+            <h4>Firebase Push Server</h4>
+            <p>Aktifkan agar SYSTEM bisa mengirim push notification dari server. Ini berbeda dari hologram di dalam app.</p>
+            <div class="quest-actions">
+              <button class="btn" id="enablePushBtn">Enable Push</button>
+              <button class="btn secondary" id="testPushBtn">Test Push</button>
+            </div>
+            <div class="core-status">Permission: ${state.push?.lastPermission || 'default'}</div>
+            ${state.push?.token ? `<div class="token-box">${escapeHtml(state.push.token)}</div>` : `<p class="tiny" style="margin-top:10px">Token belum dibuat. Aktifkan push setelah Firebase config dipasang di Vercel.</p>`}
+          </div>
           <div class="plan-card ai-online">
             <h4>AI Core</h4>
             <p>AI tidak lagi disimpan di browser. Key Gemini dipasang di Vercel Environment Variable, lalu app memanggil endpoint aman <b>/api/gemini</b>.</p>
@@ -1065,6 +1217,10 @@
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem(); save(); showToast('Protocol dikalibrasi ulang.'); renderDashboard(); };
     const reminderBtn = document.getElementById('reminderBtn');
     if(reminderBtn) reminderBtn.onclick = () => { state.system.reminders = !state.system.reminders; save(); showToast(`Reminder ${state.system.reminders ? 'diaktifkan' : 'dimatikan'}.`); renderDashboard(); };
+    const enablePushBtn = document.getElementById('enablePushBtn');
+    if(enablePushBtn) enablePushBtn.onclick = enablePushNotifications;
+    const testPushBtn = document.getElementById('testPushBtn');
+    if(testPushBtn) testPushBtn.onclick = testPush;
     const saveAiBtn = document.getElementById('saveAiBtn');
     if(saveAiBtn) saveAiBtn.onclick = () => {
       state.ai.model = document.getElementById('aiModelInput').value.trim() || 'gemini-2.5-flash';
@@ -1081,26 +1237,110 @@
   }
 
 
-  function showSystemTransmission(title, message, closable=true){
+
+  function showHologramTransmission(title, message, options={}){
+    const rank = state?.system?.rank || 'E';
+    const closable = options.closable !== false;
+    const primary = options.primary || 'ACCEPT ORDER';
+    const secondary = options.secondary || null;
+    const autoClose = options.autoClose || 0;
     modalRoot.innerHTML = `
-      <div class="system-transmission show">
-        <div class="trans-card">
-          <div class="trans-head"><span class="trans-icon">!</span><span class="glitch" data-text="${escapeHtml(title)}">${escapeHtml(title)}</span></div>
-          <div class="trans-body" id="typeTarget"></div>
-          <div class="threat-level"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
-          <div class="trans-actions">
-            <button class="btn" id="closeTrans">${closable?'Accept':'Processing'}</button>
+      <div class="holo-system show" id="holoSystem">
+        <div class="holo-card">
+          <div class="holo-header">
+            <div class="holo-title"><span class="holo-orb"></span><span>${escapeHtml(title)}</span></div>
+            <div class="holo-rank">RANK ${escapeHtml(rank)}</div>
           </div>
+          <div class="holo-body"><span id="holoText"></span><span class="holo-cursor"></span></div>
+          <div class="holo-footer">
+            <button class="btn" id="holoAccept">${escapeHtml(primary)}</button>
+            ${secondary ? `<button class="btn secondary" id="holoSecondary">${escapeHtml(secondary)}</button>` : ''}
+          </div>
+          <div class="holo-mini" style="margin-top:10px">SYSTEM message generated from player data and current protocol.</div>
         </div>
       </div>`;
-    const target = document.getElementById('typeTarget');
+    const target = document.getElementById('holoText');
+    const text = String(message || '');
     let i = 0;
-    const text = String(message);
-    const typer = setInterval(() => {
+    clearInterval(showHologramTransmission.typer);
+    showHologramTransmission.typer = setInterval(() => {
       target.textContent = text.slice(0, i++);
-      if(i > text.length) clearInterval(typer);
-    }, 14);
-    document.getElementById('closeTrans').onclick = () => modalRoot.innerHTML = '';
+      if(i > text.length) clearInterval(showHologramTransmission.typer);
+    }, options.speed || 18);
+    const accept = document.getElementById('holoAccept');
+    accept.onclick = () => {
+      if(closable) modalRoot.innerHTML = '';
+      if(options.onAccept) options.onAccept();
+    };
+    const sec = document.getElementById('holoSecondary');
+    if(sec) sec.onclick = () => {
+      modalRoot.innerHTML = '';
+      if(options.onSecondary) options.onSecondary();
+    };
+    if(autoClose){
+      setTimeout(()=>{ if(document.getElementById('holoSystem')) modalRoot.innerHTML=''; }, autoClose);
+    }
+  }
+
+  function showSystemPing(){
+    const ping = document.getElementById('systemPing');
+    if(!ping) return;
+    ping.classList.add('show');
+    clearTimeout(showSystemPing.t);
+    showSystemPing.t = setTimeout(()=>ping.classList.remove('show'), 2400);
+  }
+
+  function localSystemMessage(reason='auto'){
+    const p = state.profile || {};
+    const s = state.system || {};
+    const done = (state.quests || []).filter(q=>q.done).length;
+    const total = (state.quests || []).length || 1;
+    const percent = Math.round(done / total * 100);
+    const name = p.name || 'Player';
+    if(reason === 'onboardingComplete'){
+      return `PLAYER ${name.toUpperCase()} TERDAFTAR.\n\nKondisi awal telah dibaca. SYSTEM menetapkan ${s.protocolName || 'Hunter Protocol'}.\n\nMulai sekarang, progres tidak dihitung dari niat. Progres hanya sah jika Current Order selesai.`;
+    }
+    if(reason === 'returnLow' || percent < 35){
+      return `PLAYER ${name.toUpperCase()}, STATUS HARI INI RENDAH.\n\nCurrent Order baru ${percent}% selesai. Alasan tidak meningkatkan rank. Selesaikan minimal satu order sekarang.`;
+    }
+    if(percent < 70){
+      return `PLAYER ${name.toUpperCase()}, PROGRES BELUM SAH.\n\n${percent}% selesai. SYSTEM tidak menaikkan rank dari usaha setengah jalan. Buka ORDER dan lanjutkan.`;
+    }
+    return `PLAYER ${name.toUpperCase()}, PROGRES TERDETEKSI.\n\n${percent}% order selesai. Jangan berhenti sebelum clear condition terpenuhi sepenuhnya.`;
+  }
+
+  async function autoSystemTransmission(reason='auto'){
+    if(!state.onboardingComplete) return;
+    const today = new Date().toISOString().slice(0,10);
+    const key = reason + ':' + today;
+    if(reason === 'return' && state.systemEvents?.lastAuto === key) return;
+    state.systemEvents = state.systemEvents || { lastAuto:'', count:0, bootTransmissionShown:false };
+    state.systemEvents.lastAuto = key;
+    state.systemEvents.count = (state.systemEvents.count || 0) + 1;
+    save();
+    showSystemPing();
+
+    if(state.ai?.enabled){
+      try{
+        const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek, otoriter, 4-6 baris, seperti notifikasi SYSTEM yang memerintah.`);
+        const res = await fetch('/api/gemini', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt, mode:'auto', model: state.ai.model || 'gemini-2.5-flash' })
+        });
+        const data = await res.json();
+        if(res.ok && data.text){
+          showHologramTransmission('SYSTEM TRANSMISSION', data.text, {primary:'UNDERSTOOD'});
+          return;
+        }
+      }catch(e){}
+    }
+    showHologramTransmission('SYSTEM TRANSMISSION', localSystemMessage(reason), {primary:'ACCEPT ORDER'});
+  }
+
+
+  function showSystemTransmission(title, message, closable=true){
+    showHologramTransmission(title, message, { primary: closable ? 'ACCEPT' : 'PROCESSING', closable });
   }
 
   async function runAiTransmission(mode='judgement'){
@@ -1160,7 +1400,7 @@ Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
       </div>`;
     document.getElementById('closeModalBtn').onclick = () => modalRoot.innerHTML = '';
     document.getElementById('jumpOrderBtn').onclick = () => { state.activeTab='orders'; save(); modalRoot.innerHTML=''; renderDashboard(); };
-    document.getElementById('quickMessageBtn').onclick = () => { modalRoot.innerHTML=''; showSystemTransmission('SYSTEM JUDGEMENT', systemJudgement()); };
+    document.getElementById('quickMessageBtn').onclick = () => { modalRoot.innerHTML=''; showHologramTransmission('SYSTEM JUDGEMENT', systemJudgement(), {primary:'ACCEPT'}) };
     document.getElementById('aiCommandBtn').onclick = () => { modalRoot.innerHTML=''; runAiTransmission('daily command'); };
   }
 
@@ -1215,6 +1455,82 @@ Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
 
+
+  async function enablePushNotifications(){
+    try{
+      if(!('Notification' in window)) throw new Error('Browser tidak mendukung Notification API.');
+      if(!('serviceWorker' in navigator)) throw new Error('Browser tidak mendukung Service Worker.');
+      const permission = await Notification.requestPermission();
+      state.push.lastPermission = permission;
+      save();
+      if(permission !== 'granted'){
+        showHologramTransmission('PUSH DENIED', 'Izin push ditolak. SYSTEM tidak dapat memanggilmu saat aplikasi tertutup.', {primary:'UNDERSTOOD'});
+        renderDashboard();
+        return;
+      }
+
+      const cfgRes = await fetch('/api/firebase-config');
+      const cfg = await cfgRes.json();
+      if(!cfg.firebaseConfig || !cfg.vapidKey) throw new Error(cfg.error || 'Firebase config/VAPID key belum lengkap di Vercel env.');
+
+      const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+      const msgMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js');
+      const app = appMod.initializeApp(cfg.firebaseConfig);
+      const messaging = msgMod.getMessaging(app);
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const token = await msgMod.getToken(messaging, { vapidKey: cfg.vapidKey, serviceWorkerRegistration: registration });
+
+      state.push.enabled = true;
+      state.push.token = token;
+      state.push.vapidKey = cfg.vapidKey;
+      save();
+
+      await fetch('/api/register-token', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          token,
+          player: { name: state.profile.name, rank: state.system.rank, goal: state.profile.goal }
+        })
+      }).catch(()=>{});
+
+      msgMod.onMessage(messaging, payload => {
+        const title = payload?.notification?.title || 'SYSTEM PUSH';
+        const body = payload?.notification?.body || payload?.data?.body || 'Current Order menunggu.';
+        showHologramTransmission(title, body, {primary:'ACCEPT ORDER'});
+      });
+
+      showHologramTransmission('PUSH LINKED', 'Firebase Cloud Messaging aktif. SYSTEM sekarang dapat mengirim panggilan dari server ketika app mendukung background push.', {primary:'ACCEPT'});
+      renderDashboard();
+    }catch(err){
+      showHologramTransmission('PUSH ERROR', err.message + '\n\nCek env Firebase di Vercel dan pastikan deploy ulang sudah dilakukan.', {primary:'UNDERSTOOD'});
+    }
+  }
+
+  async function testPush(){
+    try{
+      if(!state.push?.token){
+        showHologramTransmission('NO TOKEN', 'Aktifkan push terlebih dahulu. Tanpa token, server tidak tahu ke perangkat mana perintah dikirim.', {primary:'ENABLE PUSH', onAccept: enablePushNotifications});
+        return;
+      }
+      const res = await fetch('/api/send-system-push', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          token: state.push.token,
+          title: 'SYSTEM ORDER',
+          body: `Player ${state.profile.name || 'Unknown'}, kembali ke Current Order. Progress yang tidak dicatat tidak diakui.`
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Push test failed');
+      showHologramTransmission('PUSH SENT', 'Perintah push dikirim. Kalau app sedang foreground, hologram akan tampil. Kalau background, sistem Android/browser akan menampilkan notifikasi.', {primary:'ACCEPT'});
+    }catch(err){
+      showHologramTransmission('PUSH SEND ERROR', err.message + '\n\nUntuk mengirim push dari server, pasang FIREBASE_SERVICE_ACCOUNT_JSON di Vercel.', {primary:'UNDERSTOOD'});
+    }
+  }
+
+
   let deferredInstallPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -1235,6 +1551,21 @@ Berikan judgement dan 3 command berikutnya. Tegas, memerintah, tapi aman.`;
   });
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  }
+
+
+  function startSystemPulse(){
+    clearInterval(startSystemPulse.interval);
+    startSystemPulse.interval = setInterval(() => {
+      if(!state.onboardingComplete) return;
+      if(document.getElementById('holoSystem')) return;
+      const now = Date.now();
+      state.systemEvents = state.systemEvents || {};
+      if(now - (state.systemEvents.lastPulseAt || 0) < 90000) return;
+      state.systemEvents.lastPulseAt = now;
+      save();
+      autoSystemTransmission('periodic command');
+    }, 30000);
   }
 
   render();
