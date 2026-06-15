@@ -88,3 +88,10 @@ Untuk menyimpan token semua user:
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Kalau Supabase tidak dipasang, app tetap bisa minta token dan test push ke token lokal, tapi token tidak tersimpan sebagai database list.
+
+## v17 Input + Avatar + Process Fix
+- Field nama tidak re-render saat mengetik.
+- Keyboard mobile tidak langsung tertutup.
+- Step avatar optional, jadi Lanjutkan bisa dipakai walau belum upload foto.
+- Upload avatar dan analisis akhir punya progress overlay.
+- Tombol Lanjutkan punya loading state untuk mencegah double tap.
