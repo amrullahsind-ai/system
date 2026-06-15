@@ -287,9 +287,12 @@
     .token-box{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#9fc7de;line-height:1.45;word-break:break-all;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px;margin-top:10px;max-height:120px;overflow:auto}
 
 
+    /* v19 stable full bugfix */
     input, textarea, select, button { touch-action: manipulation; }
-    .input{font-size:16px!important;line-height:1.25!important;-webkit-user-select:text;user-select:text;caret-color:#8dfbff}
+    .input{font-size:16px!important;line-height:1.25!important;-webkit-user-select:text!important;user-select:text!important;caret-color:#8dfbff!important}
     .input:focus{outline:2px solid rgba(117,251,255,.28)!important;box-shadow:0 0 0 4px rgba(117,251,255,.08)!important}
+    .question-card{transform:none!important;animation:none!important}
+    .assessment-screen,.screen{overflow-y:auto;-webkit-overflow-scrolling:touch}
     .btn[disabled]{opacity:.58!important;filter:grayscale(.25);pointer-events:none}
     .btn.loading{position:relative;color:transparent!important;overflow:hidden}
     .btn.loading::after{content:"";position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:3px solid rgba(4,13,25,.28);border-top-color:#061321;animation:spin .8s linear infinite}
@@ -586,20 +589,33 @@
       state.currentStep--; save(); render();
     };
     document.getElementById('skipBtn').onclick = () => showToast('SYSTEM tidak menyukai jawaban setengah-setengah.');
-    document.getElementById('saveExitBtn').onclick = () => showToast('Data assessment tersimpan lokal di device ini.');
+    document.getElementById('saveExitBtn').onclick = () => {
+      const activeInput = document.getElementById('fieldInput');
+      if(activeInput && step.type === 'text') state.profile[step.key] = activeInput.value.trim();
+      save();
+      showToast('Data assessment tersimpan lokal di device ini.');
+    };
 
     const content = document.getElementById('questionContent');
     renderStepContent(step, content, profile);
 
     document.getElementById('nextBtn').onclick = () => {
+      const activeInput = document.getElementById('fieldInput');
+      if(activeInput && step.type === 'text') state.profile[step.key] = activeInput.value.trim();
       if(!validateStep(step)){ return; }
-      if(state.currentStep < steps.length - 1){
-        state.currentStep++;
-        save();
-        render();
-      } else {
-        runAnalysis();
-      }
+      const btn = document.getElementById('nextBtn');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      setTimeout(() => {
+        if(state.currentStep < steps.length - 1){
+          state.currentStep++;
+          save();
+          render();
+        } else {
+          save();
+          runAnalysis();
+        }
+      }, 120);
     };
   }
 
@@ -609,15 +625,19 @@
       content.innerHTML = `
         <div class="field">
           <label>Nama player</label>
-          <input class="input" id="fieldInput" type="text" inputmode="text" autocomplete="name" autocapitalize="words" value="${escapeHtml(profile[step.key] || '')}" placeholder="contoh: Sevila">
-          <div class="small-note">Nama ini akan dipakai di dashboard, quest system, dan laporan perkembangan.</div>
-        </div>`;
+          <input class="input" id="fieldInput" type="text" inputmode="text" autocomplete="name" autocapitalize="words" placeholder="contoh: Sevila" value="${escapeHtml(val || '')}">
+        </div>
+        <div class="small-note" style="text-align:left">Nama ini akan dipakai di dashboard, quest system, dan laporan perkembangan.</div>`;
       const input = content.querySelector('#fieldInput');
-      input.addEventListener('pointerdown', e => e.stopPropagation(), {passive:true});
-      input.addEventListener('touchstart', e => e.stopPropagation(), {passive:true});
-      input.addEventListener('click', e => e.stopPropagation());
       input.addEventListener('input', e => { profile[step.key] = e.target.value; });
       input.addEventListener('blur', () => save());
+      input.addEventListener('keydown', e => {
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          const btn = document.getElementById('nextBtn');
+          if(btn) btn.click();
+        }
+      });
       return;
     }
     if(step.type === 'number'){
@@ -660,8 +680,10 @@
           <div class="small-note">Saran: pakai foto wajah yang jelas. Nanti avatar ini muncul di dashboard bersama rank dan kekuatan.</div>
         </div>`;
       const input = content.querySelector('#avatarInput');
-      content.querySelector('#chooseAvatar').onclick = (e) => { e.preventDefault(); input.click(); };
-      content.querySelector('#clearAvatar').onclick = (e) => { e.preventDefault(); profile.avatarData=''; save(); renderQuestion(); };
+      const choose = content.querySelector('#chooseAvatar');
+      const clear = content.querySelector('#clearAvatar');
+      choose.onclick = (e) => { e.preventDefault(); input.click(); };
+      clear.onclick = (e) => { e.preventDefault(); profile.avatarData=''; save(); renderQuestion(); };
       input.onchange = () => {
         const file = input.files && input.files[0];
         if(!file) return;
@@ -752,81 +774,79 @@
 
   function validateStep(step){
     const value = state.profile[step.key];
-    if(step.type === 'text' && !String(value).trim()){ showToast('Masukkan nama player terlebih dahulu.'); return false; }
-    if(step.type === 'multi' && (!Array.isArray(value) || value.length === 0)){ showToast('Pilih minimal satu opsi.'); return false; }
-    if(step.type === 'avatar'){
-      const img = profile.avatarData || '';
-      content.innerHTML = `
-        <div class="photo-upload">
-          <img class="photo-preview" id="avatarPreview" src="${img || 'icon.svg'}" alt="Preview profile">
-          <input type="file" id="avatarInput" accept="image/*" class="hidden-file">
-          <button class="btn secondary" type="button" id="chooseAvatar">Pilih Foto Player</button>
-          <button class="btn ghost" type="button" id="clearAvatar">Pakai Logo Harimau</button>
-          <div class="small-note">Saran: pakai foto wajah yang jelas. Nanti avatar ini muncul di dashboard bersama rank dan kekuatan.</div>
-        </div>`;
-      const input = content.querySelector('#avatarInput');
-      content.querySelector('#chooseAvatar').onclick = () => input.click();
-      content.querySelector('#clearAvatar').onclick = () => { profile.avatarData=''; save(); renderQuestion(); };
-      input.onchange = () => {
-        const file = input.files && input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const imgEl = new Image();
-          imgEl.onload = () => {
-            const canvas = document.createElement('canvas');
-            const max = 360;
-            const scale = Math.min(max / imgEl.width, max / imgEl.height, 1);
-            canvas.width = Math.round(imgEl.width * scale);
-            canvas.height = Math.round(imgEl.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
-            profile.avatarData = canvas.toDataURL('image/jpeg', 0.78);
-            save();
-            renderQuestion();
-          };
-          imgEl.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      };
-      return;
+    if(step.type === 'avatar') return true;
+    if(step.type === 'text' && !String(value || '').trim()){
+      showToast('Masukkan nama player terlebih dahulu.');
+      return false;
     }
-
+    if(step.type === 'multi' && (!Array.isArray(value) || value.length === 0)){
+      showToast('Pilih minimal satu opsi.');
+      return false;
+    }
     if(step.type === 'ability'){
       const a = state.profile.ability || {};
-      if(!a.pushup && !a.squat && !a.plank){ showToast('Masukkan minimal push-up, squat, dan plank awal.'); return false; }
+      if(!a.pushup && !a.squat && !a.plank){
+        showToast('Masukkan minimal push-up, squat, dan plank awal.');
+        return false;
+      }
     }
     return true;
   }
 
   function runAnalysis(){
-    showProcess('SYSTEM ANALYSIS', [
-      'Membaca identitas player...',
-      'Mengukur kemampuan awal...',
-      'Menentukan rank kandidat...',
-      'Membangun Daily Order...',
-      'Menghubungkan AI Core...'
-    ], 2600);
-    let pct = 0;
-    const timer = setInterval(()=>{
-      pct += Math.floor(Math.random()*13)+7;
-      const progressFill = document.getElementById('analysisProgress');
-      const progressNum = document.getElementById('analysisPercent');
-      if(progressFill) progressFill.style.width = Math.min(pct,100) + '%';
-      if(progressNum) progressNum.textContent = Math.min(pct,100) + '%';
+    showProcess('SYSTEM ANALYSIS', ['Membaca identitas player...', 'Mengukur kemampuan awal...', 'Menentukan rank kandidat...', 'Membangun Daily Order...', 'Menghubungkan AI Core...'], 2600);
+    state.analysisDone = false;
+    save();
+    bottomNav.className='bottom-nav'; fab.className='fab';
+    screenRoot.innerHTML = `
+      <section class="screen active">
+        <div class="center-screen" style="justify-content:flex-start; padding-top:40px">
+          <div class="tag">SYSTEM ANALYSIS</div>
+          <h1 class="question-title" style="text-align:center; margin-top:14px">Assessment diterima. SYSTEM sedang membaca kondisi player.</h1>
+          <p class="question-sub" style="text-align:center; max-width:320px">Kalibrasi rank, memproses komposisi tubuh, menghitung potensi, dan menyusun order awal.</p>
+          <div class="analysis-card panel" style="width:100%; margin-top:10px">
+            <p class="analysis-value" id="analysisPct">1%</p>
+            <div class="progress-shell"><div class="progress-fill" id="analysisBar" style="width:1%"></div></div>
+            <div class="status-list" id="statusList"></div>
+          </div>
+        </div>
+      </section>`;
+    const labels = [
+      ['Identity lock', 'Mengunci profil player'],
+      ['Body index', 'Menghitung BMI dan komposisi awal'],
+      ['Condition scan', 'Membaca stamina, recovery, disiplin'],
+      ['Potential map', 'Menghitung potensi 90 hari'],
+      ['Protocol forge', 'Menyusun quest dan program inti']
+    ];
+    const list = document.getElementById('statusList');
+    labels.forEach((item,i)=>{
+      const el = document.createElement('div');
+      el.className='status-item';
+      el.innerHTML = `<div class="status-left"><b>${item[0]}</b><span>${item[1]}</span></div><div class="status-dot" id="sd${i}">${i===0?'…':'○'}</div>`;
+      list.appendChild(el);
+    });
+    let pct = 1;
+    const int = setInterval(() => {
+      pct += Math.ceil(Math.random()*7);
+      if(pct > 100) pct = 100;
+      document.getElementById('analysisPct').textContent = pct + '%';
+      document.getElementById('analysisBar').style.width = pct + '%';
+      const activeIndex = Math.min(labels.length-1, Math.floor((pct/100)*labels.length));
+      labels.forEach((_,i)=>{
+        const dot = document.getElementById('sd'+i);
+        if(i < activeIndex){ dot.className='status-dot active'; dot.textContent='✓'; }
+        else if(i === activeIndex){ dot.className='status-dot active'; dot.textContent='…'; }
+        else { dot.className='status-dot'; dot.textContent='○'; }
+      });
       if(pct >= 100){
-        clearInterval(timer);
-        analyzeProfile();
+        clearInterval(int);
+        calculateProfileSystem();
         state.onboardingComplete = true;
+        state.analysisDone = true;
         save();
-        setTimeout(()=>{
-          hideProcess();
-          showToast('Protocol assigned. Selamat datang, Player.');
-          render();
-          setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700);
-        }, 550);
+        setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700); }, 600);
       }
-    }, 260);
+    }, 180);
   }
 
   function calculateProfileSystem(){
@@ -1264,6 +1284,7 @@
       if(pct >= 96) clearInterval(showProcess.timer);
     }, 80);
   }
+
   function hideProcess(){
     clearInterval(showProcess.timer);
     const fill = document.getElementById('processFill');
@@ -1272,6 +1293,7 @@
     if(num) num.textContent = '100%';
     setTimeout(() => { if(document.getElementById('processScreen')) modalRoot.innerHTML = ''; }, 180);
   }
+
 
   function showHologramTransmission(title, message, options={}){
     const rank = state?.system?.rank || 'E';

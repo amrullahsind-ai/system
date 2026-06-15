@@ -89,9 +89,9 @@ Untuk menyimpan token semua user:
 
 Kalau Supabase tidak dipasang, app tetap bisa minta token dan test push ke token lokal, tapi token tidak tersimpan sebagai database list.
 
-## v17 Input + Avatar + Process Fix
-- Field nama tidak re-render saat mengetik.
-- Keyboard mobile tidak langsung tertutup.
-- Step avatar optional, jadi Lanjutkan bisa dipakai walau belum upload foto.
-- Upload avatar dan analisis akhir punya progress overlay.
-- Tombol Lanjutkan punya loading state untuk mencegah double tap.
+## v19 Full Bugfix
+- ZIP lengkap: semua file deploy Vercel ikut masuk.
+- validateStep dibersihkan; avatar optional dan tidak merusak flow.
+- input nama stabil di Chrome Android.
+- tombol Lanjutkan avatar normal.
+- proses upload avatar dan analisis punya progress overlay.
