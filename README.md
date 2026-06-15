@@ -149,3 +149,14 @@ Perbaikan:
 - Hologram body dibuat scroll lebih besar.
 - Token Gemini dinaikkan lagi agar jawaban tidak kepotong.
 - Fallback hanya aktif kalau AI benar-benar kosong atau cuma label seperti `PLAYER:`.
+
+
+## v24 Hologram Progress Input
+
+Perbaikan:
+- Quest tidak lagi langsung selesai sekali klik.
+- Setiap quest punya progress parsial: contoh 10/30 push-up.
+- Tombol quest menjadi `INPUT PROGRESS`.
+- Input progress muncul di hologram SYSTEM.
+- Ada mode `Tambah` dan `Set Total`.
+- Quest baru clear kalau progress mencapai target.
