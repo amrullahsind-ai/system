@@ -105,24 +105,20 @@
     @media(max-width:390px){.nav{grid-template-columns:repeat(4,minmax(0,1fr))}.field-grid{grid-template-columns:1fr}.screen{padding-bottom:calc(178px + var(--safe))!important}.fab{bottom:164px!important}}
 
   
-    /* v30 assessment wizard + surveillance + living typewriter */
-    .wizardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-    .wizardStep{font-family:Orbitron,sans-serif;font-size:12px;color:#9bfbff;letter-spacing:.1em;font-weight:900}
-    .wizardTitle{font-size:28px;line-height:1.08;margin:8px 0 8px}
-    .wizardSub{font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:14px}
-    .wizardProgress{height:9px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.07);margin-bottom:14px}
-    .wizardProgress span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff4d6d,#ffd26b,#7df7ff);box-shadow:0 0 18px rgba(125,247,255,.45)}
-    .choiceGrid{display:grid;gap:10px}
-    .choiceBtn{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#f3fbff;border-radius:18px;padding:14px;text-align:left;font-weight:800}
-    .choiceBtn small{display:block;color:var(--muted);font-weight:600;margin-top:4px;line-height:1.35}
-    .choiceBtn.active{border-color:rgba(125,247,255,.45);background:rgba(125,247,255,.10);box-shadow:0 0 22px rgba(125,247,255,.08)}
-    .rangeRead{font-family:Orbitron,sans-serif;font-size:42px;text-align:center;margin:8px 0;color:#fff}
-    input[type=range]{width:100%;accent-color:#7df7ff}
-    .surveillanceGrid{display:grid;gap:12px}
-    .watchRow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:16px}
-    .watchRow span{color:var(--muted);font-size:13px}.watchRow b{text-align:right;overflow-wrap:anywhere}
-    .cursor{display:inline-block;width:8px;height:18px;background:#9bfbff;margin-left:3px;vertical-align:-3px;box-shadow:0 0 12px #9bfbff;animation:blink .75s steps(1) infinite}
-    @keyframes blink{50%{opacity:0}}
+    /* v31 recovery stable analysis */
+    .recovery-note{padding:14px 16px;border-radius:20px;border:1px solid rgba(125,247,255,.16);background:rgba(125,247,255,.055);color:#dffaff;font-size:13px;line-height:1.55}
+    .analysis-grid{display:grid;gap:12px}
+    .analysis-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:16px}
+    .analysis-row span{color:var(--muted);font-size:13px}
+    .analysis-row b{text-align:right;overflow-wrap:anywhere}
+    .analysis-text{font-size:14px;line-height:1.65;color:#d9ebf7}
+    .analysis-text b{color:#fff}
+    .analysis-text .red{color:#ff8ca0;font-weight:900}
+    .analysis-text .cyan{color:#9bfbff;font-weight:900}
+    .analysis-text .amber{color:#ffdc82;font-weight:900}
+    .safe-profile-form .field-card{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:18px;padding:12px;margin-bottom:10px}
+    .safe-profile-form label{display:block;font-size:12px;color:#9bfbff;font-weight:900;letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase}
+    .safe-profile-form small{display:block;color:var(--muted);font-size:11px;line-height:1.35;margin-top:6px}
 
   </style>
 </head>
@@ -152,12 +148,12 @@ const icon=n=>({
  core:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.2 4.5 4.8.7-3.5 3.4.8 4.9L12 13.3 7.7 15.5l.8-4.9L5 7.2l4.8-.7L12 2z"/></svg>'
 }[n]||'');
 const defaultState={
- booted:false, accepted:false, onboardingComplete:false, active:'status', dayKey:'',
+ booted:false, accepted:false, active:'status', dayKey:'',
  profile:{name:'',age:19,gender:'Male',height:167,weight:57,targetWeight:63,goal:'Build Muscle',condition:'Slim / Underdeveloped',activity:'Lightly Active',frequency:4,sleep:6.5,water:2.1,avatarData:'',ability:{pushup:10,squat:20,situp:15,plank:30,runKmTime:10}},
  player:{level:1,exp:0,nextExp:300,rank:'E',statPoints:0,streak:0,totalClears:0},
  stats:{strength:12,vitality:13,agility:11,recovery:10,discipline:16},
  system:{protocolName:'Adaptive Hunter Protocol',calorieGoal:2450,waterGoal:3.0,macros:{protein:145,carbs:290,fat:67},bmi:20.4,bmiLabel:'Healthy',estimated90DayWeight:62},
- quests:[], hiddenQuests:[], logs:[], proofRecords:[], penalty:{active:false,severity:0,tasks:[],fromPreviousDay:false}, previousDay:{key:'',completion:null,failed:false}, ai:{enabled:true,model:'gemini-2.5-flash',lastAnalysis:''}, push:{enabled:false,token:'',lastPermission:'default'}
+ quests:[], hiddenQuests:[], logs:[], proofRecords:[], penalty:{active:false,severity:0,tasks:[],fromPreviousDay:false}, previousDay:{key:'',completion:null,failed:false}, ai:{enabled:true,model:'gemini-2.5-flash'}, push:{enabled:false,token:'',lastPermission:'default'}
 };
 let state=load();
 function load(){try{return merge(JSON.parse(JSON.stringify(defaultState)),JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'))}catch{return JSON.parse(JSON.stringify(defaultState))}}
@@ -273,11 +269,10 @@ function render(){
  ensureDay();
  if(!state.booted)return splash();
  if(!state.accepted)return accept();
- if(!state.onboardingComplete)return openAssessment(state.assessmentStep||0);
  nav.style.display='grid'; fab.style.display='block';
  const tabs=['status','orders','proof','penalty','analysis','profile','core'];
  if(!tabs.includes(state.active))state.active='status';
- nav.innerHTML=tabs.map(t=>`<button class="${state.active===t?'active':''}" data-tab="${t}">${icon(t)}${t==='proof'?'WATCH':t.toUpperCase()}</button>`).join('');
+ nav.innerHTML=tabs.map(t=>`<button class="${state.active===t?'active':''}" data-tab="${t}">${icon(t)}${t.toUpperCase()}</button>`).join('');
  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.active=b.dataset.tab;save();render()});
  fab.onclick=()=>systemMenu();
  const page={status,orders,proof,penalty,analysis,profile,core}[state.active]();
@@ -292,7 +287,7 @@ function splash(){
 }
 function accept(){
  screen.innerHTML=`<div class="center"><div class="card danger"><span class="tag">NOTIFICATION</span><h1>You have acquired the qualifications to become a <span class="green">Player</span>.</h1><p>SYSTEM akan memberi order harian, EXP, penalty, hidden quest, dan rank progression. Jika kamu menerima, alasan tidak lagi dihitung.</p><div class="stack" style="margin-top:18px"><button class="btn" id="accept">ACCEPT SYSTEM</button><button class="btn secondary" id="demo">Use Default Profile</button></div></div></div>`;
- setTimeout(()=>{$('accept').onclick=()=>{state.accepted=true;state.onboardingComplete=false;openAssessment(0)};$('demo').onclick=()=>{state.accepted=true;state.onboardingComplete=true;generateDailyQuests();save();showTransmission('SYSTEM ONLINE',buildSystemAnalysis());render()}},0);
+ setTimeout(()=>{$('accept').onclick=()=>{state.accepted=true;openProfileEdit(true)};$('demo').onclick=()=>{state.accepted=true;generateDailyQuests();save();showTransmission('SYSTEM ONLINE',fallbackMessage());render()}},0);
 }
 function status(){
  const p=state.profile,pl=state.player,s=state.system,cp=completionPercent();
@@ -317,22 +312,7 @@ function questCard(q,i){
 }
 function fmt(ms){let s=Math.floor(ms/1000),h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 function proof(){
- const cp=completionPercent();
- const pending=allQuests().filter(q=>!q.done);
- const done=allQuests().filter(q=>q.done);
- const risk=cp<60?'HIGH':'LOW';
- return `<div class="stack">
-  <div class="card danger"><span class="tag">SURVEILLANCE MODULE</span><h1>SYSTEM is watching.</h1><p>Module ini bukan sekadar proof. Ini ruang audit: melihat order tertunda, risiko penalty, bukti latihan, dan alat counter/timer untuk validasi.</p></div>
-  <div class="card"><span class="tag">DAILY AUDIT</span><div class="surveillanceGrid" style="margin-top:12px">
-    <div class="watchRow"><span>Completion</span><b class="${cp<60?'red':'cyan'}">${cp}%</b></div>
-    <div class="watchRow"><span>Penalty Risk</span><b class="${risk==='HIGH'?'red':'green'}">${risk}</b></div>
-    <div class="watchRow"><span>Pending Orders</span><b>${pending.length}</b></div>
-    <div class="watchRow"><span>Verified Orders</span><b>${done.length}</b></div>
-    <div class="watchRow"><span>Player Level</span><b>Lv ${state.player.level} · Rank ${state.player.rank}</b></div>
-  </div></div>
-  <div class="card"><span class="tag">VALIDATION TOOLS</span><p style="margin-top:8px">Pilih quest lalu gunakan counter/timer. Setelah itu simpan proof note agar progress punya arsip.</p></div>
-  ${allQuests().map(q=>`<div class="card ${q.done?'':'danger'}"><h4>${esc(q.title)}</h4><p>${esc(q.desc||'')}</p><div class="bar"><span style="width:${Math.min(100,Math.round((q.progress||0)/q.target*100))}%"></span></div><div class="small" style="margin-top:8px">Progress ${q.progress||0}/${q.target} ${q.unit} · ${q.proofLogged?'Proof saved':'No proof note'}</div><div class="actions"><button class="btn" data-tool="${q.id}">${q.kind==='timer'?'Open Timer':'Open Counter'}</button><button class="btn secondary" data-proof="${q.id}">Write Proof</button></div></div>`).join('')}
- </div>`;
+ return `<div class="stack"><div class="card"><span class="tag">PROOF MODULE</span><h1>Bukti, bukan tombol kosong.</h1><p>Proof menyediakan tap counter, timer, dan catatan bukti. Save Proof menyimpan arsip, tapi quest baru clear saat target progress terpenuhi.</p></div>${allQuests().map(q=>`<div class="card"><h4>${esc(q.title)}</h4><p>${q.kind==='timer'?'Timer aktif untuk validasi durasi.':'Tap counter untuk menambah repetisi dengan cepat.'}</p><div class="actions"><button class="btn" data-tool="${q.id}">${q.kind==='timer'?'Open Timer':'Open Counter'}</button><button class="btn secondary" data-proof="${q.id}">Write Proof Note</button></div><div class="small" style="margin-top:10px">Saved note: ${esc(q.proofNote||'Belum ada catatan.')}</div></div>`).join('')}</div>`;
 }
 function penalty(){
  const cp=completionPercent();
@@ -347,10 +327,46 @@ function penalty(){
   <div class="order">${(state.penalty.tasks||[]).map(q=>questCard(q,0)).join('')||'<div class="card"><p>Tidak ada penalty aktif sekarang. Jangan jadikan ini alasan untuk santai.</p></div>'}</div>
  </div>`;
 }
+
+function systemAnalysisText(){
+ const p=state.profile, s=state.system, pl=state.player;
+ const avg=Math.round(Object.values(state.stats).reduce((a,b)=>a+b,0)/5);
+ const total=Object.values(state.stats).reduce((a,b)=>a+b,0);
+ const cp=completionPercent();
+ const weak=Object.entries(state.stats).sort((a,b)=>a[1]-b[1])[0];
+ const strong=Object.entries(state.stats).sort((a,b)=>b[1]-a[1])[0];
+ const targetDelta=(p.targetWeight||p.weight)-p.weight;
+ const direction=targetDelta>0?'naik massa/berat':targetDelta<0?'turun berat/lemak':'stabilisasi komposisi tubuh';
+ return {
+  avg,total,cp,weak,strong,targetDelta,direction,
+  verdict: cp<60?'RISK: completion harian di bawah standar. Jika bertahan sampai ganti hari, Penalty Zone akan aktif.':'STABLE: completion hari ini masih dalam batas aman, tetapi SYSTEM tetap menuntut bukti.',
+  body:`SYSTEM membaca tubuh player berada pada fase ${p.condition}. Berat saat ini ${p.weight}kg dengan target ${p.targetWeight}kg, sehingga arah protocol adalah ${direction}. BMI ${s.bmi} (${s.bmiLabel}) bukan vonis akhir, tetapi titik awal kalibrasi.`,
+  stat:`Rata-rata status saat ini ${avg}. Stat terkuat adalah ${strong[0]} (${strong[1]}), sedangkan titik paling lemah adalah ${weak[0]} (${weak[1]}). Order harian akan semakin berat ketika level dan stat naik.`,
+  order:`Progress harian sekarang ${cp}%. Minimum validasi SYSTEM adalah 60%. Quest clear memberi EXP, menaikkan stat, dan mendorong rank naik. Progress yang tidak dicatat tidak diakui.`,
+  plan:`Fokus 90 hari: pertahankan protein ${s.macros?.protein||'-'}g, kalori sekitar ${s.calorieGoal||'-'} kcal, hidrasi ${s.waterGoal||'-'}L, dan selesaikan order sebelum deadline.`
+ };
+}
+
 function analysis(){
- const p=state.profile,s=state.system,cp=completionPercent();
- const avg=Math.round(Object.values(state.stats).reduce((a,b)=>a+b,0)/5),pot=Math.min(100,avg+35+state.player.level);
- return `<div class="stack"><div class="card"><span class="tag">ANALYSIS</span><h1>Start → Now → 90 Days.</h1><p>Grafik sekarang punya arti: Start adalah baseline onboarding, Now adalah completion dan level aktual, 90 Days adalah proyeksi jika kamu mematuhi order.</p></div><div class="card"><svg viewBox="0 0 320 170" style="width:100%;height:190px"><defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#ff4d6d"/><stop offset=".5" stop-color="#ffd26b"/><stop offset="1" stop-color="#64ffad"/></linearGradient></defs><path d="M18 134 C85 140 120 105 160 82 S242 26 304 28" fill="none" stroke="url(#lg)" stroke-width="8" stroke-linecap="round"/><circle cx="18" cy="134" r="8" fill="#ff4d6d"/><circle cx="${18+cp*2.86}" cy="${134-cp}" r="8" fill="#ffd26b"/><circle cx="304" cy="28" r="8" fill="#64ffad"/><text x="12" y="160" fill="#eafaff" font-size="13">Start</text><text x="142" y="74" fill="#eafaff" font-size="13">Now</text><text x="246" y="20" fill="#eafaff" font-size="13">90 Days</text></svg><p><span class="red">Start</span>: ${p.weight}kg, avg stat ${avg}. <span class="amber">Now</span>: completion ${cp}%, level ${state.player.level}. <span class="cyan">90 Days</span>: estimasi berat ${s.estimated90DayWeight}kg, potential avg ${pot}.</p></div><div class="grid2"><div class="card"><h4>Target body path</h4><p>${p.weight}kg → target ${p.targetWeight}kg. Estimasi 90 hari saat ini: <b>${s.estimated90DayWeight}kg</b>.</p></div><div class="card danger"><h4>Wasted potential</h4><p>Potensi tidak aktif: <span class="red">${Math.max(0,100-avg)}%</span>. Angka ini turun ketika stat naik dari aksi nyata.</p></div></div></div>`;
+ const p=state.profile,s=state.system,pl=state.player,a=systemAnalysisText();
+ return `<div class="stack">
+  <div class="card danger"><span class="tag">SYSTEM ANALYSIS</span><h1>Analisis tidak bergantung pada AI.</h1><p>Jika AI gagal, SYSTEM tetap membaca data lokal: profile, stat, EXP, quest, completion, dan target 90 hari.</p></div>
+  <div class="card"><span class="tag">PLAYER SUMMARY</span><div class="analysis-grid" style="margin-top:12px">
+    <div class="analysis-row"><span>Player</span><b>${esc(p.name||'Unknown')} · Lv ${pl.level} · Rank ${pl.rank}</b></div>
+    <div class="analysis-row"><span>Goal</span><b>${esc(p.goal)}</b></div>
+    <div class="analysis-row"><span>Body Path</span><b>${p.weight}kg → ${p.targetWeight}kg</b></div>
+    <div class="analysis-row"><span>90 Days Estimate</span><b>${s.estimated90DayWeight}kg</b></div>
+    <div class="analysis-row"><span>Daily Completion</span><b class="${a.cp<60?'red':'cyan'}">${a.cp}%</b></div>
+    <div class="analysis-row"><span>Total Stat</span><b>${a.total}</b></div>
+  </div></div>
+
+  <div class="card"><span class="tag">BODY ANALYSIS</span><p class="analysis-text" style="margin-top:10px">${esc(a.body)}</p></div>
+  <div class="card"><span class="tag">STAT ANALYSIS</span><p class="analysis-text" style="margin-top:10px">${esc(a.stat)}</p></div>
+  <div class="card ${a.cp<60?'danger':''}"><span class="tag">ORDER ANALYSIS</span><p class="analysis-text" style="margin-top:10px">${esc(a.order)}</p><p class="analysis-text" style="margin-top:10px"><b>${esc(a.verdict)}</b></p></div>
+  <div class="card"><span class="tag">90 DAY PLAN</span><p class="analysis-text" style="margin-top:10px">${esc(a.plan)}</p></div>
+
+  <div class="card"><span class="tag">AI ADD-ON</span><p>AI hanya dipakai untuk memperkaya analisis. Kalau Gemini kena limit, analisis utama tetap muncul.</p><button class="btn" style="margin-top:12px" id="aiAnalysisBtn">Generate AI Analysis</button></div>
+ </div>`;
 }
 function profile(){
  const p=state.profile,s=state.system,pl=state.player;
@@ -371,12 +387,13 @@ function bind(){
  document.querySelectorAll('[data-input]').forEach(b=>b.onclick=()=>openProgress(b.dataset.input));
  document.querySelectorAll('[data-proof]').forEach(b=>b.onclick=()=>openProof(b.dataset.proof));
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>openTool(b.dataset.tool));
- if($('editProfile'))$('editProfile').onclick=()=>openAssessment(0);
+ if($('editProfile'))$('editProfile').onclick=()=>openProfileEdit(false);
  if($('aiTest'))$('aiTest').onclick=()=>runAI();
+ if($('aiAnalysisBtn'))$('aiAnalysisBtn').onclick=()=>runAI();
  if($('regen'))$('regen').onclick=()=>{generateDailyQuests();toastMsg('Daily order regenerated.');render()};
  if($('systemMenu'))$('systemMenu').onclick=()=>systemMenu();
  if($('forcePenalty'))$('forcePenalty').onclick=()=>{activatePenalty(2,'Manual penalty test dari CORE.',true);toastMsg('Penalty test activated.');render()};
- if($('editFromCore'))$('editFromCore').onclick=()=>openAssessment(0);
+ if($('editFromCore'))$('editFromCore').onclick=()=>openProfileEdit(false);
  if($('reset'))$('reset').onclick=()=>{if(confirm('Reset semua data?')){localStorage.removeItem(STORAGE_KEY);location.reload()}};
  if($('pushOn'))$('pushOn').onclick=enablePush;
  if($('pushTest'))$('pushTest').onclick=testPush;
@@ -418,50 +435,29 @@ function openTimer(q){
  $('saveT').onclick=()=>{clearInterval(t);saveProgress(q,elapsed,true)}; $('close').onclick=()=>{clearInterval(t);closeModal()};
 }
 function closeModal(){modal.className='modal';modal.innerHTML=''}
-function showTransmission(title,msg){
- modal.className='modal show';
- modal.innerHTML=`<div class="holo"><div class="holoTitle">${esc(title)}</div><div class="holoBody" id="typeBody"></div><button class="btn" style="margin-top:12px" id="ok">ACCEPT</button></div>`;
- const body=$('typeBody');
- const full=String(msg||'');
- let i=0;
- clearInterval(showTransmission.t);
- function finish(){body.textContent=full; body.innerHTML=esc(full).replace(/\n/g,'<br>'); body.scrollTop=body.scrollHeight;}
- showTransmission.t=setInterval(()=>{
-   i+=3;
-   const part=full.slice(0,i);
-   body.innerHTML=esc(part).replace(/\n/g,'<br>')+'<span class="cursor"></span>';
-   body.scrollTop=body.scrollHeight;
-   if(i>=full.length){clearInterval(showTransmission.t); finish();}
- },12);
- $('ok').onclick=()=>{clearInterval(showTransmission.t);closeModal()};
-}
+function showTransmission(title,msg){modal.className='modal show';modal.innerHTML=`<div class="holo"><div class="holoTitle">${esc(title)}</div><div class="holoBody">${esc(msg)}</div><button class="btn" style="margin-top:12px" id="ok">ACCEPT</button></div>`;$('ok').onclick=closeModal}
 function fallbackMessage(){
- const pool=[
-`PLAYER: ${state.profile.name||'Unknown'}
+ const a=systemAnalysisText();
+ return `PLAYER:
+${state.profile.name||'Unknown'} · LEVEL ${state.player.level} · RANK ${state.player.rank}
 
 JUDGEMENT:
-SYSTEM membaca progres aktual. Angka tidak tunduk pada niat. Hanya aksi yang tercatat akan menaikkan level.
+${a.body}
+
+STAT READING:
+${a.stat}
 
 CURRENT ORDER:
-Buka tab ORDER. Pilih satu quest. Selesaikan sebagian. Catat progress.
+${a.order}
+
+SYSTEM PLAN:
+${a.plan}
+
+WARNING:
+${a.verdict}
 
 SYSTEM NOTE:
-Jika hari ini berakhir di bawah 60%, Penalty Zone akan aktif.`,
-`SYSTEM TRANSMISSION
-
-Rank ${state.player.rank}. Level ${state.player.level}.
-Tubuhmu belum membutuhkan motivasi. Tubuhmu membutuhkan perintah.
-
-ORDER:
-Selesaikan satu tugas fisik sekarang. Setelah itu simpan proof. Jangan kembali tanpa data.`,
-`WARNING
-
-Hidden potential masih terkunci. Setiap quest yang kamu abaikan memperpanjang waktu tubuhmu tetap lemah.
-
-SYSTEM tidak marah.
-SYSTEM hanya mencatat kegagalan.`
- ];
- return pool[Math.floor(Math.random()*pool.length)];
+AI Core tidak diperlukan untuk membaca kelemahanmu. Data lokal sudah cukup untuk memberi perintah. Bergerak, catat progress, dan jangan kembali tanpa bukti.`;
 }
 async function runAI(){
  try{
@@ -471,97 +467,10 @@ async function runAI(){
  }catch{showTransmission('SYSTEM TRANSMISSION',fallbackMessage())}
 }
 function systemMenu(){showTransmission('SYSTEM MENU',fallbackMessage())}
-
-const assessmentSteps=[
- {key:'name',title:'Siapa nama player?',sub:'SYSTEM harus mengenali identitas sebelum membuka status window.',type:'text',placeholder:'Nama player'},
- {key:'age',title:'Berapa umurmu?',sub:'Usia memengaruhi recovery, metabolisme, dan beban awal.',type:'number',min:12,max:65,unit:'tahun'},
- {key:'gender',title:'Pilih identitas dasar.',sub:'Dipakai untuk kalkulasi awal. Pilih yang paling mendekati.',type:'choice',options:[['Male','Profil pria'],['Female','Profil wanita'],['Other','Profil umum']]},
- {key:'height',title:'Tinggi badanmu?',sub:'Masukkan tinggi dalam cm.',type:'range',min:130,max:210,unit:'cm'},
- {key:'weight',title:'Berat badan sekarang?',sub:'Ini baseline. Jangan masukkan versi ideal.',type:'range',min:35,max:180,unit:'kg'},
- {key:'targetWeight',title:'Target berat badan?',sub:'Target 90 hari / target utama yang ingin dikejar.',type:'range',min:35,max:180,unit:'kg'},
- {key:'goal',title:'Tujuan utama player?',sub:'SYSTEM akan mengubah order berdasarkan tujuan ini.',type:'choice',options:[['Build Muscle','Naik massa otot dan strength'],['Lose Weight','Turunkan lemak dan jaga stamina'],['Look Better','Bentuk tubuh lebih proporsional'],['Stay In Shape','Menjaga performa dan disiplin']]},
- {key:'condition',title:'Kondisi tubuh saat ini?',sub:'Jawaban jujur menghasilkan order yang lebih akurat.',type:'choice',options:[['Slim / Underdeveloped','Ringan, otot belum terbentuk'],['Average','Normal tapi belum serius'],['Overweight','Lemak tubuh cenderung berlebih'],['Sedentary / Weak','Jarang gerak, cepat lelah'],['Already Training','Sudah terbiasa latihan']]},
- {key:'activity',title:'Aktivitas harian?',sub:'Ini menentukan beban awal dan recovery.',type:'choice',options:[['Sedentary','Hampir tidak olahraga'],['Lightly Active','Ringan 1–3x/minggu'],['Moderately Active','Sedang 4–5x/minggu'],['Very Active','Aktif hampir setiap hari']]},
- {key:'frequency',title:'Sanggup latihan berapa kali per minggu?',sub:'SYSTEM lebih percaya angka realistis daripada ambisi kosong.',type:'range',min:2,max:7,unit:'x/minggu'},
- {key:'sleep',title:'Rata-rata tidurmu?',sub:'Recovery buruk akan menahan level-up.',type:'range',min:4,max:10,step:.5,unit:'jam'},
- {key:'water',title:'Konsumsi air harian?',sub:'Hidrasi memengaruhi stamina dan recovery.',type:'range',min:1,max:5,step:.1,unit:'liter'},
- {key:'ability.pushup',title:'Push-up max?',sub:'Repetisi maksimal bersih saat ini.',type:'number',min:0,max:200,unit:'reps'},
- {key:'ability.squat',title:'Squat max?',sub:'Repetisi maksimal bersih saat ini.',type:'number',min:0,max:300,unit:'reps'},
- {key:'ability.situp',title:'Sit-up max?',sub:'Repetisi maksimal bersih saat ini.',type:'number',min:0,max:250,unit:'reps'},
- {key:'ability.plank',title:'Plank max?',sub:'Durasi maksimal plank saat ini.',type:'number',min:0,max:600,unit:'detik'}
-];
-function getProfileValue(key){
- if(key.includes('.')){const [a,b]=key.split('.');return state.profile[a]?.[b]}
- return state.profile[key];
-}
-function setProfileValue(key,val){
- if(key.includes('.')){const [a,b]=key.split('.');state.profile[a]=state.profile[a]||{};state.profile[a][b]=val;return}
- state.profile[key]=val;
-}
-function openAssessment(step=0){
- nav.style.display='none';fab.style.display='none';
- state.assessmentStep=step;save();
- const s=assessmentSteps[step], total=assessmentSteps.length, val=getProfileValue(s.key);
- const pct=Math.round((step/total)*100);
- let input='';
- if(s.type==='choice'){
-   input=`<div class="choiceGrid">${s.options.map(o=>`<button class="choiceBtn ${val===o[0]?'active':''}" data-choice="${esc(o[0])}">${esc(o[0])}<small>${esc(o[1])}</small></button>`).join('')}</div>`;
- } else if(s.type==='range'){
-   input=`<div class="rangeRead" id="rangeRead">${esc(val)} ${s.unit}</div><input id="assInput" type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${esc(val)}">`;
- } else {
-   input=`<input id="assInput" type="${s.type==='number'?'number':'text'}" min="${s.min||''}" max="${s.max||''}" placeholder="${s.placeholder||''}" value="${esc(val||'')}"><small class="small">Satuan: ${s.unit||'data teks'}</small>`;
- }
- screen.innerHTML=`<div class="center"><div class="holo" style="text-align:left"><div class="wizardTop"><div class="wizardStep">ASSESSMENT ${step+1}/${total}</div><div class="tag">SYSTEM SCAN</div></div><div class="wizardProgress"><span style="width:${pct}%"></span></div><h1 class="wizardTitle">${esc(s.title)}</h1><p class="wizardSub">${esc(s.sub)}</p>${input}<div class="actions" style="margin-top:14px"><button class="btn secondary" id="backAss">${step?'Back':'Cancel'}</button><button class="btn" id="nextAss">${step===total-1?'Analyze':'Next'}</button></div></div></div>`;
- if(s.type==='choice'){
-   document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{setProfileValue(s.key,b.dataset.choice);openAssessment(step)});
- }
- if(s.type==='range'){
-   const inp=$('assInput'), rr=$('rangeRead');
-   inp.oninput=()=>{rr.textContent=inp.value+' '+s.unit; setProfileValue(s.key,Number(inp.value))};
- }
- $('backAss').onclick=()=>{ if(step>0)openAssessment(step-1); else {state.accepted=false;save();render()} };
- $('nextAss').onclick=()=>{
-   const inp=$('assInput');
-   if(inp){
-    let v=s.type==='number'||s.type==='range'?Number(inp.value):inp.value.trim();
-    setProfileValue(s.key,v);
-   }
-   if(s.type==='choice'&&!getProfileValue(s.key))return toastMsg('Pilih salah satu.');
-   if(step<total-1)return openAssessment(step+1);
-   state.onboardingComplete=true;state.accepted=true;state.assessmentStep=0;calcSystem();generateDailyQuests();save();render();setTimeout(()=>runAssessmentAnalysis(),350);
- };
-}
-function buildSystemAnalysis(){
- const p=state.profile, s=state.system;
- const avg=Math.round(Object.values(state.stats).reduce((a,b)=>a+b,0)/5);
- return `PLAYER:
-${p.name||'Unknown'}
-
-INITIAL ANALYSIS:
-SYSTEM membaca baseline tubuh: ${p.weight}kg pada tinggi ${p.height}cm. BMI ${s.bmi} (${s.bmiLabel}). Tujuan utama: ${p.goal}. Kondisi awal: ${p.condition}. Aktivitas harian: ${p.activity}.
-
-COMBAT STATUS:
-Rata-rata stat awal berada di sekitar ${avg}. Ini bukan angka final. Stat akan naik hanya melalui quest clear, EXP, dan proof yang tercatat.
-
-CURRENT ORDER:
-Selesaikan minimal 60% daily order sebelum hari berganti. Jika gagal, Penalty Zone akan aktif besok.
-
-SYSTEM NOTE:
-Tidak ada rank-up dari niat. Tidak ada progress dari rencana. SYSTEM hanya mengakui aksi yang dicatat.`;
-}
-async function runAssessmentAnalysis(){
- try{
-  const res=await fetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'assessment_analysis',profile:state.profile,player:state.player,stats:state.stats,system:state.system,instruction:'Buat analisis assessment lengkap, intimidatif, in-universe SYSTEM. Jangan potong kalimat.'})});
-  const data=await res.json(); const text=(data.text||'').trim();
-  showTransmission('ASSESSMENT ANALYSIS',text.length>40?text:buildSystemAnalysis());
- }catch{showTransmission('ASSESSMENT ANALYSIS',buildSystemAnalysis())}
-}
-
-
 function openProfileEdit(first=false){
  modal.className='modal show'; const p=state.profile;
  modal.innerHTML=`<div class="holo"><div class="holoTitle">PLAYER PROFILE</div><div class="holoBody">
-  <p style="margin-bottom:12px">Isi data dasar player. Data ini menentukan BMI, kalori, target berat, daily order, dan baseline kemampuan. Angka boleh diubah lagi nanti dari menu PROFILE.</p>
+  <p style="margin-bottom:12px">Isi data dasar player. Ini versi recovery yang stabil. Assessment satu-per-satu akan dikembalikan setelah dashboard benar-benar aman, supaya app tidak rusak lagi.</p>
   <div class="form-block">
     <div class="field-card"><label>Nama Player</label><input id="name" placeholder="Contoh: Amrullah Sind" value="${esc(p.name)}"><small>Nama yang akan dipakai di SYSTEM transmission.</small></div>
     <div class="field-grid">

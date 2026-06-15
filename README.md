@@ -1,11 +1,14 @@
-# ARISE SYSTEM v30 — ASSESSMENT + SURVEILLANCE SYSTEM
+# ARISE SYSTEM v31 — RECOVERY STABLE ANALYSIS
 
-Perbaikan dari v29:
-- Form profile dikembalikan menjadi assessment satu-per-satu seperti versi awal.
-- Assessment berisi banyak tahap: identitas, tubuh, target, kondisi, aktivitas, frekuensi, recovery, hidrasi, dan ability test.
-- Setelah assessment selesai, SYSTEM menjalankan analysis transmission.
-- Typewriting dikembalikan, tapi dibuat aman: teks panjang tetap selesai dan bisa scroll.
-- Proof diubah menjadi SURVEILLANCE / WATCH MODULE.
-- Surveillance berisi daily audit, penalty risk, pending order, verified order, player level, serta akses counter/timer/proof note.
-- SYSTEM dibuat lebih terasa hidup dan mengawasi.
-- EXP, level, stat growth, rank, hidden quest, daily reset, countdown, penalty next-day tetap dipertahankan.
+Ini versi recovery setelah v30 rusak.
+
+Prinsip:
+- Kembali memakai basis v29 yang lebih stabil.
+- Tidak rewrite total.
+- Analysis selalu muncul walaupun AI gagal.
+- AI hanya add-on, bukan syarat analysis.
+- Dashboard, Order, Penalty, Core, EXP, stat, level, rank, hidden quest, countdown, daily reset tetap dari v29.
+- Fallback SYSTEM sekarang berisi analisis lokal, bukan pesan asal-asalan.
+
+Catatan:
+Assessment satu-per-satu untuk sementara tidak dipaksakan di versi ini, karena v30 rusak saat fitur itu digabung terlalu agresif. Versi ini memprioritaskan app kembali jalan dan analisis muncul.
