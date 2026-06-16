@@ -423,6 +423,49 @@
     .fatal-card h2{margin:0 0 10px;font-size:28px}.fatal-card p{color:#ffdce5;line-height:1.55;font-size:14px}.fatal-card code{font-size:12px;word-break:break-word;color:#9efbff}
     .force-continue{margin-top:14px}
 
+
+    /* v31 persistence and sync */
+    .sync-card{border-color:rgba(117,251,255,.24)!important;box-shadow:0 0 0 1px rgba(117,251,255,.06),0 18px 48px rgba(71,161,255,.08)!important}
+    .local-safe{display:inline-flex;align-items:center;gap:8px;padding:9px 11px;border-radius:999px;background:rgba(104,255,174,.08);border:1px solid rgba(104,255,174,.18);font-size:12px;font-weight:800;color:#bfffd9}
+
+    /* v32 Countdown / Streak / SYSTEM rework */
+    .system-command-card{border-color:rgba(255,75,112,.30)!important;background:linear-gradient(180deg,rgba(35,8,19,.86),rgba(6,13,27,.92))!important;box-shadow:0 0 0 1px rgba(255,75,112,.08),0 22px 66px rgba(255,30,80,.08)!important}
+    .countdown-giant{font-family:Orbitron,Inter,sans-serif;font-size:clamp(42px,13vw,64px);font-weight:900;letter-spacing:.05em;text-align:center;color:#fff;text-shadow:0 0 30px rgba(255,85,119,.55),0 0 12px rgba(117,251,255,.25);margin:14px 0 6px}
+    .countdown-label{text-align:center;color:#ffb9c8;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+    .system-law{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+    .law-tile{padding:14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);min-width:0}
+    .law-tile b{display:block;font-family:Orbitron,Inter,sans-serif;font-size:22px;margin-bottom:4px;overflow-wrap:anywhere}
+    .law-tile span{font-size:11px;color:var(--muted);line-height:1.35}
+    .streak-flame{font-family:Orbitron,Inter,sans-serif;font-size:44px;font-weight:900;color:#ffd36f;text-shadow:0 0 24px rgba(255,187,66,.4)}
+    .timeline-list{display:grid;gap:10px}
+    .timeline-item{position:relative;padding:14px 14px 14px 38px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.065);overflow:hidden}
+    .timeline-item::before{content:"";position:absolute;left:14px;top:18px;width:10px;height:10px;border-radius:50%;background:#75fbff;box-shadow:0 0 16px rgba(117,251,255,.8)}
+    .timeline-item.penalty::before{background:#ff5577;box-shadow:0 0 16px rgba(255,85,119,.75)}
+    .timeline-item b{display:block;font-size:14px;color:#f4fbff;margin-bottom:4px;overflow-wrap:anywhere}
+    .timeline-item span{font-size:12px;color:#9fb9d0;line-height:1.45}
+    .daily-verdict{padding:16px;border-radius:20px;border:1px solid rgba(255,85,119,.22);background:rgba(255,85,119,.08);color:#ffe4eb;font-size:14px;line-height:1.55}
+    .daily-verdict.valid{border-color:rgba(104,255,174,.24);background:rgba(104,255,174,.07);color:#e4fff0}
+    .order-top-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0 0}
+    .system-title-red{color:#ff7892;font-weight:900;text-shadow:0 0 14px rgba(255,85,119,.22)}
+    .precision-card{overflow:hidden!important;min-width:0!important}
+    .precision-card *{max-width:100%;box-sizing:border-box}
+    .bottom-nav{left:10px!important;right:10px!important;padding:8px!important;gap:4px!important}
+    .nav-btn{min-width:76px!important;border-radius:17px!important}
+    @media(max-width:390px){
+      .system-law{grid-template-columns:1fr!important}
+      .law-tile b{font-size:20px}
+      .countdown-giant{font-size:42px}
+    }
+
+
+    /* v33 true penalty after deadline */
+    .judgement-pending{border-color:rgba(255,211,111,.24)!important;background:linear-gradient(180deg,rgba(48,35,7,.62),rgba(7,17,31,.90))!important}
+    .penalty-required{border-color:rgba(255,61,96,.40)!important;background:linear-gradient(180deg,rgba(57,8,22,.88),rgba(6,12,25,.94))!important;box-shadow:0 0 0 1px rgba(255,61,96,.12),0 22px 70px rgba(255,0,64,.13)!important}
+    .penalty-required h4{color:#ffe8ee}
+    .penalty-done{opacity:.62;filter:grayscale(.25)}
+    .database-steps{display:grid;gap:10px;margin-top:12px}
+    .database-step{padding:12px 14px;border-radius:16px;background:rgba(117,251,255,.055);border:1px solid rgba(117,251,255,.12);font-size:13px;line-height:1.45;color:#dff8ff}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -579,7 +622,27 @@
       return structuredClone(defaultState);
     }
   }
-  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function save(){
+    try{
+      state.savedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY + '_BACKUP', JSON.stringify({
+        profile: state.profile, system: state.system, progress: state.progress,
+        quests: state.quests, logs: state.logs, savedAt: state.savedAt
+      }));
+    }catch(e){ console.error('save failed', e); }
+  }
+  function restoreBackupV31(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY + '_BACKUP');
+      if(!raw) return false;
+      const b = JSON.parse(raw);
+      if((!state.quests || !state.quests.length) && b.quests?.length) state.quests = b.quests;
+      if((!state.logs || !state.logs.length) && b.logs?.length) state.logs = b.logs;
+      if(b.progress && (!state.progress || !state.progress.level)) state.progress = b.progress;
+      return true;
+    }catch(e){ return false; }
+  }
   function mergeDeep(target, source){
     for(const k in source){
       if(source[k] && typeof source[k] === 'object' && !Array.isArray(source[k])) target[k] = mergeDeep(target[k] || {}, source[k]);
@@ -613,6 +676,7 @@
     const map = {
       status:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M7 16V8m5 8V5m5 11v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       orders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round"/></svg>',
+      daily:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3v3M17 3v3M4 8h16M6 5h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M8 13h3M8 17h6" stroke-linecap="round"/></svg>',
       proof:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       penalty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M12 8v5" stroke-linecap="round"/><path d="M12 16h.01" stroke-linecap="round"/></svg>',
       analysis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19l4-6 3 3 6-10" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5h14v14" opacity=".3"/></svg>',
@@ -1005,7 +1069,7 @@
         state.analysisDone = true;
         save();
         modalRoot.innerHTML = '';
-        showToast('Protocol assigned. Dashboard terbuka.');
+        showToast('Protocol assigned. Obey the System.');
         renderDashboard();
         setTimeout(()=>{ try{ autoSystemTransmission('AI initial calibration'); }catch{} }, 800);
       }catch(err){
@@ -1046,7 +1110,32 @@
     setTimeout(finish, 6500);
   }
 
-  function calculateProfileSystem(){
+
+  function preserveLivingProgressV31(){
+    return {
+      quests: Array.isArray(state.quests) ? structuredClone(state.quests) : [],
+      progress: state.progress ? structuredClone(state.progress) : null,
+      logs: Array.isArray(state.logs) ? structuredClone(state.logs) : [],
+      currentStats: state.system?.currentStats ? structuredClone(state.system.currentStats) : null,
+      day: state.progress?.lastDailyReset || ''
+    };
+  }
+  function restoreLivingProgressV31(prev, options={}){
+    if(!prev) return;
+    const sameDay = !prev.day || prev.day === todayKey();
+    if(sameDay && prev.quests?.length && !options.forceNewQuests) state.quests = prev.quests;
+    if(prev.progress) state.progress = {...state.progress, ...prev.progress};
+    if(prev.logs?.length) state.logs = prev.logs;
+    if(prev.currentStats){
+      state.system.currentStats = prev.currentStats;
+      const s = prev.currentStats;
+      state.system.physiqueUse = clamp(Math.round((s.strength+s.vitality+s.agility+s.recovery+s.discipline)/5),1,100);
+      state.system.wastedPotential = Math.max(0,100-state.system.physiqueUse);
+    }
+  }
+
+  function calculateProfileSystem(options={}){
+    const prevLivingV31 = preserveLivingProgressV31();
     const p = state.profile;
     const heightM = p.height / 100;
     const bmi = +(p.weight / (heightM*heightM)).toFixed(1);
@@ -1109,6 +1198,7 @@
     };
     state.quests = generateQuests();
     state.logs = [{ time: new Date().toLocaleString('id-ID'), type:'SYSTEM', text:`Protocol assigned: ${protocolName}` }];
+    restoreLivingProgressV31(prevLivingV31, options);
   }
 
   function generateQuests(){
@@ -1170,7 +1260,7 @@
 
     const content = state.activeTab === 'status' ? renderStatusTab() :
                     state.activeTab === 'orders' ? renderOrdersTab() :
-                    state.activeTab === 'proof' ? renderProofTab() :
+                    state.activeTab === 'daily' ? renderDailyTab() :
                     state.activeTab === 'penalty' ? renderPenaltyTab() :
                     state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
 
@@ -1184,6 +1274,27 @@
     }
   }
 
+
+  function dailyStatsV32(){
+    const total = (state.quests || []).length || 1;
+    const done = (state.quests || []).filter(q=>q.done).length;
+    const partial = typeof todayCompletion === 'function' ? todayCompletion() : Math.round(done/total*100);
+    const valid = partial >= 60;
+    return {total, done, partial, valid, remaining: Math.max(0,total-done)};
+  }
+
+  function logGroupsV32(){
+    const logs = Array.isArray(state.logs) ? state.logs : [];
+    const groups = {};
+    logs.forEach(l => {
+      const key = String(l.time || '').split(',')[0] || 'Unknown Day';
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(l);
+    });
+    return groups;
+  }
+
+
   function renderStatusTab(){
     const p = state.profile, s = state.system;
     const nextWeight = s.estimated90DayWeight;
@@ -1195,7 +1306,15 @@
           <div><b>Install SYSTEM</b><br><span>Pasang ke layar utama agar terasa seperti aplikasi.</span></div>
           <button class="btn" id="installBtn">Install</button>
         </div>
-        <div class="hero-card">
+        
+        <div class="hero-card system-command-card precision-card">
+          <div class="tag">SYSTEM COUNTDOWN</div>
+          <div class="countdown-label">TIME REMAINING TODAY</div>
+          <div class="countdown-giant" data-midnight-countdown>${timeToMidnight()}</div>
+          <p style="text-align:center;color:#9fb9d0;margin:0">Selesaikan order sebelum judgement harian.</p>
+        </div>
+
+        <div class="hero-card precision-card">
           <div class="identity">
             <div style="display:flex;align-items:center;gap:14px">
               <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
@@ -1256,12 +1375,12 @@
       <div class="topbar">
         <div>
           <div class="brand-small">${tigerLogo('small')}<span>Daily Order</span></div>
-          <p>Progress parsial diterima. Quest clear hanya jika target penuh.</p>
+          <p>Progress parsial dicatat. Quest belum dianggap selesai sampai target penuh. SYSTEM tidak menerima alasan.</p>
         </div>
         <div class="ai-state-pill">${state.aiLimiter?.status || 'READY'}</div>
       </div>
 
-      <div class="section-head"><h3>Current orders</h3><span>${done} / ${state.quests.length} clear</span></div>
+      <div class="section-head"><h3>Current orders</h3><span>${done} / ${state.quests.length} clear</span></div><div class="daily-verdict"><b>ORDER DEADLINE:</b> <span data-midnight-countdown>${timeToMidnight()}</span> remaining. Jika tidak selesai sebelum 00.00, Penalty Zone akan aktif.</div>
       <div class="quest-list">
         ${state.quests.map((q, idx) => {
           const qp = questProgress(q);
@@ -1371,36 +1490,98 @@
       </div>`;
   }
 
+
+  function renderDailyTab(){
+    const ds = dailyStatsV32();
+    const groups = logGroupsV32();
+    const groupKeys = Object.keys(groups).slice(0,7);
+    const verdict = ds.valid
+      ? `Hari ini valid. SYSTEM mengakui ${ds.partial}% progress. Jangan menjadi lunak hanya karena angka minimum tercapai.`
+      : `Hari ini belum valid. Progress ${ds.partial}% masih di bawah batas 60%. Jika 00.00 tiba dan order belum clear, Penalty Zone akan aktif.`;
+    return `
+      <div class="dashboard">
+        <div class="hero-card system-command-card precision-card">
+          <div class="tag">DAILY COMMAND</div>
+          <h1>Waktu tersisa sebelum judgement.</h1>
+          <div class="countdown-label">RESET HARIAN MENUJU 00.00</div>
+          <div class="countdown-giant" data-midnight-countdown>${timeToMidnight()}</div>
+          <p style="text-align:center;color:#9fb9d0;margin:0">Saat timer mencapai nol, SYSTEM akan menilai apakah harimu valid atau gagal.</p>
+          <div class="system-law">
+            <div class="law-tile"><b>${ds.done}/${ds.total}</b><span>Order clear hari ini</span></div>
+            <div class="law-tile"><b>${ds.partial}%</b><span>Daily completion</span></div>
+            <div class="law-tile"><b>${state.progress?.streak || 0}</b><span>Streak valid day</span></div>
+          </div>
+        </div>
+
+        <div class="daily-verdict ${ds.valid?'valid':''}">
+          <b>SYSTEM VERDICT:</b> ${verdict}
+        </div>
+
+        <div class="section-head"><h3>Daily law</h3><span>aturan tidak dinegosiasikan</span></div>
+        <div class="plan-list">
+          <div class="plan-card system-command-card precision-card">
+            <h4>Minimum valid day</h4>
+            <p>Order harus clear sebelum 00.00. Jika ada order gagal, SYSTEM mengubahnya menjadi penalty yang lebih berat.</p>
+          </div>
+          <div class="plan-card precision-card">
+            <h4>Streak rule</h4>
+            <p>Streak hanya naik jika semua order selesai sebelum 00.00. Streak bukan perasaan rajin. Streak adalah bukti yang lolos judgement.</p>
+          </div>
+          <div class="plan-card precision-card">
+            <h4>Task memory</h4>
+            <p>Aktivitas yang tercatat di log akan muncul di riwayat harian. Yang tidak dicatat, tidak diakui SYSTEM.</p>
+          </div>
+        </div>
+
+        <div class="section-head"><h3>Daily execution log</h3><span>terlaksana di hari apa</span></div>
+        <div class="timeline-list">
+          ${groupKeys.length ? groupKeys.map(day => `
+            <div class="timeline-item ${groups[day].some(x=>String(x.type).includes('PENALTY'))?'penalty':''}">
+              <b>${escapeHtml(day)}</b>
+              <span>${groups[day].slice(0,4).map(l=>`[${escapeHtml(l.type || 'LOG')}] ${escapeHtml(l.text || '')}`).join('<br>')}</span>
+            </div>`).join('') : `<div class="empty-state">Belum ada riwayat. Selesaikan order untuk membangun jejak eksekusi.</div>`}
+        </div>
+      </div>`;
+  }
+
+
+
   function renderPenaltyTab(){
     const pz = updatePenaltyState();
     const active = state.penalty?.active;
-    const sev = state.penalty?.severity || 0;
-    const width = Math.min(100, sev * 33.4);
+    const tasks = state.penalty?.tasks || [];
+    const remaining = tasks.filter(t=>!t.done).length;
     return `
       <div class="dashboard">
-        <div class="hero-card penalty-card">
+        <div class="hero-card ${active?'penalty-required':'judgement-pending'}">
           <div class="tag">PENALTY ZONE</div>
-          <h1>${active ? 'Penalty protocol active.' : 'Penalty protocol dormant.'}</h1>
-          <p>${active ? `Completion hari ini hanya <span class="em-red">${pz.completion}%</span>. SYSTEM menilai performamu tidak memenuhi standar. Jalankan penalty order sebelum meminta pengakuan progres.` : `Completion hari ini <span class="em-cyan">${pz.completion}%</span>. Minimal protocol aman, tapi SYSTEM tetap memantau.`}</p>
-          <div class="penalty-meter"><span style="width:${width}%"></span></div>
-          <div class="proof-note">Severity: ${sev}/3 · Reason: ${escapeHtml(state.penalty?.reason || '')}</div>
+          <h1>${active ? 'Penalty Zone active.' : 'Judgement pending.'}</h1>
+          <p>${active
+            ? `Deadline <span class="system-red">00.00</span> telah lewat. Ada order yang gagal. SYSTEM mengubah kegagalan itu menjadi penalty yang lebih berat. Penalty wajib diselesaikan.`
+            : `Penalty belum aktif. SYSTEM baru menjalankan judgement saat hari berganti. Selesaikan Current Order sebelum <span class="system-red">00.00</span>.`}</p>
+          <div class="penalty-meter"><span style="width:${active ? Math.min(100, remaining*33.4) : 0}%"></span></div>
+          <div class="proof-note">${active ? `Remaining penalty: ${remaining}/${tasks.length}. Source date: ${escapeHtml(state.penalty.sourceDate || '-')}` : `Time remaining: ${timeToMidnight()}`}</div>
         </div>
 
-        <div class="section-head"><h3>Penalty orders</h3><span>Hukuman disiplin</span></div>
+        <div class="section-head"><h3>Penalty orders</h3><span>lebih berat dari quest gagal</span></div>
         <div class="plan-list">
-          ${active ? state.penalty.tasks.map((t,i)=>`<div class="plan-card penalty-card">
+          ${active ? tasks.map((t,i)=>`<div class="plan-card penalty-required ${t.done?'penalty-done':''}">
             <div class="penalty-title">PENALTY ${i+1}</div>
             <h4>${escapeHtml(t.title)}</h4>
-            <p>Selesaikan <span class="em-red">${t.value} ${t.unit}</span>. Ini tidak mengganti Current Order. Ini kompensasi karena standar minimum gagal kamu penuhi.</p>
-            <button class="btn secondary penalty-clear-btn" data-penalty="${i}">Mark Penalty Done</button>
-          </div>`).join('') : `<div class="plan-card"><h4>No penalty active</h4><p>Jaga progress di atas 60%. Jika turun, Penalty Zone akan aktif otomatis.</p></div>`}
+            <p>Selesaikan <span class="system-red">${escapeHtml(t.value)} ${escapeHtml(t.unit)}</span>. Sumber kegagalan: <b>${escapeHtml(t.sourceQuest || '-')}</b>.</p>
+            <p class="tiny">${escapeHtml(t.note || 'Penalty wajib diselesaikan.')}</p>
+            <button class="btn ${t.done?'secondary':'secondary penalty-clear-btn'}" data-penalty="${i}">${t.done?'Penalty Cleared':'Mark Penalty Done'}</button>
+          </div>`).join('') : `<div class="plan-card judgement-pending">
+            <h4>No penalty active</h4>
+            <p>Penalty Zone belum aktif. Ini bukan berarti kamu aman. Ini berarti waktu belum habis.</p>
+          </div>`}
         </div>
 
-        <div class="section-head"><h3>System law</h3><span>Aturan otoriter</span></div>
+        <div class="section-head"><h3>System law</h3><span>aturan penalty</span></div>
         <div class="penalty-list">
-          <div class="penalty-row"><span>Minimum valid day</span><b>60%</b></div>
-          <div class="penalty-row"><span>Below 35%</span><b>Penalty severity 2</b></div>
-          <div class="penalty-row"><span>Below 15%</span><b>Penalty severity 3</b></div>
+          <div class="penalty-row"><span>Penalty trigger</span><b>After 00.00 only</b></div>
+          <div class="penalty-row"><span>Cause</span><b>Unfinished order</b></div>
+          <div class="penalty-row"><span>Difficulty</span><b>Heavier than failed task</b></div>
         </div>
       </div>`;
   }
@@ -1473,6 +1654,12 @@
             <div class="core-status">Permission: ${state.push?.lastPermission || 'default'}</div>
             ${state.push?.token ? `<div class="token-box">${escapeHtml(state.push.token)}</div>` : `<p class="tiny" style="margin-top:10px">Token belum dibuat. Aktifkan push setelah Firebase config dipasang di Vercel.</p>`}
           </div>
+          <div class="plan-card sync-card">
+            <h4>Database Sync Ready</h4><div class="database-steps"><div class="database-step"><b>1.</b> Supabase Auth untuk login player.</div><div class="database-step"><b>2.</b> Table arise_profiles menyimpan profile, system, progress, quests, logs.</div><div class="database-step"><b>3.</b> Saat login, app load data dari database. Saat quest/progress berubah, app save ke database.</div></div><h4 style="margin-top:14px">Database implementation path</h4>
+            <p>Progress sekarang disimpan lokal + backup lokal. Untuk login lintas device dan progress yang tidak hilang, gunakan Supabase Auth + table progress.</p>
+            <div class="local-safe">LOCAL BACKUP ACTIVE · SUPABASE NEXT</div>
+            <p class="tiny" style="margin-top:10px">Kalau browser clear site data, local progress tetap bisa hilang. Database diperlukan untuk penyimpanan permanen.</p>
+          </div>
           <div class="plan-card ai-online">
             <h4>AI Core</h4>
             <p>AI tidak lagi disimpan di browser. Key Gemini dipasang di Vercel Environment Variable, lalu app memanggil endpoint aman <b>/api/gemini</b>.</p>
@@ -1526,12 +1713,21 @@
     document.querySelectorAll('.penalty-clear-btn').forEach(btn => btn.onclick = () => {
       const i = Number(btn.dataset.penalty);
       const task = state.penalty?.tasks?.[i]; if(!task) return;
-      state.logs.unshift({ time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:`Penalty cleared: ${task.title} ${task.value} ${task.unit}` });
-      save(); showHologramTransmission('PENALTY RECORDED', `PENALTY ORDER RECORDED.\nSYSTEM NOTE: Hukuman dicatat, tapi Current Order tetap harus diselesaikan.`, {primary:'ACCEPT'});
+      task.done = true;
+      state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:`Penalty cleared: ${task.title} ${task.value} ${task.unit}`});
+      if((state.penalty.tasks || []).every(t=>t.done)){
+        state.penalty.active = false;
+        state.penalty.reason = 'Penalty cleared. SYSTEM will resume normal judgement.';
+        state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:'Penalty Zone cleared.'});
+      }
+      save();
+      showHologramTransmission('PENALTY RECORDED', `PENALTY ORDER RECORDED.
+SYSTEM NOTE: ${state.penalty.active ? 'Sisa penalty masih ada. Selesaikan.' : 'Penalty Zone cleared. Jangan ulangi kegagalan yang sama.'}`, {primary:'ACCEPT'});
+      renderDashboard();
     });
 
     const recalcBtn = document.getElementById('recalcBtn');
-    if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem(); save(); showToast('Protocol dikalibrasi ulang.'); renderDashboard(); };
+    if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem({forceNewQuests:false}); save(); showToast('Protocol dikalibrasi ulang tanpa hapus progress hari ini.'); renderDashboard(); };
     const reminderBtn = document.getElementById('reminderBtn');
     if(reminderBtn) reminderBtn.onclick = () => { state.system.reminders = !state.system.reminders; save(); showToast(`Reminder ${state.system.reminders ? 'diaktifkan' : 'dimatikan'}.`); renderDashboard(); };
     document.querySelectorAll('[data-progress-index]').forEach(btn => {
@@ -1635,7 +1831,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     }
 
     // Jangan potong isi AI terlalu cepat. Biarkan user scroll di hologram.
-    if(text.length > 5000) text = text.slice(0, 5000).replace(/\s+\S*$/, '') + '...';
+    // v33 no frontend truncation; message container scrolls.
     return text;
   }
 
@@ -1914,7 +2110,7 @@ ATURAN OUTPUT:
 - Jangan markdown, jangan **, jangan backtick.
 - Jangan berhenti di label kosong.
 - Jangan jawab hanya "PLAYER:".
-- Jawaban boleh panjang dan lengkap. Ideal 180-350 kata jika diperlukan. Jangan memotong kalimat di tengah. Boleh lebih kalau perlu, tapi harus selesai.
+- Jawab 3-6 kalimat. Dingin, otoriter, mengintimidasi, seperti pesan SYSTEM. Jangan yapping. Jangan pernah memotong kalimat di tengah. Jika butuh lebih panjang, selesaikan kalimat sampai tuntas. Boleh lebih kalau perlu, tapi harus selesai.
 - Gunakan format ini dan isi semuanya:
 
 PLAYER: ${p.name || 'Unknown'}

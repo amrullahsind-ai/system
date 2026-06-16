@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .trim();
-    if (text.length > 1800) text = text.slice(0, 5000).replace(/\s+\S*$/, '') + '...';
+    // v33 no API-side truncation; frontend scrolls.
 
     const bad = !text || /^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(text) || text.split(/\s+/).length < 4;
     if (bad) {

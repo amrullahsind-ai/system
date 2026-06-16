@@ -186,3 +186,29 @@ Perbaikan:
 - Ditambahkan tombol Force Continue di layar analysis.
 - Ditambahkan runtime error overlay agar app tidak blank/error diam.
 - Daily reset tidak jalan sebelum onboardingComplete.
+
+## v31 Persistence + AI Tone + Sync Ready
+- Progress/quest hari yang sama tidak dihapus saat recalculation.
+- Local backup ditambah di localStorage.
+- Jika quest kosong, app mencoba restore backup.
+- AI dibuat pendek, dingin, otoriter, tidak yapping.
+- Gemini maxOutputTokens 900 agar selesai tapi tidak kepanjangan.
+- Ditambah db/supabase_sync_schema.sql untuk database sync.
+
+## v32 Countdown + Streak + System Rework
+- Menu Proof diganti menjadi DAILY.
+- DAILY menampilkan countdown besar menuju 00.00.
+- DAILY menampilkan order clear, completion %, streak, verdict valid/gagal.
+- Ditambah Daily Execution Log: aktivitas terlaksana di hari apa.
+- Order diberi deadline warning yang lebih jelas.
+- Tone UI dan AI dibuat lebih dingin, otoriter, intimidatif.
+- Proof function lama tidak dijadikan menu utama karena terlalu hollow.
+
+## v33 True Penalty + Database Ready
+- Penalty Zone tidak aktif sebelum 00.00.
+- Saat hari berganti, unfinished orders dikonversi menjadi penalty tasks.
+- Penalty lebih berat dari order gagal: target dikali ±1.7.
+- Penalty task wajib diselesaikan dan tombolnya benar-benar menandai selesai.
+- Jika semua penalty selesai, Penalty Zone cleared.
+- AI tidak dipotong frontend/API; maxOutputTokens 4096 dan message body scroll.
+- Core database card diperjelas untuk Supabase Auth + arise_profiles.
