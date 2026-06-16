@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
-        generationConfig: { temperature: 0.65, topP: 0.9, maxOutputTokens: 4096 }
+        generationConfig: { temperature: 0.65, topP: 0.9, maxOutputTokens: 1400 }
       })
     });
 
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       .replace(/`/g, '')
       .replace(/\[SYSTEM TRANSMISSION\]/gi, '')
       .trim();
-    // v33 no API-side truncation; frontend scrolls.
+    // v32: no API-side truncation; frontend scrolls.
 
     const bad = !text || /^\s*(PLAYER|JUDGEMENT|ORDER\s*\d?)\s*:?\s*$/i.test(text) || text.split(/\s+/).length < 4;
     if (bad) {

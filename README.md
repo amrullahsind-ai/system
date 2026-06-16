@@ -195,20 +195,15 @@ Perbaikan:
 - Gemini maxOutputTokens 900 agar selesai tapi tidak kepanjangan.
 - Ditambah db/supabase_sync_schema.sql untuk database sync.
 
-## v32 Countdown + Streak + System Rework
-- Menu Proof diganti menjadi DAILY.
-- DAILY menampilkan countdown besar menuju 00.00.
-- DAILY menampilkan order clear, completion %, streak, verdict valid/gagal.
-- Ditambah Daily Execution Log: aktivitas terlaksana di hari apa.
-- Order diberi deadline warning yang lebih jelas.
-- Tone UI dan AI dibuat lebih dingin, otoriter, intimidatif.
-- Proof function lama tidak dijadikan menu utama karena terlalu hollow.
+## v32 Countdown + Chronicle + Real Penalty + Database Plan
 
-## v33 True Penalty + Database Ready
-- Penalty Zone tidak aktif sebelum 00.00.
-- Saat hari berganti, unfinished orders dikonversi menjadi penalty tasks.
-- Penalty lebih berat dari order gagal: target dikali ±1.7.
-- Penalty task wajib diselesaikan dan tombolnya benar-benar menandai selesai.
-- Jika semua penalty selesai, Penalty Zone cleared.
-- AI tidak dipotong frontend/API; maxOutputTokens 4096 dan message body scroll.
-- Core database card diperjelas untuk Supabase Auth + arise_profiles.
+Changes:
+- Removed Proof menu from navigation.
+- Added Chronicle menu: daily countdown, streak, day records, clear/failed history.
+- Countdown remaining to 00.00 is visible.
+- Penalty Zone only activates after deadline passes and at least one quest failed.
+- Penalty tasks are generated from failed quests and are heavier than the missed targets.
+- AI is not truncated by frontend/API. UI scrolls long output.
+- AI instruction: short, cold, authoritarian, no yapping, but complete all sentences.
+- Database plan added to Core.
+- Supabase schema updated with history and penalty fields.
