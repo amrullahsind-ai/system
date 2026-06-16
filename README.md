@@ -181,12 +181,8 @@ Perbaikan:
 - Bottom navigation disesuaikan untuk menu Penalty.
 - Notifikasi Web Push tetap didukung melalui service worker. Di Android Chrome bisa masuk saat app/web ditutup setelah izin notifikasi aktif.
 
-
-## v29 Analysis Stuck Fix
-
-Fix:
-- SYSTEM ANALYSIS tidak lagi memakai overlay progress tambahan yang bisa stuck di 96%.
-- Progress overlay punya failsafe auto-close.
-- Finalisasi analysis dibungkus try/catch.
-- Jika ada render delay, failsafe menyelesaikan onboarding dan masuk dashboard.
-- Level/EXP/Rank/Daily quest system dari v28 tetap dipertahankan di index.
+## v30 Emergency Stable Analysis Fix
+- runAnalysis dibuat ulang lebih sederhana dan aman.
+- Ditambahkan tombol Force Continue di layar analysis.
+- Ditambahkan runtime error overlay agar app tidak blank/error diam.
+- Daily reset tidak jalan sebelum onboardingComplete.

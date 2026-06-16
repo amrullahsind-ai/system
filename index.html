@@ -417,38 +417,11 @@
     .proof-status{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(117,251,255,.07);border:1px solid rgba(117,251,255,.15);font-size:11px;font-weight:900;color:#cdf8ff;letter-spacing:.06em}
     .input.proof-textarea{min-height:94px!important;height:auto!important;resize:vertical!important;font-size:15px!important;line-height:1.5!important}
 
-    /* v28 living progression */
-    .screen{padding-bottom:calc(132px + var(--safe-bottom))!important}
-    .bottom-nav{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:minmax(72px,1fr);overflow-x:auto;scrollbar-width:none}
-    .bottom-nav::-webkit-scrollbar{display:none}
-    .nav-btn{min-width:70px;font-size:9px!important}
-    .system-red{color:#ff6b87;font-weight:900;text-shadow:0 0 10px rgba(255,75,112,.18)}
-    .system-cyan{color:#9efbff;font-weight:900;text-shadow:0 0 10px rgba(117,251,255,.18)}
-    .level-panel{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-top:14px}
-    .level-orb{width:78px;height:78px;border-radius:26px;display:grid;place-items:center;background:linear-gradient(180deg,rgba(117,251,255,.14),rgba(64,101,255,.16));border:1px solid rgba(117,251,255,.25);box-shadow:inset 0 0 28px rgba(117,251,255,.06),0 0 38px rgba(61,161,255,.16)}
-    .level-orb b{font-family:Orbitron,Inter,sans-serif;font-size:26px}
-    .exp-track{height:12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);overflow:hidden;margin-top:8px}
-    .exp-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7ad7ff,#75fbff,#ffd36f);box-shadow:0 0 18px rgba(117,251,255,.5)}
-    .deadline-chip,.reward-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.04em}
-    .deadline-chip{background:rgba(255,85,119,.09);border:1px solid rgba(255,85,119,.18);color:#ffdce5}
-    .reward-chip{background:rgba(117,251,255,.07);border:1px solid rgba(117,251,255,.16);color:#d9fbff}
-    .quest-meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-    .level-up-burst{position:absolute;inset:0;background:radial-gradient(circle at center,rgba(117,251,255,.23),rgba(0,0,0,.84) 66%);z-index:90;display:flex;align-items:center;justify-content:center;padding:22px}
-    .level-up-card{width:100%;max-width:395px;border-radius:34px;padding:24px;background:linear-gradient(180deg,rgba(5,26,49,.96),rgba(2,7,17,.99));border:1px solid rgba(117,251,255,.38);box-shadow:0 0 90px rgba(80,190,255,.25),0 28px 90px rgba(0,0,0,.7);text-align:center}
-    .level-up-card h1{font-family:Orbitron,Inter,sans-serif;letter-spacing:.12em;font-size:34px;margin:0 0 12px;text-shadow:0 0 22px rgba(117,251,255,.55)}
-    .big-level{font-family:Orbitron,Inter,sans-serif;font-size:58px;font-weight:900;margin:8px 0;color:#dffcff}
-    .proof-tool-card{padding:18px;border-radius:24px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);display:grid;gap:12px}
-    .counter-display{font-family:Orbitron,Inter,sans-serif;font-size:52px;text-align:center;font-weight:900;color:#effcff;text-shadow:0 0 24px rgba(117,251,255,.45)}
-    .counter-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .timer-display{font-family:Orbitron,Inter,sans-serif;font-size:40px;text-align:center;font-weight:900;color:#effcff;text-shadow:0 0 24px rgba(255,85,119,.35)}
-    .profile-grid-safe{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .profile-grid-safe>*{min-width:0;overflow:hidden}
-    .stat-row{display:grid;grid-template-columns:90px 1fr 52px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-    .stat-row:last-child{border-bottom:none}.stat-row b{font-family:Orbitron,Inter,sans-serif;text-align:right}
-    .hidden-quest-card{border-color:rgba(255,211,111,.28)!important;background:linear-gradient(180deg,rgba(54,37,8,.54),rgba(7,17,31,.90))!important}
-    .holo-body,.trans-body{max-height:62dvh!important;overflow:auto!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important}
-    .holo-card,.trans-card{max-height:94dvh!important}
-    @media(max-width:390px){.profile-grid-safe,.dossier-grid,.stats-grid,.comparison,.inline-kpi,.profile-power{grid-template-columns:1fr!important}.stat-row{grid-template-columns:78px 1fr 44px}.counter-controls,.quest-actions,.proof-action-grid{grid-template-columns:1fr!important}.level-panel{grid-template-columns:1fr}.level-orb{width:100%;height:70px}}
+    /* v30 emergency runtime guard */
+    .fatal-screen{position:absolute;inset:0;z-index:999;background:radial-gradient(circle at center,rgba(255,75,112,.16),rgba(0,0,0,.92));display:flex;align-items:center;justify-content:center;padding:20px}
+    .fatal-card{width:100%;max-width:390px;border-radius:28px;padding:22px;background:linear-gradient(180deg,rgba(42,9,20,.96),rgba(3,7,16,.98));border:1px solid rgba(255,85,119,.32);box-shadow:0 24px 80px rgba(0,0,0,.7)}
+    .fatal-card h2{margin:0 0 10px;font-size:28px}.fatal-card p{color:#ffdce5;line-height:1.55;font-size:14px}.fatal-card code{font-size:12px;word-break:break-word;color:#9efbff}
+    .force-continue{margin-top:14px}
 
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
@@ -482,6 +455,22 @@
 
 <script>
 (() => {
+
+  window.addEventListener('error', (e) => {
+    try{
+      const root = document.getElementById('modalRoot') || document.body;
+      root.innerHTML = `<div class="fatal-screen"><div class="fatal-card">
+        <div class="tag">SYSTEM ERROR</div>
+        <h2>Runtime error detected.</h2>
+        <p>Data lokal tidak dihapus. Tekan Force Continue untuk masuk dashboard aman.</p>
+        <p><code>${String(e.message || 'Unknown error')}</code></p>
+        <button class="btn force-continue" id="fatalContinue">Force Continue</button>
+      </div></div>`;
+      setTimeout(()=>{ const b=document.getElementById('fatalContinue'); if(b) b.onclick=()=>{ try{ modalRoot.innerHTML=''; state.onboardingComplete=true; state.analysisDone=true; save(); renderDashboard(); }catch{ location.reload(); } }; },50);
+    }catch{}
+  });
+  window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled promise rejection', e.reason); });
+
   const STORAGE_KEY = 'arise-system-ultimate-v1';
   const screenRoot = document.getElementById('screenRoot');
   const bottomNav = document.getElementById('bottomNav');
@@ -542,9 +531,7 @@
     systemEvents: { lastAuto: '', count: 0, bootTransmissionShown: false, lastPulseAt: 0 },
     push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' },
     aiLimiter: { lastCallAt: 0, cooldownMs: 180000, status: 'READY' },
-    penalty: { active: false, severity: 0, reason: '', tasks: [] },
-    progress: { level: 1, exp: 0, expToNext: 300, statPoints: 0, streak: 0, lastQuestDate: '', lastDailyReset: '', totalQuestClears: 0, hiddenQuestUnlocked: false },
-    proofTool: { counter:0, timerSeconds:0, timerRunning:false }
+    penalty: { active: false, severity: 0, reason: '', tasks: [] }
   };
 
   const steps = [
@@ -972,29 +959,32 @@
   }
 
   function runAnalysis(){
-    modalRoot.innerHTML = ''; // v29: no extra overlay, prevents stuck 96%
+    modalRoot.innerHTML = '';
     state.analysisDone = false;
     save();
-    bottomNav.className='bottom-nav'; fab.className='fab';
+    bottomNav.className='bottom-nav'; 
+    fab.className='fab';
     screenRoot.innerHTML = `
       <section class="screen active">
         <div class="center-screen" style="justify-content:flex-start; padding-top:40px">
           <div class="tag">SYSTEM ANALYSIS</div>
-          <h1 class="question-title" style="text-align:center; margin-top:14px">Assessment diterima. SYSTEM sedang membaca kondisi player.</h1>
-          <p class="question-sub" style="text-align:center; max-width:320px">Kalibrasi rank, memproses komposisi tubuh, menghitung potensi, dan menyusun order awal.</p>
+          <h1 class="question-title" style="text-align:center; margin-top:14px">SYSTEM sedang mengunci protocol.</h1>
+          <p class="question-sub" style="text-align:center; max-width:320px">Jika proses tertahan, gunakan Force Continue. Data assessment tetap dipakai.</p>
           <div class="analysis-card panel" style="width:100%; margin-top:10px">
             <p class="analysis-value" id="analysisPct">1%</p>
             <div class="progress-shell"><div class="progress-fill" id="analysisBar" style="width:1%"></div></div>
             <div class="status-list" id="statusList"></div>
+            <button class="btn secondary force-continue" id="forceAnalysisContinue">Force Continue</button>
           </div>
         </div>
       </section>`;
+
     const labels = [
       ['Identity lock', 'Mengunci profil player'],
-      ['Body index', 'Menghitung BMI dan komposisi awal'],
-      ['Condition scan', 'Membaca stamina, recovery, disiplin'],
-      ['Potential map', 'Menghitung potensi 90 hari'],
-      ['Protocol forge', 'Menyusun quest dan program inti']
+      ['Body index', 'Menghitung BMI awal'],
+      ['Condition scan', 'Membaca stamina dan disiplin'],
+      ['Protocol forge', 'Menyusun Daily Order'],
+      ['Dashboard gate', 'Membuka dashboard']
     ];
     const list = document.getElementById('statusList');
     labels.forEach((item,i)=>{
@@ -1003,165 +993,58 @@
       el.innerHTML = `<div class="status-left"><b>${item[0]}</b><span>${item[1]}</span></div><div class="status-dot" id="sd${i}">${i===0?'…':'○'}</div>`;
       list.appendChild(el);
     });
+
+    let finished = false;
+    const finish = () => {
+      if(finished) return;
+      finished = true;
+      try{
+        calculateProfileSystem();
+        if(typeof ensureProgressSystem === 'function') ensureProgressSystem();
+        state.onboardingComplete = true;
+        state.analysisDone = true;
+        save();
+        modalRoot.innerHTML = '';
+        showToast('Protocol assigned. Dashboard terbuka.');
+        renderDashboard();
+        setTimeout(()=>{ try{ autoSystemTransmission('AI initial calibration'); }catch{} }, 800);
+      }catch(err){
+        console.error('safe-analysis-error', err);
+        modalRoot.innerHTML = '';
+        state.onboardingComplete = true;
+        state.analysisDone = true;
+        try{ calculateProfileSystem(); }catch{}
+        save();
+        renderDashboard();
+        showToast('Analysis fallback active.');
+      }
+    };
+
+    const force = document.getElementById('forceAnalysisContinue');
+    if(force) force.onclick = finish;
+
     let pct = 1;
-    const analysisRescueV29 = setTimeout(()=>{ if(!state.onboardingComplete){ try{ calculateProfileSystem(); if(typeof ensureProgressSystem==='function') ensureProgressSystem(); state.onboardingComplete=true; state.analysisDone=true; save(); hideProcess(); render(); showToast('Analysis completed by failsafe.'); }catch(e){ console.error(e); hideProcess(); showToast('Analysis gagal, coba ulang assessment.'); } } }, 8500);
     const int = setInterval(() => {
-      pct += Math.ceil(Math.random()*7);
+      if(finished){ clearInterval(int); return; }
+      pct += 9;
       if(pct > 100) pct = 100;
-      document.getElementById('analysisPct').textContent = pct + '%';
-      document.getElementById('analysisBar').style.width = pct + '%';
+      const pctEl = document.getElementById('analysisPct');
+      const bar = document.getElementById('analysisBar');
+      if(pctEl) pctEl.textContent = pct + '%';
+      if(bar) bar.style.width = pct + '%';
       const activeIndex = Math.min(labels.length-1, Math.floor((pct/100)*labels.length));
       labels.forEach((_,i)=>{
         const dot = document.getElementById('sd'+i);
+        if(!dot) return;
         if(i < activeIndex){ dot.className='status-dot active'; dot.textContent='✓'; }
         else if(i === activeIndex){ dot.className='status-dot active'; dot.textContent='…'; }
         else { dot.className='status-dot'; dot.textContent='○'; }
       });
-      if(pct >= 100){
-        clearInterval(int);
-        clearTimeout(analysisRescueV29);
-        try{
-          calculateProfileSystem();
-          if(typeof ensureProgressSystem === 'function') ensureProgressSystem();
-          if(typeof dailyResetIfNeeded === 'function') dailyResetIfNeeded();
-          state.onboardingComplete = true;
-          state.analysisDone = true;
-          save();
-          hideProcess();
-          setTimeout(()=>{ showToast('Protocol assigned. Selamat datang, Player.'); render(); setTimeout(()=>autoSystemTransmission('AI initial calibration'), 700); }, 450);
-        }catch(err){
-          console.error('analysis-finalize-error', err);
-          hideProcess();
-          showHologramTransmission('ANALYSIS ERROR', `SYSTEM gagal menyelesaikan analisis karena error internal. Data player tetap disimpan.\n\n${err.message || err}`, {primary:'ACCEPT'});
-          state.onboardingComplete = false;
-          save();
-        }
-      }
-    }, 180);
-  }
+      if(pct >= 100){ clearInterval(int); setTimeout(finish, 350); }
+    }, 160);
 
-
-  function todayKey(){
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    setTimeout(finish, 6500);
   }
-  function timeToMidnight(){
-    const now = new Date();
-    const end = new Date(now); end.setHours(24,0,0,0);
-    const ms = Math.max(0, end-now);
-    const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
-  function rankFromLevel(level){
-    if(level >= 50) return ['S','Monarch Candidate'];
-    if(level >= 35) return ['A','Elite Hunter'];
-    if(level >= 24) return ['B','Advanced Hunter'];
-    if(level >= 15) return ['C','Awakened Hunter'];
-    if(level >= 7) return ['D','Rising Hunter'];
-    return ['E','Candidate'];
-  }
-  function expNeeded(level){ return Math.round(280 + level * 95 + Math.pow(level, 1.28) * 38); }
-  function ensureProgressSystem(){
-    state.progress = state.progress || {};
-    state.progress.level = Number(state.progress.level || 1);
-    state.progress.exp = Number(state.progress.exp || 0);
-    state.progress.expToNext = Number(state.progress.expToNext || expNeeded(state.progress.level));
-    state.progress.statPoints = Number(state.progress.statPoints || 0);
-    state.progress.totalQuestClears = Number(state.progress.totalQuestClears || 0);
-    state.progress.streak = Number(state.progress.streak || 0);
-    state.progress.lastDailyReset = state.progress.lastDailyReset || '';
-    state.progress.hiddenQuestUnlocked = !!state.progress.hiddenQuestUnlocked;
-    const [rank,title] = rankFromLevel(state.progress.level);
-    state.system.rank = rank; state.system.title = title;
-  }
-  function todayCompletion(){
-    const total = (state.quests||[]).length || 1;
-    const partial = (state.quests||[]).reduce((sum,q)=>{ const qp=questProgress(q); return sum + Math.min(1, qp.progress/qp.target); },0);
-    return Math.round(partial/total*100);
-  }
-  function updatePenaltyState(){
-    const completion = todayCompletion();
-    const severity = completion >= 60 ? 0 : completion >= 35 ? 1 : completion >= 15 ? 2 : 3;
-    state.penalty = state.penalty || {};
-    state.penalty.severity = severity;
-    state.penalty.active = severity > 0;
-    state.penalty.reason = severity === 0 ? 'Minimum protocol tercapai.' : severity === 1 ? 'Progress harian di bawah standar SYSTEM.' : severity === 2 ? 'Terlalu banyak order belum tervalidasi.' : 'Player hampir tidak bergerak. Penalty Zone aktif.';
-    state.penalty.tasks = severity === 0 ? [] : [
-      {title:'Emergency Push-up', value: severity*10, unit:'reps'},
-      {title:'Plank Hold', value: severity*30, unit:'seconds'},
-      {title:'Silent Walk', value: severity*5, unit:'minutes'}
-    ];
-    return {completion,severity};
-  }
-  function dailyResetIfNeeded(){
-    ensureProgressSystem();
-    const key = todayKey();
-    if(state.progress.lastDailyReset && state.progress.lastDailyReset !== key){
-      const completion = todayCompletion();
-      if(completion < 60){
-        updatePenaltyState();
-        state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:`Daily reset: completion ${completion}%. Penalty triggered.`});
-      } else {
-        state.progress.streak += 1;
-        state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'STREAK', text:`Daily protocol passed. Streak ${state.progress.streak}.`});
-      }
-      state.quests = generateQuests();
-      state.progress.hiddenQuestUnlocked = false;
-    }
-    if(!state.progress.lastDailyReset && !(state.quests||[]).length) state.quests = generateQuests();
-    state.progress.lastDailyReset = key;
-  }
-  function applyStatGrowth(type, amount){
-    const s = state.system.currentStats;
-    const map = {Strength:'strength',Back:'strength',Core:'strength',Equipment:'strength',Vitality:'vitality',Support:'vitality',Agility:'agility',Recovery:'recovery',Discipline:'discipline'};
-    const key = map[type] || 'discipline';
-    s[key] = clamp(Number(s[key]||0)+amount, 1, 999);
-    state.system.physiqueUse = clamp(Math.round((s.strength+s.vitality+s.agility+s.recovery+s.discipline)/5),1,100);
-    state.system.wastedPotential = Math.max(0,100-state.system.physiqueUse);
-  }
-  function questReward(q){
-    const target = parseQuestTarget(q);
-    const base = q.hidden ? 260 : 120;
-    const val = String(q.value||'');
-    const scale = val.includes('steps') ? Math.round(target*0.01) : val.includes('sec') ? Math.round(target*.8) : Math.round(target*2);
-    return Math.round(q.rewardExp || base + Math.min(260,scale));
-  }
-  function grantExp(amount, reason='', statType='Discipline'){
-    ensureProgressSystem();
-    const before = state.progress.level;
-    state.progress.exp += amount;
-    applyStatGrowth(statType, Math.max(1, Math.round(amount/160)));
-    let leveled = false;
-    while(state.progress.exp >= state.progress.expToNext){
-      state.progress.exp -= state.progress.expToNext;
-      state.progress.level += 1;
-      state.progress.statPoints += 3;
-      state.progress.expToNext = expNeeded(state.progress.level);
-      applyStatGrowth(statType,2); applyStatGrowth('Discipline',2);
-      leveled = true;
-    }
-    const [rank,title] = rankFromLevel(state.progress.level);
-    state.system.rank = rank; state.system.title = title;
-    state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'EXP', text:`+${amount} EXP ${reason}`});
-    maybeUnlockHiddenQuest();
-    save();
-    if(leveled) showLevelUp(before,state.progress.level);
-  }
-  function showLevelUp(from,to){
-    modalRoot.innerHTML = `<div class="level-up-burst"><div class="level-up-card"><h1>LEVEL UP</h1><div class="big-level">${from} → ${to}</div><p>Stat point +3. Rank recalculated. SYSTEM mengakui peningkatanmu.</p><button class="btn" id="closeLevelUp">ACCEPT</button></div></div>`;
-    document.getElementById('closeLevelUp').onclick = () => { modalRoot.innerHTML=''; renderDashboard(); };
-  }
-  function maybeUnlockHiddenQuest(){
-    ensureProgressSystem();
-    if(state.progress.hiddenQuestUnlocked) return;
-    const clearCount = (state.quests||[]).filter(q=>q.done).length;
-    if(clearCount >= 3 && state.progress.streak >= 1){
-      state.progress.hiddenQuestUnlocked = true;
-      state.quests.unshift({id:makeId(), hidden:true, title:'Hidden Quest: Shadow Consistency', desc:'Konsistensi terdeteksi. Selesaikan 5 menit shadow boxing atau jalan cepat intens.', type:'Agility', value:'5 minutes', proof:'Timer', done:false, progress:0, target:5, rewardExp:260, statReward:'Agility'});
-      showHologramTransmission('HIDDEN QUEST DISCOVERED', `PLAYER: ${state.profile.name||'Unknown'}\nSYSTEM EVENT: Hidden Quest terbuka karena konsistensi.\nORDER: Selesaikan Shadow Consistency sebelum reset harian.\nREWARD: +260 EXP Agility.`, {primary:'ACCEPT'});
-    }
-  }
-
 
   function calculateProfileSystem(){
     const p = state.profile;
@@ -1231,15 +1114,13 @@
   function generateQuests(){
     const p = state.profile;
     const s = state.system;
-    ensureProgressSystem();
-    const levelBoost = Math.max(0, Math.floor((state.progress.level || 1) / 3));
     const bodyweight = p.equipment.includes('None (Bodyweight)') || p.equipment.includes('Pull-up Bar') || p.equipment.includes('Resistance Band');
     const a = p.ability || { pushup:10, squat:20, situp:15, plank:30, runKmTime:10 };
     const intensity = p.condition === 'Already Training' ? 1.45 : p.activity === 'Very Active' ? 1.35 : p.activity === 'Moderately Active' ? 1.22 : 1.08;
-    const push = clamp(Math.round(Math.max(20, Number(a.pushup||10)*2.8*intensity)) + levelBoost*2, 20, 220);
-    const squat = clamp(Math.round(Math.max(35, Number(a.squat||20)*2.4*intensity)) + levelBoost*3, 35, 280);
-    const crunch = clamp(Math.round(Math.max(30, Number(a.situp||15)*2.5*intensity)) + levelBoost*2, 30, 240);
-    const plank = clamp(Math.round(Math.max(70, Number(a.plank||30)*2.1*intensity)) + levelBoost*8, 70, 600);
+    const push = clamp(Math.round(Math.max(20, Number(a.pushup||10)*2.8*intensity)), 20, 140);
+    const squat = clamp(Math.round(Math.max(35, Number(a.squat||20)*2.4*intensity)), 35, 180);
+    const crunch = clamp(Math.round(Math.max(30, Number(a.situp||15)*2.5*intensity)), 30, 150);
+    const plank = clamp(Math.round(Math.max(70, Number(a.plank||30)*2.1*intensity)), 70, 360);
     const walk = p.goal === 'Lose Weight' ? 9000 : p.goal === 'Build Muscle' ? 6500 : 7500;
     const pull = p.equipment.includes('Pull-up Bar') ? Math.max(4, Math.round(s.currentStats.strength/6)) : 0;
     const dumbbell = p.equipment.includes('Dumbbells') ? 'Dumbbell Row 3x12 / sisi' : null;
@@ -1255,14 +1136,6 @@
     if(crunch > 0) quests.splice(3,0,{ id:makeId(), title:'Current Order: Core Ignition', desc:`Selesaikan ${crunch} sit-up / crunch total untuk mengaktifkan core.`, type:'Core', value:`${crunch} reps`, proof:'Counter / manual', done:false });
     if(pull) quests.push({ id:makeId(), title:'Current Order: Pull Challenge', desc:`Selesaikan ${pull} pull-up total, boleh dibagi beberapa set.`, type:'Back', value:`${pull} reps`, proof:'Manual / video', done:false });
     if(dumbbell) quests.push({ id:makeId(), title:'Current Order: Equipment Bonus', desc:dumbbell, type:'Equipment', value:'3 sets', proof:'Manual', done:false });
-    
-    quests.forEach(q => {
-      const rawTarget = Number(String(q.value || q.desc || '1').replace(/\./g,'').match(/\d+/)?.[0] || 1);
-      q.target = q.target || rawTarget;
-      if(typeof q.progress !== 'number') q.progress = 0;
-      q.statReward = q.statReward || q.type || 'Discipline';
-      q.rewardExp = q.rewardExp || questReward(q);
-    });
     return quests;
   }
 
@@ -1280,8 +1153,6 @@
 
   function renderDashboard(){
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
-    if(typeof dailyResetIfNeeded === 'function') dailyResetIfNeeded();
-    if(typeof updatePenaltyState === 'function') updatePenaltyState();
     if(typeof updatePenaltyState === 'function') updatePenaltyState();
     const tabs = ['status','orders','proof','analysis','core'];
     if(!tabs.includes(state.activeTab)) state.activeTab = 'status';
@@ -1301,14 +1172,11 @@
                     state.activeTab === 'orders' ? renderOrdersTab() :
                     state.activeTab === 'proof' ? renderProofTab() :
                     state.activeTab === 'penalty' ? renderPenaltyTab() :
-                    state.activeTab === 'analysis' ? renderAnalysisTab() :
-                    state.activeTab === 'profile' ? renderProfileTab() : renderCoreTab();
+                    state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     animateBars();
     attachDashboardEvents();
-    clearInterval(renderDashboard.clockTimerV28);
-    renderDashboard.clockTimerV28 = setInterval(()=>{ document.querySelectorAll('[data-midnight-countdown]').forEach(el=>el.textContent=timeToMidnight()); },1000);
     if(state.onboardingComplete){
       clearTimeout(renderDashboard.autoTimer);
       renderDashboard.autoTimer = setTimeout(() => autoSystemTransmission('return'), 1200);
@@ -1398,7 +1266,7 @@
         ${state.quests.map((q, idx) => {
           const qp = questProgress(q);
           return `
-            <div class="quest-card ${q.hidden?'hidden-quest-card':(q.done?'done':'danger-order')}">
+            <div class="quest-card ${q.done?'done':'danger-order'}">
               <div class="quest-title">
                 <div>
                   <h4>${escapeHtml(q.title)}</h4>
@@ -1407,7 +1275,7 @@
                 <div class="quest-pill">${escapeHtml(q.type || 'ORDER')}</div>
               </div>
 
-              <div class="quest-meta-row"><span class="tag">Target · ${escapeHtml(q.value || qp.target)}</span><span class="deadline-chip">⏳ <span data-midnight-countdown>${timeToMidnight()}</span></span><span class="reward-chip">+${Math.round(questReward(q))} EXP</span></div>
+              <div class="tag">Target · ${escapeHtml(q.value || qp.target)}</div>
               <div class="quest-progress-wrap">
                 <div class="quest-progress-top">
                   <span>Progress</span>
@@ -1465,42 +1333,41 @@
 
   function renderProofTab(){
     const done = state.quests.filter(q=>q.done);
+    const pending = state.quests.filter(q=>!q.done);
     return `
       <div class="dashboard">
         <div class="hero-card">
-          <div class="tag">PROOF MODULE</div>
-          <h1>Counter, timer, dan bukti.</h1>
-          <p>Proof bukan pajangan. Gunakan <span class="system-cyan">Tap Counter</span> untuk reps, <span class="system-cyan">Timer</span> untuk plank/wall sit, lalu simpan catatan bukti.</p>
+          <div class="tag">PROOF VAULT</div>
+          <h1>Validasi bukti latihan.</h1>
+          <p>Proof bukan daftar order. Proof adalah arsip bukti. Di sini kamu mencatat jenis bukti, catatan sesi, dan status verifikasi SYSTEM. Tanpa proof, progress masih dianggap lemah.</p>
         </div>
-        <div class="section-head"><h3>Proof tools</h3><span>alat validasi</span></div>
-        <div class="proof-tool-card">
-          <h4>Tap Counter</h4>
-          <div class="counter-display" id="tapCounterDisplay">0</div>
-          <div class="counter-controls"><button class="btn secondary" id="counterMinus">-1</button><button class="btn" id="counterPlus">+1 REP</button><button class="btn secondary" id="counterReset">RESET</button></div>
-          <p class="proof-note">Pakai untuk push-up, squat, sit-up, pull-up. Tiap tap = satu repetisi tercatat.</p>
-        </div>
-        <div class="proof-tool-card">
-          <h4>Timer Proof</h4>
-          <div class="timer-display" id="proofTimerDisplay">00:00</div>
-          <div class="counter-controls"><button class="btn" id="timerStart">START</button><button class="btn secondary" id="timerStop">STOP</button><button class="btn secondary" id="timerReset">RESET</button></div>
-          <p class="proof-note">Pakai untuk plank, wall sit, stretching, atau silent walk.</p>
-        </div>
-        <div class="section-head"><h3>Quest proof vault</h3><span>catatan per order</span></div>
+
+        <div class="section-head"><h3>Proof input</h3><span>Validasi manual</span></div>
         <div class="proof-vault">
           ${state.quests.map((q, idx)=>{
             const qp = questProgress(q);
             return `<div class="proof-order-card ${q.done?'':'alert-card'}">
               <div class="proof-status">${q.done?'SYSTEM VERIFIED':'PENDING PROOF'}</div>
-              <h4>${escapeHtml(q.title)}</h4><p>${escapeHtml(q.desc || '')}</p>
-              <div class="quest-progress-wrap"><div class="quest-progress-top"><span>Recorded progress</span><span>${qp.progress}/${qp.target}</span></div><div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${qp.pct}%"></div></div></div>
-              <textarea class="input proof-textarea" id="proofNote${idx}" placeholder="Catatan bukti: contoh push-up 15 reps, teknik bersih">${escapeHtml(q.proofNote || '')}</textarea>
-              <div class="proof-action-grid"><button class="btn" data-progress-index="${idx}">Input Progress</button><button class="btn secondary proof-save-btn" data-proof-index="${idx}">Save Proof</button></div>
-              <div class="proof-note">Reward: +${Math.round(questReward(q))} EXP · Status: ${q.proofLogged ? 'Proof logged' : 'Belum ada bukti tersimpan'}</div>
+              <h4>${escapeHtml(q.title)}</h4>
+              <p>${escapeHtml(q.desc || '')}</p>
+              <div class="quest-progress-wrap">
+                <div class="quest-progress-top"><span>Recorded progress</span><span>${qp.progress}/${qp.target}</span></div>
+                <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${qp.pct}%"></div></div>
+              </div>
+              <textarea class="input proof-textarea" id="proofNote${idx}" placeholder="Catatan bukti: contoh 'push-up 15 reps, 3 set, teknik bersih'">${escapeHtml(q.proofNote || '')}</textarea>
+              <div class="proof-action-grid">
+                <button class="btn" data-progress-index="${idx}">Input Progress</button>
+                <button class="btn secondary proof-save-btn" data-proof-index="${idx}">Save Proof</button>
+              </div>
+              <div class="proof-note">Proof mode: ${escapeHtml(q.proof || 'Manual')} · Status: ${q.proofLogged ? 'Proof logged' : 'Belum ada bukti tersimpan'}</div>
             </div>`;
           }).join('')}
         </div>
-        <div class="section-head"><h3>Mission records</h3><span>clear archive</span></div>
-        <div class="mini-list">${done.length ? done.map(q=>`<div class="mini-card"><h4>${escapeHtml(q.title)}</h4><p>${escapeHtml(q.value)} · +${Math.round(questReward(q))} EXP · Status: <b>System Verified</b>.</p></div>`).join('') : `<div class="empty-state">Belum ada quest clear. Gunakan counter/timer, input progress, lalu simpan proof.</div>`}</div>
+
+        <div class="section-head"><h3>Mission records</h3><span>Order yang telah clear</span></div>
+        <div class="mini-list">
+          ${done.length ? done.map(q=>`<div class="mini-card"><h4>${escapeHtml(q.title)}</h4><p>${escapeHtml(q.value)} · ${q.proofLogged ? 'Proof saved' : 'Clear tanpa catatan proof tambahan'}. Status: <b>System Verified</b>.</p></div>`).join('') : `<div class="empty-state">Belum ada quest yang selesai. Input progress dulu, lalu simpan proof agar SYSTEM punya arsip bukti.</div>`}
+        </div>
       </div>`;
   }
 
@@ -1574,42 +1441,6 @@
         <div class="plan-list">
           <div class="plan-card"><h4>Wasted potential</h4><p>Kamu saat ini membiarkan sekitar <b>${s.wastedPotential}%</b> potensimu tidak aktif. Ini bukan vonis, tapi alarm. Setiap order yang clear akan menaikkan angka penggunaan kapasitas tubuhmu.</p></div>
           <div class="plan-card"><h4>System recommendation</h4><p>Gabungkan latihan resistensi, progresif overload bertahap, tidur cukup, protein tinggi, dan hidrasi stabil. SYSTEM menilai jalur ini paling efisien untuk target <b>${state.profile.goal}</b>.</p></div>
-        </div>
-      </div>`;
-  }
-
-  function renderProfileTab(){
-    const p = state.profile, s = state.system;
-    ensureProgressSystem();
-    const total = s.currentStats.strength+s.currentStats.vitality+s.currentStats.agility+s.currentStats.recovery+s.currentStats.discipline;
-    return `
-      <div class="dashboard">
-        <div class="hero-card">
-          <div class="tag">PLAYER PROFILE</div>
-          <div class="identity">
-            <div style="display:flex;align-items:center;gap:14px">
-              <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
-              <div><h2>${escapeHtml(p.name || 'Unknown')}</h2><p>Level ${state.progress.level} · Rank ${s.rank} · ${s.title}</p></div>
-            </div>
-            <div class="rank-badge"><span>EXP</span><b>${state.progress.exp}</b><span>/ ${state.progress.expToNext}</span></div>
-          </div>
-          <div class="glow-line"></div>
-          <p>Detail player aktif. Stat naik saat quest clear memberi EXP. Rank mengikuti level threshold, bukan hasil onboarding saja.</p>
-          <div class="exp-track"><span style="width:${Math.round((state.progress.exp/state.progress.expToNext)*100)}%"></span></div>
-        </div>
-        <div class="profile-grid-safe">
-          <div class="plan-card"><h4>Identity</h4><p>Age ${p.age} · ${escapeHtml(p.gender)} · ${escapeHtml(p.condition)} · Goal ${escapeHtml(p.goal)}</p></div>
-          <div class="plan-card"><h4>Body</h4><p>${p.height} cm · ${p.weight} kg → ${p.targetWeight} kg · BMI ${s.bmi} ${s.bmiLabel}</p></div>
-          <div class="plan-card"><h4>Progression</h4><p>Level ${state.progress.level} · EXP ${state.progress.exp}/${state.progress.expToNext} · Stat Points ${state.progress.statPoints} · Streak ${state.progress.streak}</p></div>
-          <div class="plan-card"><h4>Protocol</h4><p>${s.protocolName} · ${s.weeklyWorkouts}x/minggu · ${s.workoutMinutes} menit · ${s.calorieGoal} kcal</p></div>
-        </div>
-        <div class="section-head"><h3>Status Window</h3><span>Total ${total} points</span></div>
-        <div class="plan-card">
-          ${statLine('Strength', s.currentStats.strength)}
-          ${statLine('Vitality', s.currentStats.vitality)}
-          ${statLine('Agility', s.currentStats.agility)}
-          ${statLine('Recovery', s.currentStats.recovery)}
-          ${statLine('Discipline', s.currentStats.discipline)}
         </div>
       </div>`;
   }
@@ -1699,41 +1530,6 @@
       save(); showHologramTransmission('PENALTY RECORDED', `PENALTY ORDER RECORDED.\nSYSTEM NOTE: Hukuman dicatat, tapi Current Order tetap harus diselesaikan.`, {primary:'ACCEPT'});
     });
 
-
-    if(document.getElementById('tapCounterDisplay')){
-      state.proofTool = state.proofTool || {counter:0,timerSeconds:0,timerRunning:false};
-      const disp = document.getElementById('tapCounterDisplay');
-      const paint = () => { disp.textContent = state.proofTool.counter || 0; save(); };
-      paint();
-      document.getElementById('counterPlus').onclick = () => { state.proofTool.counter=(state.proofTool.counter||0)+1; paint(); };
-      document.getElementById('counterMinus').onclick = () => { state.proofTool.counter=Math.max(0,(state.proofTool.counter||0)-1); paint(); };
-      document.getElementById('counterReset').onclick = () => { state.proofTool.counter=0; paint(); };
-    } // proofToolCounterV28
-    if(document.getElementById('proofTimerDisplay')){
-      state.proofTool = state.proofTool || {counter:0,timerSeconds:0,timerRunning:false};
-      const tdisp = document.getElementById('proofTimerDisplay');
-      const paintT = () => { const sec=state.proofTool.timerSeconds||0; tdisp.textContent = `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`; };
-      paintT();
-      clearInterval(attachDashboardEvents.proofTimer);
-      if(state.proofTool.timerRunning) attachDashboardEvents.proofTimer = setInterval(()=>{ state.proofTool.timerSeconds=(state.proofTool.timerSeconds||0)+1; paintT(); save(); },1000);
-      document.getElementById('timerStart').onclick = () => { state.proofTool.timerRunning=true; save(); renderDashboard(); };
-      document.getElementById('timerStop').onclick = () => { state.proofTool.timerRunning=false; save(); renderDashboard(); };
-      document.getElementById('timerReset').onclick = () => { state.proofTool.timerRunning=false; state.proofTool.timerSeconds=0; save(); renderDashboard(); };
-    }
-    document.querySelectorAll('.proof-save-btn').forEach(btn => btn.onclick = () => {
-      const idx = Number(btn.dataset.proofIndex);
-      const q = state.quests[idx]; if(!q) return;
-      q.proofNote = (document.getElementById('proofNote'+idx)?.value || '').trim();
-      q.proofLogged = true;
-      state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'PROOF', text:`Proof saved for ${q.title}`});
-      save(); showHologramTransmission('PROOF SAVED', `PLAYER: ${state.profile.name||'Unknown'}\nSTATUS: Bukti tersimpan untuk ${q.title}.\nSYSTEM NOTE: Bukti tanpa progress penuh belum menyelesaikan order.`, {primary:'ACCEPT'});
-    });
-    document.querySelectorAll('.penalty-clear-btn').forEach(btn => btn.onclick = () => {
-      const i = Number(btn.dataset.penalty); const task = state.penalty?.tasks?.[i]; if(!task) return;
-      state.logs.unshift({time:new Date().toLocaleString('id-ID'), type:'PENALTY', text:`Penalty cleared: ${task.title} ${task.value} ${task.unit}`});
-      save(); showHologramTransmission('PENALTY RECORDED', `PENALTY ORDER RECORDED.\nSYSTEM NOTE: Hukuman dicatat. Current Order tetap wajib diselesaikan.`, {primary:'ACCEPT'});
-    });
-
     const recalcBtn = document.getElementById('recalcBtn');
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem(); save(); showToast('Protocol dikalibrasi ulang.'); renderDashboard(); };
     const reminderBtn = document.getElementById('reminderBtn');
@@ -1787,28 +1583,19 @@
     const status = document.getElementById('processStatus');
     let start = performance.now();
     clearInterval(showProcess.timer);
-    clearTimeout(showProcess.failsafe);
     showProcess.timer = setInterval(() => {
       const elapsed = performance.now() - start;
-      const pct = Math.min(99, Math.round((elapsed / duration) * 100));
+      const pct = Math.min(96, Math.round((elapsed / duration) * 100));
       if(fill) fill.style.width = pct + '%';
       if(num) num.textContent = pct + '%';
       const idx = Math.min(steps.length - 1, Math.floor((pct / 100) * steps.length));
       if(status) status.textContent = steps[idx] || steps[0] || 'Processing...';
-      if(pct >= 99) clearInterval(showProcess.timer);
+      if(pct >= 96) clearInterval(showProcess.timer);
     }, 80);
-    showProcess.failsafe = setTimeout(() => {
-      if(document.getElementById('processScreen')){
-        if(fill) fill.style.width = '100%';
-        if(num) num.textContent = '100%';
-        modalRoot.innerHTML = '';
-      }
-    }, Math.max(duration + 2500, 5200));
   }
 
   function hideProcess(){
     clearInterval(showProcess.timer);
-    clearTimeout(showProcess.failsafe);
     const fill = document.getElementById('processFill');
     const num = document.getElementById('processNum');
     if(fill) fill.style.width = '100%';
@@ -1848,7 +1635,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     }
 
     // Jangan potong isi AI terlalu cepat. Biarkan user scroll di hologram.
-    // v28 no frontend truncation; hologram scrolls.
+    if(text.length > 5000) text = text.slice(0, 5000).replace(/\s+\S*$/, '') + '...';
     return text;
   }
 
@@ -1963,8 +1750,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
       modalRoot.innerHTML = '';
 
       if(q.done){
-        if(!q.rewardClaimed){ q.rewardClaimed = true; state.progress.totalQuestClears = (state.progress.totalQuestClears||0)+1; grantExp(Math.round(questReward(q)), q.title, q.statReward || q.type); }
-        showHologramTransmission('QUEST CLEAR', `PLAYER: ${state.profile.name || 'Unknown'}\nJUDGEMENT: ${q.title} mencapai ${next}/${target}. Progress diterima.\nREWARD: +${Math.round(questReward(q))} EXP ${q.statReward || q.type}. Stat naik. Rank berubah saat level melewati threshold.`, {primary:'ACCEPT'});
+        showHologramTransmission('QUEST CLEAR', `PLAYER: ${state.profile.name || 'Unknown'}\nJUDGEMENT: ${q.title} mencapai ${next}/${target}. Progress diterima.\nREWARD: EXP diberikan. Lanjutkan order berikutnya.`, {primary:'ACCEPT'});
       } else {
         showHologramTransmission('PROGRESS RECORDED', `PLAYER: ${state.profile.name || 'Unknown'}\nJUDGEMENT: Progress ${q.title} tercatat ${next}/${target}.\nORDER: Belum clear. Selesaikan sisa ${Math.max(0, target-next)} lagi.`, {primary:'ACCEPT'});
       }
@@ -2128,7 +1914,7 @@ ATURAN OUTPUT:
 - Jangan markdown, jangan **, jangan backtick.
 - Jangan berhenti di label kosong.
 - Jangan jawab hanya "PLAYER:".
-- Jawaban boleh panjang, lengkap, dan intimidatif jika diperlukan. Jangan memotong kalimat di tengah. Tidak ada batas kata dari frontend. Boleh lebih kalau perlu, tapi harus selesai.
+- Jawaban boleh panjang dan lengkap. Ideal 180-350 kata jika diperlukan. Jangan memotong kalimat di tengah. Boleh lebih kalau perlu, tapi harus selesai.
 - Gunakan format ini dan isi semuanya:
 
 PLAYER: ${p.name || 'Unknown'}
@@ -2218,8 +2004,6 @@ Tulis transmission final yang lengkap sekarang.`;
       document.querySelectorAll('[data-width]').forEach(el => el.style.width = el.dataset.width);
     });
   }
-
-  function statLine(title, value){ return `<div class="stat-row"><span>${title}</span><div class="bar"><span data-width="${Math.min(100,value)}%"></span></div><b>${value}</b></div>`; }
 
   function metric(title, value, max){
     return `<div class="metric-card"><div class="metric-top"><h4>${title}</h4><b>${value}</b></div><div class="bar"><span data-width="${Math.min(100, Math.round(value/max*100))}%"></span></div></div>`;
