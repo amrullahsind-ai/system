@@ -528,6 +528,62 @@
   const modalRoot = document.getElementById('modalRoot');
   const fab = document.getElementById('fab');
 
+
+  // v37 fallback: prevent crash if older hard-backup helpers are missing
+  if (typeof window.hardRestoreIfProgressWipedV33 !== 'function') {
+    window.hardRestoreIfProgressWipedV33 = function(){
+      try{
+        const backupKeys = [STORAGE_KEY + '_LAST_GOOD', STORAGE_KEY + '_HARD_BACKUP', STORAGE_KEY + '_BACKUP'];
+        let best = null;
+        for(const key of backupKeys){
+          const raw = localStorage.getItem(key);
+          if(!raw) continue;
+          const b = JSON.parse(raw);
+          if(!best) best = b;
+          const bq = (b.quests || []).reduce((s,q)=>s+Number(q.progress||0)+(q.done?1000:0),0);
+          const cq = (best.quests || []).reduce((s,q)=>s+Number(q.progress||0)+(q.done?1000:0),0);
+          if(bq > cq) best = b;
+        }
+        if(!best || !window.state) return false;
+        const currentEmpty = !state.quests || !state.quests.length || state.quests.every(q=>!q.done && Number(q.progress||0)===0);
+        const backupHasProgress = (best.quests||[]).some(q=>q.done || Number(q.progress||0)>0);
+        const sameDay = !best.progress?.lastDailyReset || !state.progress?.lastDailyReset || best.progress.lastDailyReset === state.progress.lastDailyReset;
+        if(currentEmpty && backupHasProgress && sameDay && state.onboardingComplete){
+          state.quests = best.quests || state.quests;
+          state.progress = best.progress || state.progress;
+          state.logs = best.logs || state.logs || [];
+          state.history = best.history || state.history || [];
+          state.penalty = best.penalty || state.penalty || {};
+          state.system = best.system || state.system || {};
+          return true;
+        }
+      }catch(e){}
+      return false;
+    };
+  }
+
+  if (typeof window.writeHardBackupsV33 !== 'function') {
+    window.writeHardBackupsV33 = function(){
+      try{
+        if(!window.state) return;
+        const payload = {
+          profile: state.profile,
+          system: state.system,
+          progress: state.progress,
+          quests: state.quests,
+          history: state.history,
+          penalty: state.penalty,
+          logs: state.logs,
+          savedAt: state.savedAt || new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE_KEY + '_BACKUP', JSON.stringify(payload));
+        localStorage.setItem(STORAGE_KEY + '_HARD_BACKUP', JSON.stringify(payload));
+        localStorage.setItem(STORAGE_KEY + '_LAST_GOOD', JSON.stringify(payload));
+      }catch(e){}
+    };
+  }
+
+
   const defaultState = {
     booted: false,
     systemAccepted: false,
@@ -620,6 +676,7 @@
   ];
 
   let state = load();
+  window.state = state; // v37
 
   function load(){
     try {
@@ -631,10 +688,10 @@
   }
   function save(options={}){
     try{
-      if(state.onboardingComplete) hardRestoreIfProgressWipedV33();
+      if(state.onboardingComplete) safeHardRestoreV37();
       state.savedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      writeHardBackupsV33();
+      safeWriteHardBackupsV37();
       if(!options.noSync && canAutoSyncV36()){
         markDirtyAndScheduleSyncV35();
       }
@@ -1254,7 +1311,7 @@
   }
 
   function renderDashboard(){
-    hardRestoreIfProgressWipedV33();
+    safeHardRestoreV37();
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
     if(typeof updatePenaltyState === 'function') updatePenaltyState();
     const tabs = ['status','orders','proof','analysis','core'];
@@ -2147,6 +2204,22 @@ Tulis transmission final yang lengkap sekarang.`;
   }
 
 
+
+  function safeHardRestoreV37(){
+    try{
+      if(typeof hardRestoreIfProgressWipedV33 === 'function') return safeHardRestoreV37();
+      if(window.hardRestoreIfProgressWipedV33) return window.safeHardRestoreV37();
+    }catch(e){}
+    return false;
+  }
+  function safeWriteHardBackupsV37(){
+    try{
+      if(typeof writeHardBackupsV33 === 'function') return safeWriteHardBackupsV37();
+      if(window.writeHardBackupsV33) return window.safeWriteHardBackupsV37();
+    }catch(e){}
+  }
+
+
   function canAutoSyncV36(){
     try{
       if(!state || !state.onboardingComplete) return false;
@@ -2208,7 +2281,7 @@ Tulis transmission final yang lengkap sekarang.`;
       state.sync.lastSyncedAt = data.updatedAt || new Date().toISOString();
       state.sync.lastStatus = 'SYNCED';
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      writeHardBackupsV33();
+      safeWriteHardBackupsV37();
       updateSyncUiV35();
     }catch(err){
       state.sync = state.sync || {};
@@ -2251,7 +2324,7 @@ Tulis transmission final yang lengkap sekarang.`;
           state.sync.lastSyncedAt = data.updatedAt || new Date().toISOString();
           state.sync.dirty = false;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          writeHardBackupsV33();
+          safeWriteHardBackupsV37();
           renderDashboard();
           showToast('Progress dimuat dari spreadsheet.');
         }else{

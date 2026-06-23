@@ -245,3 +245,9 @@ Fix:
 - `hardRestoreIfProgressWipedV33()` no longer runs while onboarding.
 - Auto-load from spreadsheet only runs after dashboard and Player ID are ready.
 - Analysis final save uses `{noSync:true}` to prevent crash.
+
+## v37 Hard Restore Reference Fix
+- Fixed runtime error: `hardRestoreIfProgressWipedV33 is not defined`.
+- Added safe fallback wrappers for hard restore and hard backup.
+- Exposes `state` to window for emergency restore helpers.
+- Onboarding should no longer crash at SYSTEM ANALYSIS.
