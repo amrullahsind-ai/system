@@ -251,3 +251,9 @@ Fix:
 - Added safe fallback wrappers for hard restore and hard backup.
 - Exposes `state` to window for emergency restore helpers.
 - Onboarding should no longer crash at SYSTEM ANALYSIS.
+
+## v38 Compatibility Stability Patch
+- Fixed runtime error: `timeToMidnight is not defined`.
+- Added compatibility fallback layer for countdown/history/penalty/sync helpers.
+- Added Chronicle fallback if the menu exists but renderer is missing.
+- Added fallback CSS for countdown/chronicle UI.

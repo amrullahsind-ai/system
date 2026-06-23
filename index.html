@@ -473,6 +473,20 @@
     .autosync-pill.error{background:rgba(255,85,119,.08);border-color:rgba(255,85,119,.18);color:#ffd9e2}
     .autosync-pill.ok{background:rgba(104,255,174,.08);border-color:rgba(104,255,174,.18);color:#d8ffe8}
 
+
+    /* v38 fallback UI */
+    .countdown-hero{border-color:rgba(255,85,119,.30)!important;background:linear-gradient(180deg,rgba(35,9,23,.78),rgba(7,17,31,.92))!important}
+    .countdown-time{font-family:Orbitron,Inter,sans-serif;font-size:clamp(42px,13vw,68px);font-weight:900;letter-spacing:.05em;text-align:center;color:#fff;text-shadow:0 0 28px rgba(255,85,119,.42);margin:16px 0 8px}
+    .countdown-label{text-align:center;color:#ffdce5;font-weight:800;letter-spacing:.08em;font-size:12px;text-transform:uppercase}
+    .chronicle-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .streak-flame{font-family:Orbitron,Inter,sans-serif;font-size:42px;font-weight:900;color:#ffd36f;text-shadow:0 0 20px rgba(255,211,111,.35)}
+    .chronicle-day{padding:16px;border-radius:22px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);display:grid;gap:10px}
+    .chronicle-day.success{border-color:rgba(104,255,174,.22)}
+    .chronicle-day.failed{border-color:rgba(255,85,119,.28);background:rgba(255,85,119,.045)}
+    .chronicle-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .system-red{color:#ff6b87;font-weight:900}
+    .system-cyan{color:#9efbff;font-weight:900}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -581,6 +595,85 @@
         localStorage.setItem(STORAGE_KEY + '_LAST_GOOD', JSON.stringify(payload));
       }catch(e){}
     };
+  }
+
+
+
+  // v38 compatibility layer: prevent missing helper functions from crashing the app
+  function todayKeyCompatV38(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  if (typeof window.todayKey !== 'function') {
+    window.todayKey = todayKeyCompatV38;
+  }
+
+  function timeToMidnightCompatV38(){
+    const now = new Date();
+    const end = new Date(now);
+    end.setHours(24,0,0,0);
+    const ms = Math.max(0, end - now);
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  if (typeof window.timeToMidnight !== 'function') {
+    window.timeToMidnight = timeToMidnightCompatV38;
+  }
+
+  if (typeof window.readableDayKey !== 'function') {
+    window.readableDayKey = function(key){
+      try { return new Date(key + 'T12:00:00').toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'short'}); }
+      catch { return key || todayKeyCompatV38(); }
+    };
+  }
+
+  if (typeof window.penaltyCompletion !== 'function') {
+    window.penaltyCompletion = function(){
+      try{
+        const tasks = state?.penalty?.tasks || [];
+        if(!tasks.length) return 100;
+        const done = tasks.filter(t=>t.done || Number(t.progress||0) >= Number(t.target||t.value||1)).length;
+        return Math.round(done/tasks.length*100);
+      }catch{ return 0; }
+    };
+  }
+
+  if (typeof window.questSummaryForHistory !== 'function') {
+    window.questSummaryForHistory = function(){
+      try{
+        const total = (state.quests || []).length || 0;
+        const done = (state.quests || []).filter(q=>q.done).length;
+        return {total, done, percent: total ? Math.round(done/total*100) : 0};
+      }catch{ return {total:0, done:0, percent:0}; }
+    };
+  }
+
+  if (typeof window.progressScoreV33 !== 'function') {
+    window.progressScoreV33 = function(obj){
+      try{
+        const quests = obj?.quests || [];
+        const qScore = quests.reduce((sum,q)=>sum+Number(q.progress||0)+(q.done?1000:0),0);
+        const exp = Number(obj?.progress?.exp||0) + Number(obj?.progress?.level||1)*100;
+        const logs = (obj?.logs||[]).length;
+        return qScore + exp + logs;
+      }catch{ return 0; }
+    };
+  }
+
+
+
+  function todayKey(){
+    if(typeof todayKeyCompatV38 === 'function') return todayKeyCompatV38();
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function timeToMidnight(){
+    if(typeof timeToMidnightCompatV38 === 'function') return timeToMidnightCompatV38();
+    return '00:00:00';
   }
 
 
@@ -2203,6 +2296,13 @@ Tulis transmission final yang lengkap sekarang.`;
     return data;
   }
 
+
+
+  // no-op sync fallbacks v38
+
+  if (typeof window.updateSyncUiV35 !== 'function') window.updateSyncUiV35 = function(){};
+  if (typeof window.autoLoadFromSheetsOnStartV35 !== 'function') window.autoLoadFromSheetsOnStartV35 = function(){};
+  if (typeof window.canAutoSyncV36 !== 'function') window.canAutoSyncV36 = function(){ return false; };
 
 
   function safeHardRestoreV37(){
