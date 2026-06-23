@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     if (!url) {
       return res.status(500).json({
         ok: false,
-        error: 'SHEETS_WEBAPP_URL belum dipasang di Vercel Environment Variables.'
+        error: 'SHEETS_WEBAPP_URL belum dipasang di Vercel Environment Variables atau project belum redeploy.'
       });
     }
 

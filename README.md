@@ -257,3 +257,13 @@ Fix:
 - Added compatibility fallback layer for countdown/history/penalty/sync helpers.
 - Added Chronicle fallback if the menu exists but renderer is missing.
 - Added fallback CSS for countdown/chronicle UI.
+
+## v39 Judgement + Sync Diagnostics
+
+Changes:
+- Removed Proof/Chronicle ambiguity.
+- Navigation now uses JUDGEMENT tab.
+- Judgement tab contains countdown, verdict, compulsion law, threat, streak/history.
+- Core now contains Authority Core + Sync Diagnostics + database controls.
+- Added `Run Sync Diagnostic` to verify `/api/sheets-sync` actually reaches Apps Script.
+- If Google Sheet is empty, run diagnostic and Force Backup Now.

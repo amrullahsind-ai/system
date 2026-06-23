@@ -487,6 +487,22 @@
     .system-red{color:#ff6b87;font-weight:900}
     .system-cyan{color:#9efbff;font-weight:900}
 
+
+    /* v39 Judgement + Sync Diagnostics */
+    .judgement-card{border-color:rgba(255,45,82,.38)!important;background:linear-gradient(180deg,rgba(48,5,19,.86),rgba(5,8,17,.96))!important;box-shadow:0 0 0 1px rgba(255,45,82,.12),0 28px 80px rgba(255,0,64,.16)!important}
+    .judgement-word{font-family:Orbitron,Inter,sans-serif;font-size:clamp(30px,9vw,54px);font-weight:900;letter-spacing:.08em;text-align:center;margin:12px 0;color:#fff;text-shadow:0 0 28px rgba(255,70,110,.45)}
+    .law-grid{display:grid;gap:10px}
+    .law-item{padding:14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .law-item b{color:#fff}.law-item span{font-size:12px;color:var(--muted);line-height:1.45;text-align:right}
+    .threat-line{padding:14px 16px;border-radius:20px;background:rgba(255,45,82,.10);border:1px solid rgba(255,45,82,.24);color:#ffe3ea;font-weight:800;line-height:1.5}
+    .core-section{display:grid;gap:12px}
+    .diag-box{border:1px solid rgba(117,251,255,.16);background:rgba(117,251,255,.055);border-radius:18px;padding:13px;font-size:12px;line-height:1.5;color:#d7fbff;white-space:pre-wrap;word-break:break-word}
+    .diag-box.error{border-color:rgba(255,85,119,.22);background:rgba(255,85,119,.07);color:#ffdce5}
+    .diag-box.ok{border-color:rgba(104,255,174,.22);background:rgba(104,255,174,.07);color:#dfffea}
+    .force-command{padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(255,45,82,.10),rgba(255,255,255,.025));border:1px solid rgba(255,45,82,.20)}
+    .force-command h4{margin:0 0 8px;color:#fff}.force-command p{margin:0;color:#ffdce5;font-size:13px;line-height:1.5}
+    .nav-btn span{font-size:9px!important}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -786,7 +802,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       safeWriteHardBackupsV37();
       if(!options.noSync && canAutoSyncV36()){
-        markDirtyAndScheduleSyncV35();
+        markDirtyAndScheduleSyncV35(); updateSyncUiV35();
       }
     }catch(e){ console.error('save failed', e); }
   }
@@ -834,7 +850,7 @@
     const map = {
       status:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16M7 16V8m5 8V5m5 11v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       orders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round"/></svg>',
-      chronicle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      judgement:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       penalty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M12 8v5" stroke-linecap="round"/><path d="M12 16h.01" stroke-linecap="round"/></svg>',
       analysis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19l4-6 3 3 6-10" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5h14v14" opacity=".3"/></svg>',
       core:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.2 4.5 4.8.7-3.5 3.4.8 4.9L12 13.3 7.7 15.5l.8-4.9L5 7.2l4.8-.7L12 2z" stroke-linejoin="round"/></svg>',
@@ -1407,7 +1423,7 @@
     safeHardRestoreV37();
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
     if(typeof updatePenaltyState === 'function') updatePenaltyState();
-    const tabs = ['status','orders','proof','analysis','core'];
+    const tabs = ['status','orders','judgement','penalty','analysis','profile','core'];
     if(!tabs.includes(state.activeTab)) state.activeTab = 'status';
     bottomNav.className='bottom-nav show';
     bottomNav.innerHTML = tabs.map(tab => `
@@ -1423,7 +1439,7 @@
 
     const content = state.activeTab === 'status' ? renderStatusTab() :
                     state.activeTab === 'orders' ? renderOrdersTab() :
-                    state.activeTab === 'chronicle' ? renderChronicleTab() :
+                    state.activeTab === 'judgement' ? renderJudgementTab() :
                     state.activeTab === 'penalty' ? renderPenaltyTab() :
                     state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
 
@@ -1586,41 +1602,45 @@
   }
 
 
-  function renderChronicleTab(){
-    const history = state.history || [];
+  function renderJudgementTab(){
     const today = questSummaryForHistory();
+    const remaining = timeToMidnight();
+    const failedNow = (state.quests || []).filter(q=>!q.done);
+    const history = state.history || [];
+    const verdict = failedNow.length === 0 ? 'CLEAR CANDIDATE' : 'UNDER WATCH';
     return `
       <div class="dashboard">
-        <div class="hero-card countdown-hero">
-          <div class="tag">DAILY COUNTDOWN</div>
-          <div class="countdown-label">Time remaining before judgement</div>
-          <div class="countdown-time" data-midnight-countdown>${timeToMidnight()}</div>
-          <p style="text-align:center">Saat waktu mencapai <span class="system-red">00:00:00</span>, semua order yang belum clear akan dihitung gagal. Jika ada yang gagal, <span class="system-red">Penalty Zone</span> aktif.</p>
+        <div class="hero-card judgement-card">
+          <div class="tag">DAILY JUDGEMENT</div>
+          <div class="countdown-label">Remaining before 00.00 verdict</div>
+          <div class="countdown-time" data-midnight-countdown>${remaining}</div>
+          <div class="judgement-word">${verdict}</div>
+          <p style="text-align:center">SYSTEM tidak menilai niat. SYSTEM hanya membaca order yang selesai. Saat timer mencapai nol, order yang belum clear berubah menjadi failure record.</p>
         </div>
 
-        <div class="section-head"><h3>Today Chronicle</h3><span>hari ini</span></div>
-        <div class="hero-card">
-          <div class="chronicle-stats">
-            <div class="mini-card"><div class="tiny">Streak</div><div class="streak-flame">${state.progress?.streak || 0}</div></div>
-            <div class="mini-card"><div class="tiny">Clear Today</div><div class="kpi-num">${today.done}/${today.total}</div></div>
-            <div class="mini-card"><div class="tiny">Judgement</div><div class="kpi-num">${today.percent}%</div></div>
-          </div>
-          <div class="system-law" style="margin-top:14px">
-            SYSTEM LAW: hari hanya dianggap clear jika seluruh order selesai sebelum 00.00. Progress parsial tetap tercatat, tapi tidak membatalkan penalty jika target belum penuh.
-          </div>
+        <div class="section-head"><h3>Compulsion Law</h3><span>aturan keras</span></div>
+        <div class="law-grid">
+          <div class="law-item"><b>00.00 Verdict</b><span>Order belum clear = gagal. Tidak ada alasan.</span></div>
+          <div class="law-item"><b>Penalty Trigger</b><span>Penalty hanya muncul setelah deadline lewat.</span></div>
+          <div class="law-item"><b>Penalty Weight</b><span>Hukuman lebih berat dari order yang kamu tinggalkan.</span></div>
+          <div class="law-item"><b>Streak Contract</b><span>Gagal satu hari memutus streak.</span></div>
         </div>
 
-        <div class="section-head"><h3>Day Records</h3><span>arsip 30 hari</span></div>
-        <div class="proof-vault">
-          ${history.length ? history.map(h=>`
-            <div class="chronicle-day ${h.success?'success':'failed'}">
-              <div class="chronicle-top">
-                <div><h4>${escapeHtml(h.label || h.date)}</h4><span>${h.date}</span></div>
-                <div class="${h.success?'system-cyan':'system-red'}">${h.success?'CLEAR':'FAILED'}</div>
-              </div>
-              <p class="tiny">Order clear: ${h.done}/${h.total} · Streak after: ${h.streakAfter || 0}</p>
-              ${h.failed?.length ? `<div class="system-law">Failed: ${h.failed.map(f=>escapeHtml(f.title)).join(', ')}</div>` : `<div class="trajectory-note">Semua order selesai. Hari ini diakui SYSTEM.</div>`}
-            </div>`).join('') : `<div class="empty-state">Belum ada arsip hari sebelumnya. Chronicle akan terisi setelah melewati 00.00 atau daily reset.</div>`}
+        <div class="section-head"><h3>Today Threat</h3><span>${today.done}/${today.total} clear</span></div>
+        <div class="force-command">
+          <h4>${failedNow.length ? `${failedNow.length} order masih menunggu.` : 'Semua order hari ini clear.'}</h4>
+          <p>${failedNow.length ? `Jika kamu membiarkannya sampai 00.00, SYSTEM akan mencatat kegagalan dan membuka Penalty Zone. Jangan menunggu motivasi. Eksekusi.` : `Hari ini berada di jalur clear. Pertahankan sampai reset harian.`}</p>
+        </div>
+
+        <div class="section-head"><h3>Streak & Records</h3><span>arsip sistem</span></div>
+        <div class="chronicle-stats">
+          <div class="mini-card"><div class="tiny">Current Streak</div><div class="streak-flame">${state.progress?.streak || 0}</div></div>
+          <div class="mini-card"><div class="tiny">Clear Today</div><div class="kpi-num">${today.done}/${today.total}</div></div>
+          <div class="mini-card"><div class="tiny">Judgement</div><div class="kpi-num">${today.percent}%</div></div>
+        </div>
+
+        <div class="proof-vault" style="margin-top:12px">
+          ${history.length ? history.slice(0,10).map(h=>`<div class="chronicle-day ${h.success?'success':'failed'}"><div class="chronicle-top"><div><h4>${escapeHtml(h.label || h.date)}</h4><span>${h.date}</span></div><div class="${h.success?'system-cyan':'system-red'}">${h.success?'CLEAR':'FAILED'}</div></div><p class="tiny">Order clear: ${h.done}/${h.total} · Streak: ${h.streakAfter || 0}</p></div>`).join('') : `<div class="empty-state">Belum ada arsip. SYSTEM akan mencatat hari setelah deadline/ reset harian.</div>`}
         </div>
       </div>`;
   }
@@ -1736,6 +1756,24 @@
           </div>
           
           
+          
+          <div class="plan-card judgement-card">
+            <h4>SYSTEM Authority Core</h4>
+            <p>Core bukan arsip harian. Core adalah ruang kendali: database, AI core, notification, recovery, diagnostics, dan aturan paksa.</p>
+            <div class="threat-line">COMMAND: Jangan hapus data. Jangan reset tanpa keputusan. Jangan beri player ilusi progres. Semua perubahan wajib tercatat.</div>
+          </div>
+
+          <div class="plan-card database-card">
+            <h4>Sync Diagnostics</h4>
+            <p>Kalau Google Sheet masih kosong, jalankan diagnostic ini. Kalau gagal, berarti auto-sync belum benar-benar sampai ke Apps Script.</p>
+            <div class="quest-actions">
+              <button class="btn" id="runSyncDiagBtn">Run Sync Diagnostic</button>
+              <button class="btn secondary" id="backupSheetsBtn">Force Backup Now</button>
+              <button class="btn secondary" id="restoreSheetsBtn">Force Restore</button>
+            </div>
+            <div class="diag-box" id="syncDiagBox">Belum dicek. Klik Run Sync Diagnostic.</div>
+          </div>
+
           <div class="plan-card sync-card">
             <h4>Spreadsheet Server Sync</h4>
             <p>Link Apps Script sekarang tidak dimasukkan di aplikasi. Link server disimpan di Vercel Environment Variable: <code>SHEETS_WEBAPP_URL</code>. App hanya butuh Player ID.</p>
@@ -1746,8 +1784,7 @@
               </div>
               <div class="quest-actions">
                 <button class="btn" id="saveSheetsConfigBtn">Save Player ID</button>
-                <button class="btn secondary" id="backupSheetsBtn">Backup to Sheet</button>
-                <button class="btn secondary" id="restoreSheetsBtn">Restore from Sheet</button>
+                
               </div>
               <div class="autosync-pill" id="autoSyncPill">LOCAL</div><div class="sync-status" id="sheetSyncStatus">AUTO SYNC READY. Isi Player ID setelah dashboard terbuka. Auto-sync tidak aktif saat onboarding agar input tidak terganggu.</div>
             </div>
@@ -1852,6 +1889,10 @@
       save(); renderDashboard();
     });
 
+
+
+    const runSyncDiagBtn = document.getElementById('runSyncDiagBtn');
+    if(runSyncDiagBtn) runSyncDiagBtn.onclick = runSyncDiagnosticsV39;
 
     const saveSheetsConfigBtn = document.getElementById('saveSheetsConfigBtn');
     if(saveSheetsConfigBtn) saveSheetsConfigBtn.onclick = () => {
@@ -2429,11 +2470,11 @@ Tulis transmission final yang lengkap sekarang.`;
           showToast('Progress dimuat dari spreadsheet.');
         }else{
           // local is newer, push it to server
-          markDirtyAndScheduleSyncV35();
+          markDirtyAndScheduleSyncV35(); updateSyncUiV35();
         }
       }else{
         // no server data, first push local data
-        markDirtyAndScheduleSyncV35();
+        markDirtyAndScheduleSyncV35(); updateSyncUiV35();
       }
       updateSyncUiV35();
     }catch(err){
@@ -2441,6 +2482,32 @@ Tulis transmission final yang lengkap sekarang.`;
       state.sync.lastError = err.message || 'Auto load failed';
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       updateSyncUiV35();
+    }
+  }
+
+
+
+  async function runSyncDiagnosticsV39(){
+    const box = document.getElementById('syncDiagBox');
+    const playerId = getPlayerIdV35 ? getPlayerIdV35() : (localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || '');
+    if(box){ box.className='diag-box'; box.textContent = 'Checking /api/sheets-sync...'; }
+    try{
+      const res = await fetch('/api/sheets-sync', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'load', playerId: playerId || 'diagnostic-test' })
+      });
+      const text = await res.text();
+      let data = null;
+      try{ data = JSON.parse(text); }catch{}
+      if(!res.ok || !data || data.ok === false){
+        const msg = data?.error || text || ('HTTP ' + res.status);
+        if(box){ box.className='diag-box error'; box.textContent = 'SYNC DIAGNOSTIC FAILED\\n' + msg + '\\n\\nCek: SHEETS_WEBAPP_URL di Vercel ENV, redeploy, Apps Script access Anyone, dan SHEET_ID.'; }
+        return;
+      }
+      if(box){ box.className='diag-box ok'; box.textContent = 'SYNC DIAGNOSTIC OK\\nEndpoint /api/sheets-sync berhasil menjangkau Apps Script.\\nPlayer ID: ' + (playerId || 'diagnostic-test') + '\\nData found: ' + (data.state ? 'YES' : 'NO / first backup needed'); }
+    }catch(err){
+      if(box){ box.className='diag-box error'; box.textContent = 'SYNC DIAGNOSTIC ERROR\\n' + (err.message || err); }
     }
   }
 
