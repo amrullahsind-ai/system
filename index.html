@@ -631,11 +631,11 @@
   }
   function save(options={}){
     try{
-      hardRestoreIfProgressWipedV33();
+      if(state.onboardingComplete) hardRestoreIfProgressWipedV33();
       state.savedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       writeHardBackupsV33();
-      if(!options.noSync && state.sync?.enabled !== false){
+      if(!options.noSync && canAutoSyncV36()){
         markDirtyAndScheduleSyncV35();
       }
     }catch(e){ console.error('save failed', e); }
@@ -774,6 +774,8 @@
   }
 
   function renderQuestion(){
+    state.__onboardingActive = true; // v36
+
     bottomNav.className='bottom-nav'; fab.className='fab';
     const step = steps[state.currentStep];
     const profile = state.profile;
@@ -1032,7 +1034,8 @@
   function runAnalysis(){
     modalRoot.innerHTML = '';
     state.analysisDone = false;
-    save();
+    state.__onboardingActive = true;
+    save({noSync:true});
     bottomNav.className='bottom-nav'; 
     fab.className='fab';
     screenRoot.innerHTML = `
@@ -1074,7 +1077,8 @@
         if(typeof ensureProgressSystem === 'function') ensureProgressSystem();
         state.onboardingComplete = true;
         state.analysisDone = true;
-        save();
+        state.__onboardingActive = false;
+        save({noSync:true});
         modalRoot.innerHTML = '';
         showToast('Protocol assigned. Dashboard terbuka.');
         renderDashboard();
@@ -1084,8 +1088,9 @@
         modalRoot.innerHTML = '';
         state.onboardingComplete = true;
         state.analysisDone = true;
+        state.__onboardingActive = false;
         try{ calculateProfileSystem(); }catch{}
-        save();
+        save({noSync:true});
         renderDashboard();
         showToast('Analysis fallback active.');
       }
@@ -1274,7 +1279,7 @@
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     updateSyncUiV35();
-    setTimeout(()=>autoLoadFromSheetsOnStartV35(), 500);
+    if(canAutoSyncV36()) setTimeout(()=>autoLoadFromSheetsOnStartV35(), 500);
     animateBars();
     attachDashboardEvents();
     if(state.onboardingComplete){
@@ -1594,7 +1599,7 @@
                 <button class="btn secondary" id="backupSheetsBtn">Backup to Sheet</button>
                 <button class="btn secondary" id="restoreSheetsBtn">Restore from Sheet</button>
               </div>
-              <div class="autosync-pill" id="autoSyncPill">LOCAL</div><div class="sync-status" id="sheetSyncStatus">AUTO SYNC READY. Setelah Player ID disimpan, setiap perubahan progress akan otomatis dikirim ke spreadsheet.</div>
+              <div class="autosync-pill" id="autoSyncPill">LOCAL</div><div class="sync-status" id="sheetSyncStatus">AUTO SYNC READY. Isi Player ID setelah dashboard terbuka. Auto-sync tidak aktif saat onboarding agar input tidak terganggu.</div>
             </div>
           </div>
 
@@ -1703,7 +1708,7 @@
       const pid = document.getElementById('playerIdInput')?.value.trim();
       if(!pid){ showToast('Player ID wajib diisi.'); return; }
       localStorage.setItem(STORAGE_KEY + '_PLAYER_ID', pid);
-      showToast('Player ID saved.');
+      state.__onboardingActive = false; showToast('Player ID saved.');
       autoLoadFromSheetsOnStartV35.done=false; const el = document.getElementById('sheetSyncStatus'); if(el) el.textContent = 'Player ID saved. Auto-sync akan load/push otomatis.'; setTimeout(()=>autoLoadFromSheetsOnStartV35(),300);
     };
     const backupSheetsBtn = document.getElementById('backupSheetsBtn');
@@ -2141,6 +2146,20 @@ Tulis transmission final yang lengkap sekarang.`;
     return data;
   }
 
+
+  function canAutoSyncV36(){
+    try{
+      if(!state || !state.onboardingComplete) return false;
+      if(!state.analysisDone) return false;
+      if(state.__onboardingActive) return false;
+      const playerId = localStorage.getItem(STORAGE_KEY + '_PLAYER_ID');
+      if(!playerId || playerId.trim().length < 2) return false;
+      if(state.sync?.enabled === false) return false;
+      return true;
+    }catch{ return false; }
+  }
+
+
   function getPlayerIdV35(){
     return localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || 'player').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'player';
   }
@@ -2165,6 +2184,7 @@ Tulis transmission final yang lengkap sekarang.`;
   }
 
   function markDirtyAndScheduleSyncV35(){
+    if(!canAutoSyncV36()) return;
     state.sync = state.sync || {};
     state.sync.dirty = true;
     state.sync.lastError = '';
@@ -2175,8 +2195,7 @@ Tulis transmission final yang lengkap sekarang.`;
   }
 
   async function autoPushToSheetsV35(){
-    if(!state.onboardingComplete) return;
-    if(state.sync?.enabled === false) return;
+    if(!canAutoSyncV36()) return;
     if(autoPushToSheetsV35.busy) return;
     autoPushToSheetsV35.busy = true;
     try{
@@ -2208,7 +2227,7 @@ Tulis transmission final yang lengkap sekarang.`;
     if(autoLoadFromSheetsOnStartV35.done) return;
     autoLoadFromSheetsOnStartV35.done = true;
     const playerId = getPlayerIdV35();
-    if(!playerId || !state.onboardingComplete) return;
+    if(!canAutoSyncV36()) return;
     try{
       state.sync = state.sync || {};
       state.sync.lastStatus = 'LOADING';

@@ -235,3 +235,13 @@ Changes:
 - Manual Backup/Restore buttons remain as emergency fallback.
 - Sync status pill added in Core.
 - `/api/sheets-sync` now sends Cache-Control: no-store.
+
+## v36 Stable Onboarding + Auto Sync Guard
+
+Fix:
+- Auto-sync is fully disabled during onboarding and analysis.
+- Typing player name no longer triggers sync or dashboard rerender.
+- `save()` only queues sync when onboardingComplete + analysisDone + Player ID exists.
+- `hardRestoreIfProgressWipedV33()` no longer runs while onboarding.
+- Auto-load from spreadsheet only runs after dashboard and Player ID are ready.
+- Analysis final save uses `{noSync:true}` to prevent crash.
