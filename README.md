@@ -280,3 +280,10 @@ Changes:
 - Added stable Profile page renderer.
 - Added `safeRenderTabV41()` so missing tab renderers no longer crash the app.
 - Profile tab now shows player identity, level, rank, EXP, body metrics, protocol, and stats.
+
+## v42 UI + Countdown Fix
+- Increased bottom safe spacing so content no longer collides with bottom navigation.
+- Moved lightning FAB above the nav so it does not cover content.
+- Made nav labels smaller and shortened JUDGEMENT to JUDGE.
+- Added robust countdown ticker: updates all `[data-midnight-countdown]` elements every second after each render.
+- Added responsive fixes for small screens.
