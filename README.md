@@ -293,3 +293,11 @@ Changes:
 - Reduced nav item size and label length.
 - Moved lightning FAB above nav so it no longer covers Analysis.
 - Reduced excessive bottom blank space.
+
+## v44 Living AI System Core
+- Added Living SYSTEM Core state: difficulty, judgement, easy clear tracking.
+- Added adaptive target scaling based on level, streak, and difficulty.
+- Added AI Judgement Layer in Core.
+- Added Difficulty Correction: if quests are too easy, SYSTEM raises difficulty.
+- Quest clear now triggers cold SYSTEM judgement.
+- AI prompt revised to behave like a living SYSTEM Core, not a motivational chatbot.

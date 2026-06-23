@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
-        generationConfig: { temperature: 0.65, topP: 0.9, maxOutputTokens: 900 }
+        generationConfig: { temperature: 0.65, topP: 0.9, maxOutputTokens: 1200 }
       })
     });
 

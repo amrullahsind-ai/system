@@ -610,6 +610,23 @@
       .fab{width:48px!important;height:48px!important;right:10px!important;bottom:calc(86px + var(--safe-bottom))!important}
     }
 
+
+    /* v44 Living AI System Core */
+    .system-core-pulse{position:relative;overflow:hidden}
+    .system-core-pulse:before{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at center,rgba(117,251,255,.10),transparent 45%);animation:corePulseV44 4s ease-in-out infinite;pointer-events:none}
+    @keyframes corePulseV44{0%,100%{transform:scale(.85);opacity:.35}50%{transform:scale(1.06);opacity:.9}}
+    .ai-command-card{border-color:rgba(117,251,255,.28)!important;background:linear-gradient(180deg,rgba(11,32,54,.86),rgba(4,9,19,.96))!important}
+    .difficulty-card{border-color:rgba(255,211,111,.26)!important;background:linear-gradient(180deg,rgba(55,38,9,.50),rgba(6,10,20,.94))!important}
+    .living-badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 11px;background:rgba(117,251,255,.08);border:1px solid rgba(117,251,255,.18);color:#dffcff;font-size:11px;font-weight:900;letter-spacing:.08em}
+    .living-badge:before{content:"";width:8px;height:8px;border-radius:999px;background:#75fbff;box-shadow:0 0 16px rgba(117,251,255,.9)}
+    .system-command-list{display:grid;gap:10px}
+    .system-command{padding:14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);line-height:1.48}
+    .system-command b{color:#fff}
+    .system-command p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .difficulty-meter{height:13px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+    .difficulty-meter span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#75fbff,#ffd36f,#ff5577);box-shadow:0 0 18px rgba(255,211,111,.38)}
+    .ai-voice-line{font-family:Orbitron,Inter,sans-serif;letter-spacing:.08em;color:#dffcff;font-size:13px;text-shadow:0 0 16px rgba(117,251,255,.35)}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -1965,6 +1982,22 @@
           
           
           
+          
+          <div class="plan-card ai-command-card system-core-pulse">
+            <div class="living-badge">LIVING SYSTEM CORE</div>
+            <h4 style="margin-top:12px">AI Judgement Layer</h4>
+            <p class="ai-voice-line">${systemSpeakV44('daily')}</p>
+            <div class="difficulty-meter" style="margin:14px 0"><span style="width:${Math.min(100, Math.round((state.aiCore?.difficulty || 1)/2.4*100))}%"></span></div>
+            <p>Difficulty: <b>${Number(state.aiCore?.difficulty || 1).toFixed(2)}x</b> · Easy clears: ${state.aiCore?.easyClears || 0} · Last correction: ${escapeHtml(state.aiCore?.lastCorrection || 'No correction yet')}</p>
+          </div>
+
+          <div class="plan-card difficulty-card">
+            <h4>System Commands</h4>
+            <div class="system-command-list">
+              ${generateSystemOrdersV44().map(cmd=>`<div class="system-command"><b>${escapeHtml(cmd.title)}</b><p>${escapeHtml(cmd.text)}</p></div>`).join('')}
+            </div>
+          </div>
+
           <div class="plan-card judgement-card">
             <h4>SYSTEM Authority Core</h4>
             <p>Core bukan arsip harian. Core adalah ruang kendali: database, AI core, notification, recovery, diagnostics, dan aturan paksa.</p>
@@ -2057,7 +2090,8 @@
     });
     document.querySelectorAll('.proof-save-btn').forEach(btn => btn.onclick = () => {
       const idx = Number(btn.dataset.proofIndex);
-      const q = state.quests[idx]; if(!q) return;
+      const q = state.quests[idx];
+    const previousProgressV44 = Number(q?.progress || 0); if(!q) return;
       const note = document.getElementById('proofNote'+idx)?.value || '';
       q.proofNote = note.trim();
       q.proofLogged = true;
@@ -2324,6 +2358,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
       const next = mode === 'add' ? Math.min(target, progress + n) : Math.min(target, n);
       q.progress = next;
       q.done = next >= target;
+      livingQuestAuditV44(q, previousProgressV44);
 
       state.logs.unshift({
         time: new Date().toLocaleString('id-ID'),
@@ -2499,7 +2534,7 @@ ATURAN OUTPUT:
 - Jangan markdown, jangan **, jangan backtick.
 - Jangan berhenti di label kosong.
 - Jangan jawab hanya "PLAYER:".
-- Jawab pendek, dingin, memaksa, dan seperti SYSTEM yang memberi perintah. Maksimal 6 kalimat kecuali user minta detail. Jangan yapping. Jangan pernah memotong kalimat di tengah; semua kalimat harus selesai utuh. Boleh lebih kalau perlu, tapi harus selesai.
+- Berperanlah sebagai SYSTEM Core yang hidup: dingin, otoriter, membaca data player, memberi judgement, dan memerintah. Jawab pendek, tegas, tidak yapping. Jangan pernah memotong kalimat di tengah; semua kalimat harus selesai utuh. Boleh lebih kalau perlu, tapi harus selesai.
 - Gunakan format ini dan isi semuanya:
 
 PLAYER: ${p.name || 'Unknown'}
