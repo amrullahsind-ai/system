@@ -274,3 +274,9 @@ Changes:
 - Fixed routing so PROFILE opens Profile, not Core.
 - Updated Apps Script to accept either full Google Sheet URL or Spreadsheet ID.
 - Added clearer diagnostic guidance for `Illegal spreadsheet id or key`.
+
+## v41 Profile Render Hotfix
+- Fixed runtime error: `renderProfileTab is not defined`.
+- Added stable Profile page renderer.
+- Added `safeRenderTabV41()` so missing tab renderers no longer crash the app.
+- Profile tab now shows player identity, level, rank, EXP, body metrics, protocol, and stats.

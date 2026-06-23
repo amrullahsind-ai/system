@@ -511,6 +511,16 @@
     .nav-btn span{font-size:8.5px!important;letter-spacing:.04em!important;white-space:nowrap}
     @media(max-width:390px){.bottom-nav{left:8px!important;right:8px!important;grid-auto-columns:minmax(62px,1fr)!important}.nav-btn{min-width:62px!important}.nav-btn span{font-size:7.5px!important}}
 
+
+    /* v41 profile hotfix */
+    .profile-grid-safe{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .profile-grid-safe>*{min-width:0;overflow:hidden}
+    .stat-row{display:grid;grid-template-columns:92px 1fr 48px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+    .stat-row:last-child{border-bottom:none}
+    .stat-row b{text-align:right;font-family:Orbitron,Inter,sans-serif}
+    .precision-fix{max-width:100%;overflow:hidden;overflow-wrap:anywhere}
+    @media(max-width:390px){.profile-grid-safe{grid-template-columns:1fr}.stat-row{grid-template-columns:82px 1fr 42px}}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -1428,6 +1438,18 @@
     </div>`;
   }
 
+
+  function safeRenderTabV41(name, renderer){
+    try{
+      if(typeof renderer === 'function') return renderer();
+      return `<div class="dashboard"><div class="hero-card"><div class="tag">SYSTEM FALLBACK</div><h1>${escapeHtml(name)} belum siap.</h1><p>Renderer tab ini tidak ditemukan. SYSTEM mencegah crash dan mengarahkanmu kembali ke Status.</p><button class="btn" onclick="state.activeTab='status';save({noSync:true});renderDashboard()">Back to Status</button></div></div>`;
+    }catch(err){
+      console.error('tab-render-error', name, err);
+      return `<div class="dashboard"><div class="hero-card judgement-card"><div class="tag">TAB ERROR</div><h1>${escapeHtml(name)} error.</h1><p>${escapeHtml(err.message || String(err))}</p><button class="btn" onclick="state.activeTab='status';save({noSync:true});renderDashboard()">Back to Status</button></div></div>`;
+    }
+  }
+
+
   function renderDashboard(){
     safeHardRestoreV37();
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
@@ -1447,13 +1469,13 @@
     fab.innerHTML = icon('plus');
     fab.onclick = triggerSystemModal;
 
-    const content = state.activeTab === 'status' ? renderStatusTab() :
-                    state.activeTab === 'orders' ? renderOrdersTab() :
-                    state.activeTab === 'judgement' ? renderJudgementTab() :
-                    state.activeTab === 'penalty' ? renderPenaltyTab() :
-                    state.activeTab === 'analysis' ? renderAnalysisTab() :
-                    state.activeTab === 'profile' ? renderProfileTab() :
-                    renderCoreTab();
+    const content = state.activeTab === 'status' ? safeRenderTabV41('STATUS', renderStatusTab) :
+                    state.activeTab === 'orders' ? safeRenderTabV41('ORDER', renderOrdersTab) :
+                    state.activeTab === 'judgement' ? safeRenderTabV41('JUDGEMENT', renderJudgementTab) :
+                    state.activeTab === 'penalty' ? safeRenderTabV41('PENALTY', renderPenaltyTab) :
+                    state.activeTab === 'analysis' ? safeRenderTabV41('ANALYSIS', renderAnalysisTab) :
+                    state.activeTab === 'profile' ? safeRenderTabV41('PROFILE', renderProfileTab) :
+                    safeRenderTabV41('CORE', renderCoreTab);
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     updateSyncUiV35();
@@ -1730,6 +1752,71 @@
         </div>
       </div>`;
   }
+
+
+  function renderProfileTab(){
+    const p = state.profile || {};
+    const sys = state.system || {};
+    const prog = state.progress || {};
+    const stats = sys.currentStats || {strength:0,vitality:0,agility:0,recovery:0,discipline:0};
+    const totalStats = Number(stats.strength||0)+Number(stats.vitality||0)+Number(stats.agility||0)+Number(stats.recovery||0)+Number(stats.discipline||0);
+    const rank = sys.rank || 'E';
+    const title = sys.title || 'Candidate';
+    const level = prog.level || 1;
+    const exp = prog.exp || 0;
+    const expToNext = prog.expToNext || 300;
+    const expPct = Math.min(100, Math.round((exp / expToNext) * 100)) || 0;
+
+    return `
+      <div class="dashboard">
+        <div class="hero-card">
+          <div class="tag">PLAYER PROFILE</div>
+          <div class="identity">
+            <div style="display:flex;align-items:center;gap:14px;min-width:0">
+              <div class="avatar-core ${p.avatarData?'has-photo':''}" ${p.avatarData?`style="background-image:url(${p.avatarData})"`:''}>${p.avatarData?'':tigerLogo("small")}</div>
+              <div style="min-width:0">
+                <h2 class="precision-fix">${escapeHtml(p.name || 'Unknown Player')}</h2>
+                <p>Level ${level} · Rank ${escapeHtml(rank)} · ${escapeHtml(title)}</p>
+              </div>
+            </div>
+            <div class="rank-badge"><span>EXP</span><b>${exp}</b><span>/ ${expToNext}</span></div>
+          </div>
+          <div class="glow-line"></div>
+          <div class="exp-track"><span style="width:${expPct}%"></span></div>
+          <p style="margin-top:12px">Status window aktif. SYSTEM membaca tubuh, disiplin, dan progresmu sebagai data, bukan alasan.</p>
+        </div>
+
+        <div class="section-head"><h3>Identity Data</h3><span>player record</span></div>
+        <div class="profile-grid-safe">
+          <div class="plan-card"><h4>Identity</h4><p>Age ${escapeHtml(p.age || '-')} · ${escapeHtml(p.gender || '-')} · ${escapeHtml(p.condition || '-')}</p></div>
+          <div class="plan-card"><h4>Body</h4><p>${escapeHtml(p.height || '-')} cm · ${escapeHtml(p.weight || '-')} kg → ${escapeHtml(p.targetWeight || '-')} kg · BMI ${escapeHtml(sys.bmi || '-')}</p></div>
+          <div class="plan-card"><h4>Progression</h4><p>Level ${level} · Rank ${escapeHtml(rank)} · Streak ${prog.streak || 0} · Stat Points ${prog.statPoints || 0}</p></div>
+          <div class="plan-card"><h4>Protocol</h4><p>${escapeHtml(sys.protocolName || 'Daily Order')} · ${escapeHtml(sys.weeklyWorkouts || '-')}x/week · ${escapeHtml(sys.workoutMinutes || '-')} min</p></div>
+        </div>
+
+        <div class="section-head"><h3>Status Window</h3><span>Total ${totalStats}</span></div>
+        <div class="plan-card">
+          ${statLineSafeV41('Strength', stats.strength || 0)}
+          ${statLineSafeV41('Vitality', stats.vitality || 0)}
+          ${statLineSafeV41('Agility', stats.agility || 0)}
+          ${statLineSafeV41('Recovery', stats.recovery || 0)}
+          ${statLineSafeV41('Discipline', stats.discipline || 0)}
+        </div>
+
+        <div class="section-head"><h3>System Warning</h3><span>no excuse</span></div>
+        <div class="force-command">
+          <h4>Data ini tidak naik karena dilihat. Data ini naik karena order diselesaikan.</h4>
+          <p>Jika kamu berhenti, angka berhenti. Jika kamu gagal sebelum 00.00, judgement mencatat kegagalan. SYSTEM tidak memohon; SYSTEM menunggu eksekusi.</p>
+        </div>
+      </div>`;
+  }
+
+  function statLineSafeV41(title, value){
+    const v = Number(value || 0);
+    return `<div class="stat-row"><span>${escapeHtml(title)}</span><div class="bar"><span data-width="${Math.min(100,v)}%"></span></div><b>${v}</b></div>`;
+  }
+
+
 
   function renderCoreTab(){
     const s = state.system;
