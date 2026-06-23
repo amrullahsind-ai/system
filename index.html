@@ -466,6 +466,13 @@
 
     @media(max-width:390px){.chronicle-stats{grid-template-columns:1fr}.countdown-time{font-size:44px}}
 
+
+    /* v35 auto sync */
+    .autosync-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 11px;border-radius:999px;background:rgba(117,251,255,.07);border:1px solid rgba(117,251,255,.16);font-size:11px;font-weight:900;color:#d9fbff;letter-spacing:.04em}
+    .autosync-pill.dirty{background:rgba(255,211,111,.08);border-color:rgba(255,211,111,.18);color:#ffe6a7}
+    .autosync-pill.error{background:rgba(255,85,119,.08);border-color:rgba(255,85,119,.18);color:#ffd9e2}
+    .autosync-pill.ok{background:rgba(104,255,174,.08);border-color:rgba(104,255,174,.18);color:#d8ffe8}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -622,12 +629,15 @@
       return structuredClone(defaultState);
     }
   }
-  function save(){
+  function save(options={}){
     try{
       hardRestoreIfProgressWipedV33();
       state.savedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       writeHardBackupsV33();
+      if(!options.noSync && state.sync?.enabled !== false){
+        markDirtyAndScheduleSyncV35();
+      }
     }catch(e){ console.error('save failed', e); }
   }
   function restoreBackupV31(){
@@ -1263,6 +1273,8 @@
                     state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
+    updateSyncUiV35();
+    setTimeout(()=>autoLoadFromSheetsOnStartV35(), 500);
     animateBars();
     attachDashboardEvents();
     if(state.onboardingComplete){
@@ -1582,7 +1594,7 @@
                 <button class="btn secondary" id="backupSheetsBtn">Backup to Sheet</button>
                 <button class="btn secondary" id="restoreSheetsBtn">Restore from Sheet</button>
               </div>
-              <div class="sync-status" id="sheetSyncStatus">Status: endpoint aktif via /api/sheets-sync. Pastikan SHEETS_WEBAPP_URL sudah dipasang di Vercel ENV dan project sudah redeploy.</div>
+              <div class="autosync-pill" id="autoSyncPill">LOCAL</div><div class="sync-status" id="sheetSyncStatus">AUTO SYNC READY. Setelah Player ID disimpan, setiap perubahan progress akan otomatis dikirim ke spreadsheet.</div>
             </div>
           </div>
 
@@ -1692,7 +1704,7 @@
       if(!pid){ showToast('Player ID wajib diisi.'); return; }
       localStorage.setItem(STORAGE_KEY + '_PLAYER_ID', pid);
       showToast('Player ID saved.');
-      const el = document.getElementById('sheetSyncStatus'); if(el) el.textContent = 'Player ID saved. Jalankan Backup to Sheet.';
+      autoLoadFromSheetsOnStartV35.done=false; const el = document.getElementById('sheetSyncStatus'); if(el) el.textContent = 'Player ID saved. Auto-sync akan load/push otomatis.'; setTimeout(()=>autoLoadFromSheetsOnStartV35(),300);
     };
     const backupSheetsBtn = document.getElementById('backupSheetsBtn');
     if(backupSheetsBtn) backupSheetsBtn.onclick = backupToSheetsV33;
@@ -2120,7 +2132,7 @@ Tulis transmission final yang lengkap sekarang.`;
 
   async function sheetsSyncRequestV33(action){
     const url = localStorage.getItem(STORAGE_KEY + '_SHEETS_URL') || '';
-    const playerId = localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || 'player').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'player';
+    const playerId = getPlayerIdV35();
     if(!url) throw new Error('Apps Script Web App URL belum diisi.');
     const payload = { action, playerId, state:{ profile:state.profile, system:state.system, progress:state.progress, quests:state.quests, history:state.history || [], penalty:state.penalty || {}, logs:state.logs || [], savedAt:new Date().toISOString() } };
     const res = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
@@ -2128,12 +2140,125 @@ Tulis transmission final yang lengkap sekarang.`;
     if(!data.ok) throw new Error(data.error || 'Sheets sync failed');
     return data;
   }
+
+  function getPlayerIdV35(){
+    return localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || 'player').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'player';
+  }
+
+  function syncStatusTextV35(){
+    const s = state.sync || {};
+    if(s.lastError) return 'AUTO SYNC ERROR: ' + s.lastError;
+    if(s.dirty) return 'AUTO SYNC: menunggu kirim perubahan...';
+    if(s.lastSyncedAt) return 'AUTO SYNC OK: ' + new Date(s.lastSyncedAt).toLocaleString('id-ID');
+    return 'AUTO SYNC READY';
+  }
+
+  function updateSyncUiV35(){
+    const el = document.getElementById('sheetSyncStatus');
+    if(el) el.textContent = syncStatusTextV35();
+    const pill = document.getElementById('autoSyncPill');
+    if(pill){
+      const s = state.sync || {};
+      pill.className = 'autosync-pill ' + (s.lastError ? 'error' : s.dirty ? 'dirty' : s.lastSyncedAt ? 'ok' : '');
+      pill.textContent = s.lastError ? 'SYNC ERROR' : s.dirty ? 'SYNC QUEUED' : s.lastSyncedAt ? 'SYNCED' : 'LOCAL';
+    }
+  }
+
+  function markDirtyAndScheduleSyncV35(){
+    state.sync = state.sync || {};
+    state.sync.dirty = true;
+    state.sync.lastError = '';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateSyncUiV35();
+    clearTimeout(markDirtyAndScheduleSyncV35.timer);
+    markDirtyAndScheduleSyncV35.timer = setTimeout(()=>autoPushToSheetsV35(), 1500);
+  }
+
+  async function autoPushToSheetsV35(){
+    if(!state.onboardingComplete) return;
+    if(state.sync?.enabled === false) return;
+    if(autoPushToSheetsV35.busy) return;
+    autoPushToSheetsV35.busy = true;
+    try{
+      state.sync = state.sync || {};
+      state.sync.lastStatus = 'SYNCING';
+      updateSyncUiV35();
+      const data = await sheetsSyncRequestV33('save');
+      state.sync.dirty = false;
+      state.sync.lastError = '';
+      state.sync.lastSyncedAt = data.updatedAt || new Date().toISOString();
+      state.sync.lastStatus = 'SYNCED';
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      writeHardBackupsV33();
+      updateSyncUiV35();
+    }catch(err){
+      state.sync = state.sync || {};
+      state.sync.lastError = err.message || 'Auto sync failed';
+      state.sync.lastStatus = 'ERROR';
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateSyncUiV35();
+      clearTimeout(autoPushToSheetsV35.retryTimer);
+      autoPushToSheetsV35.retryTimer = setTimeout(()=>autoPushToSheetsV35(), 15000);
+    }finally{
+      autoPushToSheetsV35.busy = false;
+    }
+  }
+
+  async function autoLoadFromSheetsOnStartV35(){
+    if(autoLoadFromSheetsOnStartV35.done) return;
+    autoLoadFromSheetsOnStartV35.done = true;
+    const playerId = getPlayerIdV35();
+    if(!playerId || !state.onboardingComplete) return;
+    try{
+      state.sync = state.sync || {};
+      state.sync.lastStatus = 'LOADING';
+      updateSyncUiV35();
+      const data = await sheetsSyncRequestV33('load');
+      if(data.state){
+        const serverScore = progressScoreV33(data.state);
+        const localScore = progressScoreV33(state);
+        const serverTime = new Date(data.state.savedAt || data.updatedAt || 0).getTime();
+        const localTime = new Date(state.savedAt || 0).getTime();
+        if(serverScore > localScore || serverTime > localTime){
+          state.profile = data.state.profile || state.profile;
+          state.system = data.state.system || state.system;
+          state.progress = data.state.progress || state.progress;
+          state.quests = data.state.quests || state.quests;
+          state.history = data.state.history || state.history || [];
+          state.penalty = data.state.penalty || state.penalty || {};
+          state.logs = data.state.logs || state.logs || [];
+          state.sync.loadedFromServer = true;
+          state.sync.lastError = '';
+          state.sync.lastSyncedAt = data.updatedAt || new Date().toISOString();
+          state.sync.dirty = false;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          writeHardBackupsV33();
+          renderDashboard();
+          showToast('Progress dimuat dari spreadsheet.');
+        }else{
+          // local is newer, push it to server
+          markDirtyAndScheduleSyncV35();
+        }
+      }else{
+        // no server data, first push local data
+        markDirtyAndScheduleSyncV35();
+      }
+      updateSyncUiV35();
+    }catch(err){
+      state.sync = state.sync || {};
+      state.sync.lastError = err.message || 'Auto load failed';
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateSyncUiV35();
+    }
+  }
+
+
   async function backupToSheetsV33(){
     const el = document.getElementById('sheetSyncStatus');
     try{
       if(el) el.textContent = 'SYSTEM: mengirim backup ke spreadsheet...';
       const data = await sheetsSyncRequestV33('save');
-      if(el) el.textContent = 'BACKUP COMPLETE: ' + (data.updatedAt || new Date().toISOString());
+      state.sync = state.sync || {}; state.sync.dirty=false; state.sync.lastSyncedAt=data.updatedAt || new Date().toISOString(); state.sync.lastError=''; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); updateSyncUiV35(); if(el) el.textContent = 'BACKUP COMPLETE: ' + (data.updatedAt || new Date().toISOString());
       showHologramTransmission('SPREADSHEET BACKUP COMPLETE', `SYSTEM menyimpan progress ke server spreadsheet. Data lokal tidak lagi menjadi satu-satunya sumber.`, {primary:'ACCEPT'});
     }catch(err){ if(el) el.textContent = 'ERROR: ' + err.message; showToast('Sheets backup gagal.'); }
   }
@@ -2150,7 +2275,7 @@ Tulis transmission final yang lengkap sekarang.`;
       state.history = data.state.history || state.history || [];
       state.penalty = data.state.penalty || state.penalty || {};
       state.logs = data.state.logs || state.logs || [];
-      save();
+      save({noSync:true});
       if(el) el.textContent = 'RESTORE COMPLETE: data spreadsheet berhasil dimuat.';
       renderDashboard();
       showHologramTransmission('SPREADSHEET RESTORE COMPLETE', `SYSTEM memuat ulang progress dari server spreadsheet. Jangan hapus Player ID jika ingin sinkron tetap sama.`, {primary:'ACCEPT'});

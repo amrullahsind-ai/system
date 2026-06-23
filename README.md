@@ -224,3 +224,14 @@ Changes:
 - Spreadsheet URL is now stored in Vercel ENV: `SHEETS_WEBAPP_URL`.
 - App only asks for Player ID.
 - Added `VERCEL_ENV_SETUP.md`.
+
+## v35 Auto Sheets Sync
+
+Changes:
+- App auto-loads spreadsheet data when dashboard starts and Player ID exists.
+- Every `save()` now queues auto-sync unless called with `{noSync:true}`.
+- Auto sync is debounced 1.5 seconds to avoid spam.
+- Failed sync retries after 15 seconds.
+- Manual Backup/Restore buttons remain as emergency fallback.
+- Sync status pill added in Core.
+- `/api/sheets-sync` now sends Cache-Control: no-store.
