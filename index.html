@@ -451,6 +451,19 @@
     .db-step p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
     .precision-fix{max-width:100%;overflow:hidden;overflow-wrap:anywhere}
     .holo-body,.trans-body{max-height:64dvh!important;overflow:auto!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+
+    /* v33 hard persistence + sheets sync + force system */
+    .force-card{border-color:rgba(255,54,92,.34)!important;background:linear-gradient(180deg,rgba(48,7,20,.82),rgba(5,9,18,.94))!important;box-shadow:0 0 0 1px rgba(255,54,92,.10),0 24px 70px rgba(255,0,64,.10)!important}
+    .force-banner{padding:14px 16px;border-radius:20px;border:1px solid rgba(255,54,92,.22);background:rgba(255,54,92,.08);font-size:13px;line-height:1.55;color:#ffe9ee}
+    .sync-grid{display:grid;gap:12px}
+    .sync-field{display:grid;gap:7px}.sync-field label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .sync-input{width:100%;border:1px solid rgba(117,251,255,.16);background:rgba(0,0,0,.22);border-radius:16px;padding:13px;color:white;font-size:14px;outline:none}
+    .sync-status{padding:12px;border-radius:16px;background:rgba(117,251,255,.06);border:1px solid rgba(117,251,255,.12);font-size:12px;color:#cafbff;line-height:1.45;word-break:break-word}
+    .compulsion-list{display:grid;gap:10px}
+    .compulsion-item{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:13px;border-radius:17px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+    .compulsion-item b{color:#fff}.compulsion-item span{color:var(--muted);font-size:12px}
+    .system-redline{color:#ff6b87;font-weight:900;text-shadow:0 0 10px rgba(255,75,112,.18)}
+
     @media(max-width:390px){.chronicle-stats{grid-template-columns:1fr}.countdown-time{font-size:44px}}
 
     @media (max-width:390px){
@@ -611,12 +624,10 @@
   }
   function save(){
     try{
+      hardRestoreIfProgressWipedV33();
       state.savedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      localStorage.setItem(STORAGE_KEY + '_BACKUP', JSON.stringify({
-        profile: state.profile, system: state.system, progress: state.progress,
-        quests: state.quests, logs: state.logs, savedAt: state.savedAt
-      }));
+      writeHardBackupsV33();
     }catch(e){ console.error('save failed', e); }
   }
   function restoreBackupV31(){
@@ -1228,6 +1239,7 @@
   }
 
   function renderDashboard(){
+    hardRestoreIfProgressWipedV33();
     if(typeof ensureQuestProgress === 'function') ensureQuestProgress();
     if(typeof updatePenaltyState === 'function') updatePenaltyState();
     const tabs = ['status','orders','proof','analysis','core'];
@@ -1538,6 +1550,13 @@
               <button class="btn secondary" id="reminderBtn">${s.reminders ? 'Reminder: ON' : 'Reminder: OFF'}</button>
             </div>
           </div>
+          
+          <div class="plan-card force-card">
+            <h4>Push Notification Reality Check</h4>
+            <p>Firebase di browser tidak otomatis jalan saat HP ditutup. Saat app ditutup, JavaScript berhenti. Agar notif tetap muncul, harus ada server/trigger yang mengirim push ke token Firebase.</p>
+            <div class="force-banner">Jalur murah: Apps Script time trigger cek spreadsheet setiap jam, lalu kirim FCM push. Tanpa server trigger, notif hanya reliable saat app masih aktif/terbuka.</div>
+          </div>
+
           <div class="plan-card push-card">
             <h4>Firebase Push Server</h4>
             <p>Aktifkan agar SYSTEM bisa mengirim push notification dari server. Ini berbeda dari hologram di dalam app.</p>
@@ -1549,6 +1568,24 @@
             ${state.push?.token ? `<div class="token-box">${escapeHtml(state.push.token)}</div>` : `<p class="tiny" style="margin-top:10px">Token belum dibuat. Aktifkan push setelah Firebase config dipasang di Vercel.</p>`}
           </div>
           
+          
+          <div class="plan-card sync-card">
+            <h4>Spreadsheet Server Sync</h4>
+            <p>Link Apps Script sekarang tidak dimasukkan di aplikasi. Link server disimpan di Vercel Environment Variable: <code>SHEETS_WEBAPP_URL</code>. App hanya butuh Player ID.</p>
+            <div class="sync-grid">
+              <div class="sync-field">
+                <label>Player ID</label>
+                <input class="sync-input" id="playerIdInput" placeholder="contoh: sevila-player-01" value="${escapeHtml(localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-'))}">
+              </div>
+              <div class="quest-actions">
+                <button class="btn" id="saveSheetsConfigBtn">Save Player ID</button>
+                <button class="btn secondary" id="backupSheetsBtn">Backup to Sheet</button>
+                <button class="btn secondary" id="restoreSheetsBtn">Restore from Sheet</button>
+              </div>
+              <div class="sync-status" id="sheetSyncStatus">Status: endpoint aktif via /api/sheets-sync. Pastikan SHEETS_WEBAPP_URL sudah dipasang di Vercel ENV dan project sudah redeploy.</div>
+            </div>
+          </div>
+
           <div class="plan-card database-card">
             <h4>Database Implementation Plan</h4>
             <p>Untuk login dan progress permanen, SYSTEM harus pindah dari localStorage ke Supabase Auth + database. Local backup hanya pengaman sementara.</p>
@@ -1647,6 +1684,20 @@
       }
       save(); renderDashboard();
     });
+
+
+    const saveSheetsConfigBtn = document.getElementById('saveSheetsConfigBtn');
+    if(saveSheetsConfigBtn) saveSheetsConfigBtn.onclick = () => {
+      const pid = document.getElementById('playerIdInput')?.value.trim();
+      if(!pid){ showToast('Player ID wajib diisi.'); return; }
+      localStorage.setItem(STORAGE_KEY + '_PLAYER_ID', pid);
+      showToast('Player ID saved.');
+      const el = document.getElementById('sheetSyncStatus'); if(el) el.textContent = 'Player ID saved. Jalankan Backup to Sheet.';
+    };
+    const backupSheetsBtn = document.getElementById('backupSheetsBtn');
+    if(backupSheetsBtn) backupSheetsBtn.onclick = backupToSheetsV33;
+    const restoreSheetsBtn = document.getElementById('restoreSheetsBtn');
+    if(restoreSheetsBtn) restoreSheetsBtn.onclick = restoreFromSheetsV33;
 
     const recalcBtn = document.getElementById('recalcBtn');
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem({forceNewQuests:false}); save(); showToast('Protocol dikalibrasi ulang tanpa hapus progress hari ini.'); renderDashboard(); };
@@ -2032,7 +2083,7 @@ ATURAN OUTPUT:
 - Jangan markdown, jangan **, jangan backtick.
 - Jangan berhenti di label kosong.
 - Jangan jawab hanya "PLAYER:".
-- Jawab singkat, dingin, otoriter, dan intimidatif. Jangan yapping. Namun jangan pernah memotong kalimat di tengah; selesaikan semua kalimat dengan utuh. Boleh lebih kalau perlu, tapi harus selesai.
+- Jawab pendek, dingin, memaksa, dan seperti SYSTEM yang memberi perintah. Maksimal 6 kalimat kecuali user minta detail. Jangan yapping. Jangan pernah memotong kalimat di tengah; semua kalimat harus selesai utuh. Boleh lebih kalau perlu, tapi harus selesai.
 - Gunakan format ini dan isi semuanya:
 
 PLAYER: ${p.name || 'Unknown'}
@@ -2064,6 +2115,46 @@ Stats: ${JSON.stringify(s.currentStats || {})}
 Quest: ${(state.quests || []).map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ') || 'Belum ada quest'}
 
 Tulis transmission final yang lengkap sekarang.`;
+  }
+
+
+  async function sheetsSyncRequestV33(action){
+    const url = localStorage.getItem(STORAGE_KEY + '_SHEETS_URL') || '';
+    const playerId = localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || 'player').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'player';
+    if(!url) throw new Error('Apps Script Web App URL belum diisi.');
+    const payload = { action, playerId, state:{ profile:state.profile, system:state.system, progress:state.progress, quests:state.quests, history:state.history || [], penalty:state.penalty || {}, logs:state.logs || [], savedAt:new Date().toISOString() } };
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Sheets sync failed');
+    return data;
+  }
+  async function backupToSheetsV33(){
+    const el = document.getElementById('sheetSyncStatus');
+    try{
+      if(el) el.textContent = 'SYSTEM: mengirim backup ke spreadsheet...';
+      const data = await sheetsSyncRequestV33('save');
+      if(el) el.textContent = 'BACKUP COMPLETE: ' + (data.updatedAt || new Date().toISOString());
+      showHologramTransmission('SPREADSHEET BACKUP COMPLETE', `SYSTEM menyimpan progress ke server spreadsheet. Data lokal tidak lagi menjadi satu-satunya sumber.`, {primary:'ACCEPT'});
+    }catch(err){ if(el) el.textContent = 'ERROR: ' + err.message; showToast('Sheets backup gagal.'); }
+  }
+  async function restoreFromSheetsV33(){
+    const el = document.getElementById('sheetSyncStatus');
+    try{
+      if(el) el.textContent = 'SYSTEM: mengambil backup dari spreadsheet...';
+      const data = await sheetsSyncRequestV33('load');
+      if(!data.state) throw new Error('Data player belum ada di spreadsheet.');
+      state.profile = data.state.profile || state.profile;
+      state.system = data.state.system || state.system;
+      state.progress = data.state.progress || state.progress;
+      state.quests = data.state.quests || state.quests;
+      state.history = data.state.history || state.history || [];
+      state.penalty = data.state.penalty || state.penalty || {};
+      state.logs = data.state.logs || state.logs || [];
+      save();
+      if(el) el.textContent = 'RESTORE COMPLETE: data spreadsheet berhasil dimuat.';
+      renderDashboard();
+      showHologramTransmission('SPREADSHEET RESTORE COMPLETE', `SYSTEM memuat ulang progress dari server spreadsheet. Jangan hapus Player ID jika ingin sinkron tetap sama.`, {primary:'ACCEPT'});
+    }catch(err){ if(el) el.textContent = 'ERROR: ' + err.message; showToast('Sheets restore gagal.'); }
   }
 
   function triggerSystemModal(){

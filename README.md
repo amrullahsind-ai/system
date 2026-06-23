@@ -207,3 +207,20 @@ Changes:
 - AI instruction: short, cold, authoritarian, no yapping, but complete all sentences.
 - Database plan added to Core.
 - Supabase schema updated with history and penalty fields.
+
+## v33 Sheets Sync + Hard Persistence + Force System
+- Hard backup: BACKUP, HARD_BACKUP, LAST_GOOD.
+- If progress suddenly becomes 0 but backup has progress, app restores automatically.
+- Spreadsheet Server Sync added in Core.
+- apps_script/Code.gs included for Google Sheets backend.
+- Push notification explanation added: Firebase needs server/trigger when phone is closed.
+- AI tone made shorter, colder, more commanding.
+
+## v34 ENV Sheets Sync
+
+Changes:
+- Removed Apps Script URL input from app UI.
+- Added `api/sheets-sync.js` as Vercel serverless proxy.
+- Spreadsheet URL is now stored in Vercel ENV: `SHEETS_WEBAPP_URL`.
+- App only asks for Player ID.
+- Added `VERCEL_ENV_SETUP.md`.
