@@ -539,6 +539,77 @@
     .countdown-time{font-variant-numeric:tabular-nums;line-height:1.05!important;word-break:normal!important;overflow-wrap:normal!important}
     @media(max-width:390px){:root{--bottom-safe-space:170px}.bottom-nav{left:6px!important;right:6px!important;grid-auto-columns:minmax(58px,1fr)!important;padding:7px!important}.nav-btn{min-width:58px!important;padding:7px 3px!important}.nav-btn span{font-size:6.8px!important}.fab{width:54px!important;height:54px!important;right:10px!important;bottom:calc(112px + var(--safe-bottom))!important}.countdown-time{font-size:40px!important}}
 
+
+    /* v43 single row nav fix */
+    :root{--bottom-safe-space:118px!important}
+    .footer-space{height:calc(118px + var(--safe-bottom))!important}
+    .screen{padding-bottom:calc(118px + var(--safe-bottom))!important}
+    .dashboard{padding-bottom:24px!important}
+    .bottom-nav{
+      display:grid!important;
+      grid-template-columns:repeat(7,minmax(0,1fr))!important;
+      grid-auto-flow:unset!important;
+      grid-auto-columns:unset!important;
+      grid-template-rows:1fr!important;
+      overflow:visible!important;
+      left:8px!important;
+      right:8px!important;
+      bottom:calc(8px + var(--safe-bottom))!important;
+      padding:7px!important;
+      gap:4px!important;
+      min-height:72px!important;
+      max-height:78px!important;
+      border-radius:26px!important;
+      z-index:70!important;
+    }
+    .bottom-nav.show{display:grid!important}
+    .nav-btn{
+      min-width:0!important;
+      width:100%!important;
+      height:58px!important;
+      padding:6px 2px!important;
+      gap:4px!important;
+      border-radius:18px!important;
+    }
+    .nav-btn svg{
+      width:16px!important;
+      height:16px!important;
+      flex:0 0 auto!important;
+    }
+    .nav-btn span{
+      display:block!important;
+      max-width:100%!important;
+      overflow:hidden!important;
+      text-overflow:clip!important;
+      white-space:nowrap!important;
+      font-size:6.7px!important;
+      line-height:1!important;
+      letter-spacing:.02em!important;
+    }
+    .nav-btn.active{
+      transform:none!important;
+      box-shadow:inset 0 0 0 1px rgba(117,251,255,.14),0 10px 28px rgba(55,128,255,.13)!important;
+    }
+    .fab{
+      width:50px!important;
+      height:50px!important;
+      right:14px!important;
+      bottom:calc(92px + var(--safe-bottom))!important;
+      border-radius:18px!important;
+      z-index:74!important;
+      font-size:24px!important;
+    }
+    @media(max-width:390px){
+      :root{--bottom-safe-space:116px!important}
+      .screen{padding-bottom:calc(116px + var(--safe-bottom))!important}
+      .footer-space{height:calc(116px + var(--safe-bottom))!important}
+      .bottom-nav{left:5px!important;right:5px!important;padding:6px!important;gap:3px!important;min-height:68px!important;max-height:72px!important}
+      .nav-btn{height:54px!important;border-radius:16px!important}
+      .nav-btn svg{width:15px!important;height:15px!important}
+      .nav-btn span{font-size:6px!important;letter-spacing:0!important}
+      .fab{width:48px!important;height:48px!important;right:10px!important;bottom:calc(86px + var(--safe-bottom))!important}
+    }
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -552,6 +623,10 @@
       .stats-grid,.comparison{grid-template-columns:1fr 1fr}
       .grid.two{grid-template-columns:1fr}
     }
+  
+    /* v43 final override */
+    .bottom-nav.show{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;grid-template-rows:1fr!important}
+
   </style>
 </head>
 <body>
@@ -1490,7 +1565,7 @@
     const tabs = ['status','orders','judgement','penalty','analysis','profile','core'];
     if(!tabs.includes(state.activeTab)) state.activeTab = 'status';
     bottomNav.className='bottom-nav show';
-    const navLabels = {status:'STATUS', orders:'ORDER', judgement:'JUDGE', penalty:'PENALTY', analysis:'ANALYSIS', profile:'PROFILE', core:'CORE'};
+    const navLabels = {status:'STAT', orders:'ORDER', judgement:'JUDGE', penalty:'PENALTY', analysis:'ANALYS', profile:'PROFIL', core:'CORE'};
     bottomNav.innerHTML = tabs.map(tab => `
       <button class="nav-btn ${state.activeTab===tab?'active':''}" data-tab="${tab}">
         ${icon(tab)}

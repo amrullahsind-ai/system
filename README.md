@@ -287,3 +287,9 @@ Changes:
 - Made nav labels smaller and shortened JUDGEMENT to JUDGE.
 - Added robust countdown ticker: updates all `[data-midnight-countdown]` elements every second after each render.
 - Added responsive fixes for small screens.
+
+## v43 Single Row Nav Fix
+- Bottom nav forced into exactly one row with 7 equal columns.
+- Reduced nav item size and label length.
+- Moved lightning FAB above nav so it no longer covers Analysis.
+- Reduced excessive bottom blank space.
