@@ -503,6 +503,14 @@
     .force-command h4{margin:0 0 8px;color:#fff}.force-command p{margin:0;color:#ffdce5;font-size:13px;line-height:1.5}
     .nav-btn span{font-size:9px!important}
 
+
+    /* v40 clean nav */
+    .bottom-nav{grid-auto-columns:minmax(68px,1fr)!important}
+    .nav-btn{min-width:68px!important;padding:9px 6px!important}
+    .nav-btn svg{width:19px!important;height:19px!important}
+    .nav-btn span{font-size:8.5px!important;letter-spacing:.04em!important;white-space:nowrap}
+    @media(max-width:390px){.bottom-nav{left:8px!important;right:8px!important;grid-auto-columns:minmax(62px,1fr)!important}.nav-btn{min-width:62px!important}.nav-btn span{font-size:7.5px!important}}
+
     @media (max-width:390px){
       .profile-power,.inline-kpi{grid-template-columns:1fr!important}
       .proof-action-grid,.quest-actions{grid-template-columns:1fr!important}
@@ -853,6 +861,7 @@
       judgement:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       penalty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M12 8v5" stroke-linecap="round"/><path d="M12 16h.01" stroke-linecap="round"/></svg>',
       analysis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19l4-6 3 3 6-10" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5h14v14" opacity=".3"/></svg>',
+      profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="4"/><path d="M5 21a7 7 0 0114 0" stroke-linecap="round"/></svg>',
       core:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.2 4.5 4.8.7-3.5 3.4.8 4.9L12 13.3 7.7 15.5l.8-4.9L5 7.2l4.8-.7L12 2z" stroke-linejoin="round"/></svg>',
       check:'✓', back:'←', plus:'⚡'
     };
@@ -1426,10 +1435,11 @@
     const tabs = ['status','orders','judgement','penalty','analysis','profile','core'];
     if(!tabs.includes(state.activeTab)) state.activeTab = 'status';
     bottomNav.className='bottom-nav show';
+    const navLabels = {status:'STATUS', orders:'ORDER', judgement:'JUDGEMENT', penalty:'PENALTY', analysis:'ANALYSIS', profile:'PROFILE', core:'CORE'};
     bottomNav.innerHTML = tabs.map(tab => `
       <button class="nav-btn ${state.activeTab===tab?'active':''}" data-tab="${tab}">
         ${icon(tab)}
-        <span>${tab==='status'?'STATUS':tab==='orders'?'ORDER':tab==='proof'?'PROOF':tab==='analysis'?'ANALYSIS':'CORE'}</span>
+        <span>${navLabels[tab] || tab.toUpperCase()}</span>
       </button>`).join('');
     bottomNav.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => { state.activeTab = btn.dataset.tab; save(); renderDashboard(); });
 
@@ -1441,7 +1451,9 @@
                     state.activeTab === 'orders' ? renderOrdersTab() :
                     state.activeTab === 'judgement' ? renderJudgementTab() :
                     state.activeTab === 'penalty' ? renderPenaltyTab() :
-                    state.activeTab === 'analysis' ? renderAnalysisTab() : renderCoreTab();
+                    state.activeTab === 'analysis' ? renderAnalysisTab() :
+                    state.activeTab === 'profile' ? renderProfileTab() :
+                    renderCoreTab();
 
     screenRoot.innerHTML = `<section class="screen active">${content}<div class="footer-space"></div></section>`;
     updateSyncUiV35();
@@ -2502,7 +2514,7 @@ Tulis transmission final yang lengkap sekarang.`;
       try{ data = JSON.parse(text); }catch{}
       if(!res.ok || !data || data.ok === false){
         const msg = data?.error || text || ('HTTP ' + res.status);
-        if(box){ box.className='diag-box error'; box.textContent = 'SYNC DIAGNOSTIC FAILED\\n' + msg + '\\n\\nCek: SHEETS_WEBAPP_URL di Vercel ENV, redeploy, Apps Script access Anyone, dan SHEET_ID.'; }
+        if(box){ box.className='diag-box error'; box.textContent = 'SYNC DIAGNOSTIC FAILED\\n' + msg + '\\n\\nCek: di Apps Script, isi SPREADSHEET_ID_OR_URL dengan URL/ID Google Sheet yang benar. Jangan pakai Apps Script ID. Setelah ganti, Deploy ulang Web App.'; }
         return;
       }
       if(box){ box.className='diag-box ok'; box.textContent = 'SYNC DIAGNOSTIC OK\\nEndpoint /api/sheets-sync berhasil menjangkau Apps Script.\\nPlayer ID: ' + (playerId || 'diagnostic-test') + '\\nData found: ' + (data.state ? 'YES' : 'NO / first backup needed'); }

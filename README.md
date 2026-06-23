@@ -267,3 +267,10 @@ Changes:
 - Core now contains Authority Core + Sync Diagnostics + database controls.
 - Added `Run Sync Diagnostic` to verify `/api/sheets-sync` actually reaches Apps Script.
 - If Google Sheet is empty, run diagnostic and Force Backup Now.
+
+## v40 Clean Nav + Sheets Repair
+- Fixed duplicated CORE labels in bottom navigation.
+- Added explicit labels for STATUS, ORDER, JUDGEMENT, PENALTY, ANALYSIS, PROFILE, CORE.
+- Fixed routing so PROFILE opens Profile, not Core.
+- Updated Apps Script to accept either full Google Sheet URL or Spreadsheet ID.
+- Added clearer diagnostic guidance for `Illegal spreadsheet id or key`.

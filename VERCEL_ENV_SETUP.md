@@ -25,3 +25,7 @@ Aplikasi akan memanggil:
 /api/sheets-sync
 
 Endpoint itu yang meneruskan request ke Apps Script.
+
+
+## Error: Illegal spreadsheet id or key
+Artinya yang salah ada di Apps Script `SPREADSHEET_ID_OR_URL`, bukan di Vercel ENV. Isi dengan URL Google Sheet, contoh `https://docs.google.com/spreadsheets/d/xxxxx/edit`, lalu Deploy ulang Apps Script Web App.

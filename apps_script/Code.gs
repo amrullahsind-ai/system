@@ -1,7 +1,7 @@
 /**
  * ARISE SYSTEM v33 - Google Sheets Server Sync
  */
-const SHEET_ID = 'PASTE_GOOGLE_SHEET_ID_HERE';
+const SPREADSHEET_ID_OR_URL = 'PASTE_GOOGLE_SHEET_URL_OR_ID_HERE';
 const SHEET_NAME = 'arise_profiles';
 
 function doPost(e) {
@@ -28,7 +28,7 @@ function doPost(e) {
   }
 }
 function getSheet_() {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const ss = openSpreadsheet_();
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
@@ -52,4 +52,26 @@ function upsert_(sheet, playerId, stateJson, updatedAt) {
 }
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function openSpreadsheet_() {
+  const raw = String(SPREADSHEET_ID_OR_URL || '').trim();
+  if (!raw || raw === 'PASTE_GOOGLE_SHEET_URL_OR_ID_HERE') {
+    throw new Error('SPREADSHEET_ID_OR_URL belum diisi. Isi dengan URL atau ID Google Sheet, bukan Apps Script ID.');
+  }
+
+  // Accept full Google Sheet URL or raw spreadsheet ID.
+  const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const id = match ? match[1] : raw
+    .replace(/^https?:\/\/docs\.google\.com\/spreadsheets\/d\//, '')
+    .split('/')[0]
+    .split('?')[0]
+    .trim();
+
+  if (!/^[a-zA-Z0-9-_]{20,}$/.test(id)) {
+    throw new Error('Spreadsheet ID tidak valid: ' + id + '. Pakai URL Google Sheet atau ID dari URL /spreadsheets/d/ID/edit.');
+  }
+
+  return SpreadsheetApp.openById(id);
 }
