@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     const data = await upstream.json();
     if (!upstream.ok) return res.status(upstream.status).json({ error: data?.error?.message || 'Gemini request failed.' });
 
-    let text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('\\n') || '';
+    let text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('\n') || '';
     text = text
       .replace(/```[a-zA-Z]*\\n?/g, '')
       .replace(/```/g, '')

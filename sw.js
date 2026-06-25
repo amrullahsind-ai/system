@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arise-system-v44';
+const CACHE_NAME = 'arise-system-v44.2';
 const ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => Promise.all(ASSETS.map(asset => cache.add(asset).catch(() => null)))).then(() => self.skipWaiting()));

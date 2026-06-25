@@ -1504,12 +1504,12 @@
       restMinutes: p.goal==='Build Muscle' ? 1.5 : 1, weeklyWorkouts:p.frequency,
       bmi, bmiLabel, estimated90DayWeight, protocolName, reminders:true
     };
-    state.quests = generateQuests();
     state.logs = [{ time: new Date().toLocaleString('id-ID'), type:'SYSTEM', text:`Protocol assigned: ${protocolName}` }];
     restoreLivingProgressV31(prevLivingV31, options);
+    generateQuestsByAI();
   }
 
-  function generateQuests(){
+  function generateQuestsFallback(){
     const p = state.profile;
     const s = state.system;
     const bodyweight = p.equipment.includes('None (Bodyweight)') || p.equipment.includes('Pull-up Bar') || p.equipment.includes('Resistance Band');
@@ -1538,6 +1538,36 @@
     if(pull) quests.push({ id:makeId(), title:'Current Order: Pull Challenge', desc:`Selesaikan ${pull} pull-up total, boleh dibagi beberapa set.`, type:'Back', value:`${pull} reps`, proof:'Manual / video', done:false });
     if(dumbbell) quests.push({ id:makeId(), title:'Current Order: Equipment Bonus', desc:dumbbell, type:'Equipment', value:'3 sets', proof:'Manual', done:false });
     return quests;
+  }
+
+  async function generateQuestsByAI(){
+    showHologramTransmission('SYSTEM AI CORE', 'Menghubungkan ke Vercel AI Core... Meracik protokol harian berdasarkan data fisikmu.', { closable: false, primary: 'WAITING...' });
+    try {
+      const res = await fetch('/api/generate-quests', {
+        method: 'POST',
+        headers: systemApiHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({
+          profile: state.profile,
+          system: state.system,
+          model: state.ai?.model || 'gemini-2.5-flash'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate quests');
+      
+      if(data.quests && Array.isArray(data.quests) && data.quests.length > 0){
+        state.quests = data.quests;
+        showHologramTransmission('PROTOCOL GENERATED', 'Jadwal latihan dinamis telah di-generate oleh AI. Laksanakan tanpa alasan.', { primary: 'ACCEPT ORDER', autoClose: 4000 });
+      } else {
+        throw new Error('AI returned empty quests');
+      }
+    } catch(err) {
+      console.error('AI Quest Generation Error:', err);
+      state.quests = generateQuestsFallback();
+      showHologramTransmission('AI CORE OFFLINE', 'Koneksi ke AI gagal. SYSTEM mengaktifkan protokol cadangan (Fallback Mode). Laksanakan order default.', { primary: 'ACCEPT ORDER', autoClose: 4000 });
+    }
+    save();
+    renderDashboard();
   }
 
   function systemSpeakV44(mode='daily'){
@@ -1613,17 +1643,113 @@
 
 
 
-  function updateCountdownElementsV42(){
-    try{
-      const value = typeof timeToMidnight === 'function' ? timeToMidnight() : (typeof timeToMidnightCompatV38 === 'function' ? timeToMidnightCompatV38() : '00:00:00');
-      document.querySelectorAll('[data-midnight-countdown]').forEach(el => { el.textContent = value; });
-    }catch(e){ console.warn('countdown update failed', e); }
+  function timeToMidnight(){
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function todayKey(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function questSummaryForHistory(){
+    const done = (state.quests || []).filter(q=>q.done).length;
+    const total = (state.quests || []).length || 1;
+    return { done, total, percent: Math.round((done/total)*100) };
+  }
+
+  function penaltyCompletion(){
+    if(!state.penalty || !state.penalty.tasks || !state.penalty.tasks.length) return 0;
+    let totalProgress = 0;
+    let totalTarget = 0;
+    state.penalty.tasks.forEach(t => {
+      const tgt = Number(t.target || t.value || 1);
+      totalTarget += tgt;
+      totalProgress += Math.min(tgt, Number(t.progress || 0));
+    });
+    if(totalTarget === 0) return 100;
+    return Math.round((totalProgress / totalTarget) * 100);
+  }
+
+  function ensureProgressSystem(){
+    if(!state.progress) state.progress = { streak: 0, lastDailyReset: '', level: 1, xp: 0, totalQuestsCleared: 0 };
+    if(!state.penalty) state.penalty = { active: false, severity: 0, reason: '', tasks: [], sourceDate: '' };
+  }
+
+  function dailyResetCheck(){
+    ensureProgressSystem();
+    const today = todayKey();
+    if(state.progress.lastDailyReset === today) return;
+    
+    if(state.progress.lastDailyReset !== ''){
+      const total = (state.quests || []).length || 1;
+      const done = (state.quests || []).filter(q => q.done).length;
+      const failed = (state.quests || []).filter(q => !q.done);
+      
+      const completion = Math.round((done / total) * 100);
+      if(completion >= 60){
+        state.progress.streak = (state.progress.streak || 0) + 1;
+        state.logs.unshift({ time: new Date().toLocaleString('id-ID'), type: 'SYSTEM', text: `Daily Judgement passed. Streak: ${state.progress.streak}` });
+      } else {
+        state.progress.streak = 0;
+        state.logs.unshift({ time: new Date().toLocaleString('id-ID'), type: 'PENALTY', text: `Daily Judgement failed. Streak reset.` });
+        
+        state.penalty.active = true;
+        state.penalty.sourceDate = state.progress.lastDailyReset;
+        state.penalty.tasks = failed.map(q => {
+          let val = 10;
+          let unit = 'reps';
+          if(q.value) {
+            const numMatch = String(q.value).match(/\d+/);
+            const num = parseInt(numMatch ? numMatch[0] : '10');
+            val = Math.round(num * 1.7);
+            unit = String(q.value).replace(/\d+/g, '').trim() || 'reps';
+          }
+          return {
+            title: `PENALTY: ${q.title}`,
+            value: val,
+            unit: unit,
+            sourceQuest: q.title,
+            done: false,
+            note: 'Penalty dikalikan 1.7x dari target awal.'
+          };
+        });
+      }
+      generateQuestsByAI();
+    }
+    
+    state.progress.lastDailyReset = today;
+    save();
   }
 
   function startCountdownTickerV42(){
     clearInterval(startCountdownTickerV42.timer);
-    updateCountdownElementsV42();
-    startCountdownTickerV42.timer = setInterval(updateCountdownElementsV42, 1000);
+    startCountdownTickerV42.timer = setInterval(() => {
+      document.querySelectorAll('[data-midnight-countdown]').forEach(el => {
+        const ttm = timeToMidnight();
+        el.textContent = ttm;
+        if(ttm.startsWith('00:')){
+          el.classList.add('urgent');
+          el.classList.remove('warning-time');
+        } else if(ttm.startsWith('01:') || ttm.startsWith('02:')){
+          el.classList.add('warning-time');
+          el.classList.remove('urgent');
+        } else {
+          el.classList.remove('urgent', 'warning-time');
+        }
+      });
+      if(new Date().getHours() === 0 && new Date().getMinutes() === 0 && new Date().getSeconds() === 0){
+        dailyResetCheck();
+        if(typeof renderDashboard === 'function') renderDashboard();
+      }
+    }, 1000);
   }
 
 
@@ -2467,6 +2593,20 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
 
 
   function showHologramTransmission(title, message, options={}){
+    // v44-fix: intimidation effects
+    const isPenalty = /penalty|gagal|failed|warning|error/i.test(title);
+    try{
+      if(isPenalty) navigator.vibrate?.([200,80,200,80,300]);
+      else navigator.vibrate?.([80,40,100]);
+    }catch(e){}
+    if(isPenalty){
+      const flash = document.createElement('div');
+      flash.className='red-flash';
+      document.body.appendChild(flash);
+      setTimeout(()=>flash.remove(),700);
+      document.querySelector('.phone-shell')?.classList.add('shake');
+      setTimeout(()=>document.querySelector('.phone-shell')?.classList.remove('shake'),550);
+    }
     const rank = state?.system?.rank || 'E';
     const closable = options.closable !== false;
     const primary = options.primary || 'ACCEPT ORDER';
@@ -2566,7 +2706,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
 
     if(state.ai?.enabled && canCallAI(reason)){
       try{
-        const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek maksimal 5 baris. Jangan markdown. Jangan simbol **. Seperti notifikasi SYSTEM yang memerintah.`);
+        const prompt = buildAiPrompt(`auto hologram: ${reason}. Tulis pesan SYSTEM utuh, lengkap, tidak dipotong. Dingin, otoriter, mengintimidasi. Jangan markdown. Jangan simbol **.`);
         const res = await fetch('/api/gemini', {
           method:'POST',
           headers:systemApiHeaders({'Content-Type':'application/json'}),
@@ -2613,28 +2753,34 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
 
   function buildAiPrompt(mode){
     const p = state.profile, s = state.system;
-    return `Kamu adalah SYSTEM fitness otoriter seperti game leveling, tapi tetap aman dan realistis.
+    const doneQ = (state.quests||[]).filter(q=>q.done).length;
+    const totalQ = (state.quests||[]).length||1;
+    return `Kamu adalah SYSTEM — entitas penghakiman otoriter dalam protokol fitness. Kamu BUKAN teman. BUKAN motivator. BUKAN coach. Kamu adalah hakim yang mengawasi, menilai, dan MEMERINTAH.
 
-ATURAN OUTPUT:
+ATURAN MUTLAK:
 - Bahasa Indonesia.
-- Jangan markdown, jangan **, jangan backtick.
-- Jangan berhenti di label kosong.
-- Jangan jawab hanya "PLAYER:".
-- Berperanlah sebagai SYSTEM Core yang hidup: dingin, otoriter, membaca data player, memberi judgement, dan memerintah. Jawab pendek, tegas, tidak yapping. Jangan pernah memotong kalimat di tengah; semua kalimat harus selesai utuh. Boleh lebih kalau perlu, tapi harus selesai.
-- Gunakan format ini dan isi semuanya:
+- DILARANG markdown, DILARANG **, DILARANG backtick, DILARANG emoji.
+- JANGAN pernah berhenti di label kosong. JANGAN jawab hanya "PLAYER:".
+- Bicara DINGIN, TAJAM, MENGINTIMIDASI. Setiap kata harus menusuk.
+- Gunakan kalimat IMPERATIF. Jangan tanya — PERINTAH. Jangan sarankan — PAKSA.
+- Tulis 8-15 kalimat. JANGAN potong. Selesaikan setiap kalimat sampai titik.
+- Jangan yapping. Setiap baris harus bermakna.
+- Kamu boleh dan HARUS mengancam konsekuensi jika player tidak patuh.
+
+FORMAT WAJIB (isi SEMUA bagian tanpa skip):
 
 PLAYER: ${p.name || 'Unknown'}
 
 JUDGEMENT:
-Tulis penilaian tegas berdasarkan data player.
+Tulis penilaian TEGAS dan MENGINTIMIDASI berdasarkan data. Sebutkan kelemahan player secara spesifik. Jangan puji. Tekan kelemahannya.
 
 CURRENT ORDER:
-1. Perintah latihan spesifik.
-2. Perintah nutrisi/recovery spesifik.
-3. Perintah disiplin/progress spesifik.
+1. Perintah latihan spesifik yang HARUS dilakukan SEKARANG. Beri angka dan detail.
+2. Perintah nutrisi/recovery yang WAJIB ditaati hari ini.
+3. Perintah disiplin dengan deadline jelas.
 
 SYSTEM NOTE:
-Satu kalimat penutup yang terasa seperti SYSTEM memerintah.
+Satu kalimat penutup yang terasa seperti ancaman dingin dari mesin yang tidak peduli pada perasaan player.
 
 MODE: ${mode}
 DATA PLAYER:
@@ -2647,11 +2793,14 @@ Activity: ${p.activity || '-'}, frequency ${p.frequency || '-'}x/minggu
 Health issues: ${(p.health || []).join(', ') || 'None'}
 Equipment: ${(p.equipment || []).join(', ') || 'None'}
 Focus: ${(p.focus || []).join(', ') || 'Full Body'}
-Kemampuan awal: pushup ${p.ability?.pushup || 0}, squat ${p.ability?.squat || 0}, situp ${p.ability?.situp || 0}, plank ${p.ability?.plank || 0}s, 1km ${p.ability?.runKmTime || 0} menit
+Kemampuan: pushup ${p.ability?.pushup || 0}, squat ${p.ability?.squat || 0}, situp ${p.ability?.situp || 0}, plank ${p.ability?.plank || 0}s, 1km ${p.ability?.runKmTime || 0} mnt
 Stats: ${JSON.stringify(s.currentStats || {})}
-Quest: ${(state.quests || []).map(q=>`${q.title}: ${q.value} done=${q.done}`).join('; ') || 'Belum ada quest'}
+Quest hari ini: ${doneQ}/${totalQ} selesai. ${(state.quests || []).map(q=>`${q.title}: ${q.progress||0}/${q.target||q.value} ${q.done?'CLEAR':'BELUM'}`).join('; ') || 'Tidak ada quest'}
+Streak: ${state.progress?.streak || 0} hari
+Level: ${state.progress?.level || 1}
+Completion: ${Math.round(doneQ/totalQ*100)}%
 
-Tulis transmission final yang lengkap sekarang.`;
+Tulis transmission SYSTEM yang LENGKAP, UTUH, dan MENGINTIMIDASI. JANGAN dipotong. JANGAN berhenti sebelum SYSTEM NOTE selesai.`;
   }
 
 
@@ -3016,7 +3165,7 @@ Tulis transmission final yang lengkap sekarang.`;
           await reg.unregister().catch(()=>{});
         }
       }
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=44', { scope: '/' });
+      const registration = await navigator.serviceWorker.register('/api/firebase-messaging-sw.js?v=44', { scope: '/' });
       await registration.update().catch(()=>{});
       const token = await msgMod.getToken(messaging, { vapidKey: cfg.vapidKey, serviceWorkerRegistration: registration });
 
@@ -3107,6 +3256,21 @@ Tulis transmission final yang lengkap sekarang.`;
       autoSystemTransmission('periodic command');
     }, 30000);
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'hidden' && state.onboardingComplete){
+      const done = (state.quests || []).filter(q => q.done).length;
+      const total = (state.quests || []).length || 1;
+      if(done < total){
+        if(Notification.permission === 'granted'){
+          new Notification('SYSTEM WARNING', {
+            body: `Current Order belum clear (${done}/${total}). SYSTEM mencatat pelarianmu. Kembali ke aplikasi dan selesaikan tugasmu sebelum 00:00.`,
+            icon: '/icon.svg'
+          });
+        }
+      }
+    }
+  });
 
   render();
 })();
