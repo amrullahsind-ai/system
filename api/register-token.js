@@ -1,5 +1,8 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const expectedToken = process.env.SYSTEM_API_TOKEN;
+  const providedToken = req.headers['x-system-token'] || String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (expectedToken && providedToken !== expectedToken) return res.status(401).json({ error: 'Unauthorized SYSTEM request.' });
 
   const { token, player } = req.body || {};
   if (!token) return res.status(400).json({ error: 'Missing token.' });

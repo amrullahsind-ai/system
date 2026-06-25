@@ -1,7 +1,7 @@
-const CACHE_NAME = 'arise-system-v25';
+const CACHE_NAME = 'arise-system-v44';
 const ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => Promise.all(ASSETS.map(asset => cache.add(asset).catch(() => null)))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));

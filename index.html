@@ -874,6 +874,7 @@
     systemEvents: { lastAuto: '', count: 0, bootTransmissionShown: false, lastPulseAt: 0 },
     push: { enabled: false, token: '', vapidKey: '', lastPermission: 'default' },
     aiLimiter: { lastCallAt: 0, cooldownMs: 180000, status: 'READY' },
+    aiCore: { difficulty: 1, easyClears: 0, failedDays: 0, lastJudgement: 'INITIALIZED', lastCorrection: 'No correction yet', lastQuestAuditAt: '' },
     penalty: { active: false, severity: 0, reason: '', tasks: [] }
   };
 
@@ -1514,12 +1515,15 @@
     const bodyweight = p.equipment.includes('None (Bodyweight)') || p.equipment.includes('Pull-up Bar') || p.equipment.includes('Resistance Band');
     const a = p.ability || { pushup:10, squat:20, situp:15, plank:30, runKmTime:10 };
     const intensity = p.condition === 'Already Training' ? 1.45 : p.activity === 'Very Active' ? 1.35 : p.activity === 'Moderately Active' ? 1.22 : 1.08;
-    const push = clamp(Math.round(Math.max(20, Number(a.pushup||10)*2.8*intensity)), 20, 140);
-    const squat = clamp(Math.round(Math.max(35, Number(a.squat||20)*2.4*intensity)), 35, 180);
-    const crunch = clamp(Math.round(Math.max(30, Number(a.situp||15)*2.5*intensity)), 30, 150);
-    const plank = clamp(Math.round(Math.max(70, Number(a.plank||30)*2.1*intensity)), 70, 360);
-    const walk = p.goal === 'Lose Weight' ? 9000 : p.goal === 'Build Muscle' ? 6500 : 7500;
-    const pull = p.equipment.includes('Pull-up Bar') ? Math.max(4, Math.round(s.currentStats.strength/6)) : 0;
+    state.aiCore = state.aiCore || { difficulty: 1, easyClears: 0, failedDays: 0, lastJudgement: 'INITIALIZED', lastCorrection: 'No correction yet', lastQuestAuditAt: '' };
+    const difficulty = clamp(Number(state.aiCore.difficulty || 1), 0.75, 2.4);
+    const scaleTarget = (value, min, max) => clamp(Math.round(value * difficulty), min, max);
+    const push = scaleTarget(Math.max(20, Number(a.pushup||10)*2.8*intensity), 20, 220);
+    const squat = scaleTarget(Math.max(35, Number(a.squat||20)*2.4*intensity), 35, 260);
+    const crunch = scaleTarget(Math.max(30, Number(a.situp||15)*2.5*intensity), 30, 220);
+    const plank = scaleTarget(Math.max(70, Number(a.plank||30)*2.1*intensity), 70, 540);
+    const walk = scaleTarget(p.goal === 'Lose Weight' ? 9000 : p.goal === 'Build Muscle' ? 6500 : 7500, 4500, 16000);
+    const pull = p.equipment.includes('Pull-up Bar') ? Math.max(4, Math.round((s.currentStats.strength/6) * difficulty)) : 0;
     const dumbbell = p.equipment.includes('Dumbbells') ? 'Dumbbell Row 3x12 / sisi' : null;
 
     const quests = [
@@ -1534,6 +1538,54 @@
     if(pull) quests.push({ id:makeId(), title:'Current Order: Pull Challenge', desc:`Selesaikan ${pull} pull-up total, boleh dibagi beberapa set.`, type:'Back', value:`${pull} reps`, proof:'Manual / video', done:false });
     if(dumbbell) quests.push({ id:makeId(), title:'Current Order: Equipment Bonus', desc:dumbbell, type:'Equipment', value:'3 sets', proof:'Manual', done:false });
     return quests;
+  }
+
+  function systemSpeakV44(mode='daily'){
+    state.aiCore = state.aiCore || {};
+    const completion = typeof todayCompletion === 'function' ? todayCompletion() : 0;
+    const difficulty = Number(state.aiCore.difficulty || 1).toFixed(2);
+    if(mode === 'clear') return `CLEAR CONFIRMED. Difficulty ${difficulty}x. SYSTEM is watching execution speed, not excuses.`;
+    if(completion >= 85) return `DAILY JUDGEMENT: acceptable output. Difficulty ${difficulty}x remains under review. Clear the remaining order before 00.00.`;
+    if(completion >= 45) return `DAILY JUDGEMENT: partial compliance. Difficulty ${difficulty}x. Finish the order or accept penalty.`;
+    return `DAILY JUDGEMENT: insufficient execution. Difficulty ${difficulty}x. Open Current Order and record real progress now.`;
+  }
+
+  function generateSystemOrdersV44(){
+    const completion = typeof todayCompletion === 'function' ? todayCompletion() : 0;
+    const remaining = (state.quests || []).filter(q=>!q.done).length;
+    const difficulty = Number(state.aiCore?.difficulty || 1).toFixed(2);
+    const orders = [
+      { title:'Primary Order', text: remaining ? `Clear ${remaining} unfinished quest before midnight. Current completion ${completion}%.` : 'All daily quests are clear. Maintain recovery protocol.' },
+      { title:'Difficulty Law', text: `Current multiplier is ${difficulty}x. Easy clears raise the next target. Missed days trigger correction.` },
+      { title:'Proof Law', text:'Manual input is accepted as progress, but repeated perfect clears without friction will increase SYSTEM suspicion.' }
+    ];
+    if(state.penalty?.active) orders.unshift({ title:'Penalty Active', text:'Penalty Zone is active. Clear penalty tasks before chasing rank-up.' });
+    return orders;
+  }
+
+  function livingQuestAuditV44(q, previousProgress=0){
+    state.aiCore = state.aiCore || { difficulty:1, easyClears:0, failedDays:0 };
+    const qp = questProgress(q);
+    const previous = Number(previousProgress || 0);
+    const gained = Math.max(0, Number(q.progress || 0) - previous);
+    const clearedNow = q.done && previous < qp.target;
+    state.aiCore.lastQuestAuditAt = new Date().toISOString();
+    if(clearedNow){
+      const jumpRatio = gained / Math.max(1, qp.target);
+      if(jumpRatio >= 0.85){
+        state.aiCore.easyClears = Number(state.aiCore.easyClears || 0) + 1;
+        if(state.aiCore.easyClears >= 2){
+          state.aiCore.difficulty = clamp(Number(state.aiCore.difficulty || 1) + 0.08, 0.75, 2.4);
+          state.aiCore.lastCorrection = `Difficulty raised after easy clear: ${q.title}`;
+        }
+      } else {
+        state.aiCore.easyClears = Math.max(0, Number(state.aiCore.easyClears || 0) - 1);
+        state.aiCore.lastCorrection = `Clear accepted with verified partial grind: ${q.title}`;
+      }
+      state.aiCore.lastJudgement = `QUEST CLEAR: ${q.title}`;
+    } else {
+      state.aiCore.lastJudgement = `PROGRESS LOGGED: ${q.title} +${gained}`;
+    }
   }
 
 
@@ -1753,6 +1805,14 @@
       severity === 1 ? 'Progress harian berada di bawah standar SYSTEM.' :
       severity === 2 ? 'Banyak order belum tervalidasi. Kedisiplinan rendah terdeteksi.' :
       'Player hampir tidak bergerak. Penalty Zone diaktifkan.';
+    state.aiCore = state.aiCore || { difficulty: 1, easyClears: 0, failedDays: 0 };
+    if(severity > 0 && state.penalty.lastDifficultyCorrectionDay !== todayKey()){
+      state.aiCore.failedDays = Number(state.aiCore.failedDays || 0) + 1;
+      state.aiCore.easyClears = 0;
+      state.aiCore.difficulty = clamp(Number(state.aiCore.difficulty || 1) + (severity * 0.03), 0.75, 2.4);
+      state.aiCore.lastCorrection = `Penalty correction raised difficulty. Severity ${severity}.`;
+      state.penalty.lastDifficultyCorrectionDay = todayKey();
+    }
     state.penalty.tasks = severity === 0 ? [] : [
       {title:'Emergency Push-up', value: severity * 10, unit:'reps'},
       {title:'Plank Hold', value: severity * 30, unit:'seconds'},
@@ -2048,6 +2108,16 @@
             <div class="local-safe">LOCAL BACKUP ACTIVE · SUPABASE NEXT</div>
             <p class="tiny" style="margin-top:10px">Kalau browser clear site data, local progress tetap bisa hilang. Database diperlukan untuk penyimpanan permanen.</p>
           </div>
+          <div class="plan-card database-card">
+            <h4>Private API Lock</h4>
+            <p>Jika <code>SYSTEM_API_TOKEN</code> dipasang di Vercel, isi token yang sama di sini agar AI, Sheets, dan Push endpoint menerima request dari device ini.</p>
+            <div class="field"><label>System API Token</label><input class="input" id="systemApiTokenInput" type="password" autocomplete="off" value="${escapeHtml(localStorage.getItem(STORAGE_KEY + '_API_TOKEN') || '')}"></div>
+            <div class="quest-actions">
+              <button class="btn" id="saveApiTokenBtn">Save Token</button>
+              <button class="btn secondary" id="clearApiTokenBtn">Clear Token</button>
+            </div>
+            <p class="tiny" style="margin-top:10px">Kosongkan Vercel env <code>SYSTEM_API_TOKEN</code> jika ingin mode public/personal tanpa lock.</p>
+          </div>
           <div class="plan-card ai-online">
             <h4>AI Core</h4>
             <p>AI tidak lagi disimpan di browser. Key Gemini dipasang di Vercel Environment Variable, lalu app memanggil endpoint aman <b>/api/gemini</b>.</p>
@@ -2091,7 +2161,7 @@
     document.querySelectorAll('.proof-save-btn').forEach(btn => btn.onclick = () => {
       const idx = Number(btn.dataset.proofIndex);
       const q = state.quests[idx];
-    const previousProgressV44 = Number(q?.progress || 0); if(!q) return;
+      if(!q) return;
       const note = document.getElementById('proofNote'+idx)?.value || '';
       q.proofNote = note.trim();
       q.proofLogged = true;
@@ -2148,6 +2218,21 @@
     if(backupSheetsBtn) backupSheetsBtn.onclick = backupToSheetsV33;
     const restoreSheetsBtn = document.getElementById('restoreSheetsBtn');
     if(restoreSheetsBtn) restoreSheetsBtn.onclick = restoreFromSheetsV33;
+
+    const saveApiTokenBtn = document.getElementById('saveApiTokenBtn');
+    if(saveApiTokenBtn) saveApiTokenBtn.onclick = () => {
+      const token = document.getElementById('systemApiTokenInput')?.value.trim() || '';
+      if(token) localStorage.setItem(STORAGE_KEY + '_API_TOKEN', token);
+      else localStorage.removeItem(STORAGE_KEY + '_API_TOKEN');
+      showToast(token ? 'System API token saved.' : 'System API token cleared.');
+    };
+    const clearApiTokenBtn = document.getElementById('clearApiTokenBtn');
+    if(clearApiTokenBtn) clearApiTokenBtn.onclick = () => {
+      localStorage.removeItem(STORAGE_KEY + '_API_TOKEN');
+      const input = document.getElementById('systemApiTokenInput');
+      if(input) input.value = '';
+      showToast('System API token cleared.');
+    };
 
     const recalcBtn = document.getElementById('recalcBtn');
     if(recalcBtn) recalcBtn.onclick = () => { calculateProfileSystem({forceNewQuests:false}); save(); showToast('Protocol dikalibrasi ulang tanpa hapus progress hari ini.'); renderDashboard(); };
@@ -2355,6 +2440,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
     document.getElementById('cancelProgressBtn').onclick = () => modalRoot.innerHTML = '';
     document.getElementById('saveProgressBtn').onclick = () => {
       const n = Math.max(0, Number(input.value || 0) || 0);
+      const previousProgressV44 = Number(q.progress || 0);
       const next = mode === 'add' ? Math.min(target, progress + n) : Math.min(target, n);
       q.progress = next;
       q.done = next >= target;
@@ -2483,7 +2569,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
         const prompt = buildAiPrompt(`auto hologram transmission: ${reason}. Buat pesan pendek maksimal 5 baris. Jangan markdown. Jangan simbol **. Seperti notifikasi SYSTEM yang memerintah.`);
         const res = await fetch('/api/gemini', {
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers:systemApiHeaders({'Content-Type':'application/json'}),
           body: JSON.stringify({ prompt, mode:'auto', model: state.ai.model || 'gemini-2.5-flash' })
         });
         const data = await res.json();
@@ -2507,7 +2593,7 @@ ORDER 3: Catat progress. Progress saat ini ${percent}%.`;
       const prompt = buildAiPrompt(mode);
       const res = await fetch('/api/gemini', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:systemApiHeaders({'Content-Type':'application/json'}),
         body: JSON.stringify({ prompt, mode, model: state.ai.model || 'gemini-2.5-flash' })
       });
       const data = await res.json();
@@ -2570,14 +2656,18 @@ Tulis transmission final yang lengkap sekarang.`;
 
 
   async function sheetsSyncRequestV33(action){
-    const url = localStorage.getItem(STORAGE_KEY + '_SHEETS_URL') || '';
     const playerId = getPlayerIdV35();
-    if(!url) throw new Error('Apps Script Web App URL belum diisi.');
     const payload = { action, playerId, state:{ profile:state.profile, system:state.system, progress:state.progress, quests:state.quests, history:state.history || [], penalty:state.penalty || {}, logs:state.logs || [], savedAt:new Date().toISOString() } };
-    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
-    const data = await res.json();
-    if(!data.ok) throw new Error(data.error || 'Sheets sync failed');
-    return data;
+    const headers = systemApiHeaders({'Content-Type':'application/json'});
+    const sheetRes = await fetch('/api/sheets-sync', { method:'POST', headers, body:JSON.stringify(payload) });
+    const sheetData = await sheetRes.json().catch(() => ({ ok:false, error:'Sheets sync returned invalid JSON.' }));
+    if(sheetRes.ok && sheetData.ok) return sheetData;
+
+    const profileRes = await fetch('/api/profile', { method:'POST', headers, body:JSON.stringify(payload) });
+    const profileData = await profileRes.json().catch(() => ({ ok:false, error:'Supabase profile sync returned invalid JSON.' }));
+    if(profileRes.ok && profileData.ok) return profileData;
+
+    throw new Error((sheetData.error || 'Sheets sync failed') + ' | Supabase: ' + (profileData.error || 'profile sync failed'));
   }
 
 
@@ -2591,16 +2681,24 @@ Tulis transmission final yang lengkap sekarang.`;
 
   function safeHardRestoreV37(){
     try{
-      if(typeof hardRestoreIfProgressWipedV33 === 'function') return safeHardRestoreV37();
-      if(window.hardRestoreIfProgressWipedV33) return window.safeHardRestoreV37();
+      if(window.hardRestoreIfProgressWipedV33) return window.hardRestoreIfProgressWipedV33();
     }catch(e){}
     return false;
   }
   function safeWriteHardBackupsV37(){
     try{
-      if(typeof writeHardBackupsV33 === 'function') return safeWriteHardBackupsV37();
-      if(window.writeHardBackupsV33) return window.safeWriteHardBackupsV37();
+      if(window.writeHardBackupsV33) return window.writeHardBackupsV33();
     }catch(e){}
+  }
+
+  function ensureSpreadsheetPlayerIdV46(){
+    let playerId = localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || '';
+    playerId = playerId.trim();
+    if(playerId.length >= 2) return playerId;
+    const nameBase = (state.profile?.name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    const generated = nameBase || ('player-' + Math.random().toString(36).slice(2,8));
+    localStorage.setItem(STORAGE_KEY + '_PLAYER_ID', generated);
+    return generated;
   }
 
 
@@ -2609,7 +2707,7 @@ Tulis transmission final yang lengkap sekarang.`;
       if(!state || !state.onboardingComplete) return false;
       if(!state.analysisDone) return false;
       if(state.__onboardingActive) return false;
-      const playerId = localStorage.getItem(STORAGE_KEY + '_PLAYER_ID');
+      const playerId = ensureSpreadsheetPlayerIdV46();
       if(!playerId || playerId.trim().length < 2) return false;
       if(state.sync?.enabled === false) return false;
       return true;
@@ -2618,15 +2716,22 @@ Tulis transmission final yang lengkap sekarang.`;
 
 
   function getPlayerIdV35(){
-    return localStorage.getItem(STORAGE_KEY + '_PLAYER_ID') || (state.profile?.name || 'player').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'player';
+    return ensureSpreadsheetPlayerIdV46();
   }
 
   function syncStatusTextV35(){
     const s = state.sync || {};
     if(s.lastError) return 'AUTO SYNC ERROR: ' + s.lastError;
     if(s.dirty) return 'AUTO SYNC: menunggu kirim perubahan...';
-    if(s.lastSyncedAt) return 'AUTO SYNC OK: ' + new Date(s.lastSyncedAt).toLocaleString('id-ID');
-    return 'AUTO SYNC READY';
+    if(s.lastSyncedAt) return 'AUTO SYNC ALWAYS ON: ' + new Date(s.lastSyncedAt).toLocaleString('id-ID');
+    return 'AUTO SYNC ALWAYS ON';
+  }
+
+  function systemApiHeaders(extra={}){
+    const headers = {...extra};
+    const token = localStorage.getItem(STORAGE_KEY + '_API_TOKEN') || '';
+    if(token) headers['X-System-Token'] = token;
+    return headers;
   }
 
   function updateSyncUiV35(){
@@ -2648,7 +2753,7 @@ Tulis transmission final yang lengkap sekarang.`;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     updateSyncUiV35();
     clearTimeout(markDirtyAndScheduleSyncV35.timer);
-    markDirtyAndScheduleSyncV35.timer = setTimeout(()=>autoPushToSheetsV35(), 1500);
+    markDirtyAndScheduleSyncV35.timer = setTimeout(()=>autoPushToSheetsV35(), 1200);
   }
 
   async function autoPushToSheetsV35(){
@@ -2674,14 +2779,15 @@ Tulis transmission final yang lengkap sekarang.`;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       updateSyncUiV35();
       clearTimeout(autoPushToSheetsV35.retryTimer);
-      autoPushToSheetsV35.retryTimer = setTimeout(()=>autoPushToSheetsV35(), 15000);
+      autoPushToSheetsV35.retryTimer = setTimeout(()=>autoPushToSheetsV35(), 6000);
     }finally{
       autoPushToSheetsV35.busy = false;
     }
   }
 
-  async function autoLoadFromSheetsOnStartV35(){
-    if(autoLoadFromSheetsOnStartV35.done) return;
+  async function autoLoadFromSheetsOnStartV35(options={}){
+    const force = !!options.force;
+    if(autoLoadFromSheetsOnStartV35.done && !force) return;
     autoLoadFromSheetsOnStartV35.done = true;
     const playerId = getPlayerIdV35();
     if(!canAutoSyncV36()) return;
@@ -2728,6 +2834,33 @@ Tulis transmission final yang lengkap sekarang.`;
     }
   }
 
+  async function autoSyncTickV46(){
+    if(!canAutoSyncV36()) return;
+    if(autoPushToSheetsV35.busy || autoLoadFromSheetsOnStartV35.busy) return;
+    state.sync = state.sync || {};
+    if(state.sync.dirty) return autoPushToSheetsV35();
+    autoLoadFromSheetsOnStartV35.busy = true;
+    try{
+      await autoLoadFromSheetsOnStartV35({force:true});
+    }finally{
+      autoLoadFromSheetsOnStartV35.busy = false;
+    }
+  }
+
+  function startSpreadsheetAutoSyncV46(){
+    if(startSpreadsheetAutoSyncV46.started) return;
+    startSpreadsheetAutoSyncV46.started = true;
+    const tick = () => autoSyncTickV46().catch(()=>{});
+    setTimeout(tick, 700);
+    clearInterval(startSpreadsheetAutoSyncV46.interval);
+    startSpreadsheetAutoSyncV46.interval = setInterval(tick, 30000);
+    window.addEventListener('online', tick);
+    window.addEventListener('focus', tick);
+    document.addEventListener('visibilitychange', () => {
+      if(!document.hidden) tick();
+    });
+  }
+
 
 
   async function runSyncDiagnosticsV39(){
@@ -2737,7 +2870,7 @@ Tulis transmission final yang lengkap sekarang.`;
     try{
       const res = await fetch('/api/sheets-sync', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:systemApiHeaders({'Content-Type':'application/json'}),
         body: JSON.stringify({ action:'load', playerId: playerId || 'diagnostic-test' })
       });
       const text = await res.text();
@@ -2869,7 +3002,7 @@ Tulis transmission final yang lengkap sekarang.`;
         return;
       }
 
-      const cfgRes = await fetch('/api/firebase-config');
+      const cfgRes = await fetch('/api/firebase-config', { headers: systemApiHeaders() });
       const cfg = await cfgRes.json();
       if(!cfg.firebaseConfig || !cfg.vapidKey) throw new Error(cfg.error || 'Firebase config/VAPID key belum lengkap di Vercel env.');
 
@@ -2883,7 +3016,7 @@ Tulis transmission final yang lengkap sekarang.`;
           await reg.unregister().catch(()=>{});
         }
       }
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=20', { scope: '/' });
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=44', { scope: '/' });
       await registration.update().catch(()=>{});
       const token = await msgMod.getToken(messaging, { vapidKey: cfg.vapidKey, serviceWorkerRegistration: registration });
 
@@ -2894,7 +3027,7 @@ Tulis transmission final yang lengkap sekarang.`;
 
       await fetch('/api/register-token', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:systemApiHeaders({'Content-Type':'application/json'}),
         body: JSON.stringify({
           token,
           player: { name: state.profile.name, rank: state.system.rank, goal: state.profile.goal }
@@ -2922,7 +3055,7 @@ Tulis transmission final yang lengkap sekarang.`;
       }
       const res = await fetch('/api/send-system-push', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:systemApiHeaders({'Content-Type':'application/json'}),
         body: JSON.stringify({
           token: state.push.token,
           title: 'SYSTEM ORDER',

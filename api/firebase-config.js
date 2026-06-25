@@ -1,4 +1,8 @@
 export default function handler(req, res) {
+  const expectedToken = process.env.SYSTEM_API_TOKEN;
+  const providedToken = req.headers['x-system-token'] || String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (expectedToken && providedToken !== expectedToken) return res.status(401).json({ error: 'Unauthorized SYSTEM request.' });
+
   const required = [
     'FIREBASE_API_KEY',
     'FIREBASE_AUTH_DOMAIN',

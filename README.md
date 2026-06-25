@@ -301,3 +301,15 @@ Changes:
 - Added Difficulty Correction: if quests are too easy, SYSTEM raises difficulty.
 - Quest clear now triggers cold SYSTEM judgement.
 - AI prompt revised to behave like a living SYSTEM Core, not a motivational chatbot.
+
+## v45 Stability + Private Core Patch
+- Restored missing `icon.svg` so manifest/service worker install no longer fails.
+- Service worker cache bumped to `arise-system-v44` and tolerates a missing optional asset.
+- Implemented missing Living Core functions: `systemSpeakV44`, `generateSystemOrdersV44`, and `livingQuestAuditV44`.
+- Fixed quest progress crash caused by `previousProgressV44` scope error.
+- Quest targets now scale with Living Core difficulty.
+- Penalty correction can raise difficulty once per day, not every render.
+- Added optional `SYSTEM_API_TOKEN` guard for Gemini, Sheets, Push, Firebase config, token registration, and Supabase profile sync endpoints.
+- Added Core UI field for storing the private API token on the device.
+- Fixed Sheets sync to use `/api/sheets-sync` instead of requiring an Apps Script URL in browser localStorage.
+- Added `/api/profile` Supabase fallback sync and `arise_player_states` schema.

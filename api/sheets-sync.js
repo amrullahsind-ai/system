@@ -4,6 +4,11 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
       return res.status(405).json({ ok: false, error: 'Method not allowed' });
     }
+    const expectedToken = process.env.SYSTEM_API_TOKEN;
+    const providedToken = req.headers['x-system-token'] || String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (expectedToken && providedToken !== expectedToken) {
+      return res.status(401).json({ ok: false, error: 'Unauthorized SYSTEM request.' });
+    }
 
     const url = process.env.SHEETS_WEBAPP_URL;
 

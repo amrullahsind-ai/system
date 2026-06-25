@@ -15,6 +15,21 @@ SHEETS_WEBAPP_URL=https://script.google.com/macros/s/AKfycbxxxxxxx/exec
 
 Pilih Production/Preview/Development jika tersedia.
 
+## Optional: Private API Lock
+Jika project dipakai pribadi dan tidak ingin endpoint AI/Sheets/Push dipanggil orang lain, tambahkan:
+
+SYSTEM_API_TOKEN=isi-token-panjang-random
+
+Setelah deploy, buka app > Core > Private API Lock, lalu isi token yang sama di field System API Token. Jika env ini dikosongkan, app berjalan seperti mode public/personal biasa.
+
+## Optional: Supabase fallback sync
+Jika tidak mau memakai Google Sheets, atau ingin fallback database permanen, tambahkan:
+
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=service-role-key
+
+Lalu jalankan `db/supabase_sync_schema.sql` di Supabase SQL Editor. Endpoint `/api/profile` akan dipakai otomatis sebagai fallback ketika `/api/sheets-sync` gagal atau belum dikonfigurasi.
+
 ## 3. Redeploy
 Environment variable baru tidak otomatis masuk ke deployment lama. Redeploy project.
 
